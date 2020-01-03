@@ -1,9 +1,42 @@
-
 <html>
-    <head>        
-    </head>
-    <body>
-        <div id="root"></div>
-        <script src="dist/bundle.js"></script>
-    </body>
+
+<head>
+    <meta charset="utf-8" /> 
+    <title>KitBasher</title>
+    <!-- <meta name="author" content="Frantic Software Inc.">
+    <meta name="description" content="Spider is a Game Engine for the Web">
+    <meta name="keywords" content="game, spider engine, engine, game engine, html5, webgl, editor, javascript, react, typescript, visual scripting, gameplay, graphics, behavior, animation">
+    <meta property="og:image" content="https://res.cloudinary.com/dpxheb148/image/upload/v1560344988/spiderengine/runtime.jpg">  
+    <link rel="shortcut icon" href="/public/favicon.png">   -->
+
+    <!-- TODO remove the loader when the editor is integrater whithin an async container -->
+    <style>      
+        .fr-loader {
+            border: 5px solid #c5c5c5;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-sizing: border-box;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -16px 0 0 -16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>    
+	<!-- <link rel="stylesheet" href="/public/icomoon/style.css" /> -->
+</head>
+
+<body style="margin: 0px;">
+    <div class="fr-loader"></div>
+    <div id="root" ></div>
+    <script type="text/javascript" src="/dist/bundle.js"></script>
+</body>
+
 </html>
