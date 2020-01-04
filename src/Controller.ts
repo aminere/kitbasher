@@ -12,15 +12,20 @@ import { AssetsInternal } from "../../spider-engine/src/assets/Assets";
 import { ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { TimeInternal } from "../../spider-engine/src/core/Time";
 import { IObjectManagerInternal } from "../../spider-engine/src/core/IObjectManager";
+import { Entity } from "../../spider-engine/src/core/Entity";
+import { Transform } from "../../spider-engine/src/core/Transform";
 
 namespace Private {
-    let editorReady = false;
+
     let canvasReady = false;
     export let canvasHasFocus = () => false;
 
+    let editorCameraEntity: Entity;
+    export const editorCamera = () => editorCameraEntity.getComponent(Camera) as Camera;
+
     function update() {
         try {
-            if (!editorReady) {
+            if (!State.engineReady) {
                 State.renderingActive = false;
                 return;
             }
@@ -68,8 +73,7 @@ namespace Private {
                 canvasReady = true;
             }
 
-            State.renderingActive = true;               
-            
+            State.renderingActive = true;            
             UpdateInternal.update(); 
 
             const renderables = Components.ofTypes([
@@ -104,37 +108,16 @@ namespace Private {
             //     editorCameraProcessPending = false;
             // }
 
-            // determine cameras to use for rendering
-            // const useEditorCamera = !engineRunning || this.getUseEditorCameraInPlayMode();
-            // let camerasForRendering: Camera[];
-            // if (useEditorCamera) {
-            //     // include scene cameras that have a render target, so that they get updated
-            //     camerasForRendering = sceneCameras.filter(c => Boolean(c.renderTarget));
-            //     camerasForRendering.push(editorCamera());
-            //     EditorState.setUsingEditorCameraAsFallback(false);
-            // } else {
-            //     if (sceneCameras.length > 0) {
-            //         camerasForRendering = sceneCameras;
-            //         EditorState.setUsingEditorCameraAsFallback(false);
-            //     } else {
-            //         if (renderables.Visual.length > 0) {
-            //             // fall back on editor camera if no cameras found in scene
-            //             camerasForRendering = [editorCamera()];
-            //             EditorState.setUsingEditorCameraAsFallback(true);
-            //         } else {
-            //             camerasForRendering = [];
-            //             EditorState.setUsingEditorCameraAsFallback(false);
-            //         }
-            //     }
-            // }
-
-            // EngineInternal.render(
-            //     camerasForRendering,
-            //     renderables,
-            //     // camera => EditorRenderer.preRender(camera),
-            //     // camera => EditorRenderer.postRender(camera),
-            //     // EditorRenderer.uiPostRender
-            // );
+            // include scene cameras that have a render target, so that they get updated
+            const camerasForRendering = sceneCameras.filter(c => Boolean(c.renderTarget));
+            camerasForRendering.push(editorCamera());
+            EngineInternal.render(
+                camerasForRendering,
+                renderables,
+                // camera => EditorRenderer.preRender(camera),
+                // camera => EditorRenderer.postRender(camera),
+                // EditorRenderer.uiPostRender
+            );
 
         } catch (e) {
             // TODO show toaster
@@ -153,10 +136,17 @@ namespace Private {
             //     [EditorSettings, UniqueObject]
             // ]
         })
+        .then(() => {
+            editorCameraEntity = new Entity();
+            editorCameraEntity.setComponent(Transform);
+            editorCameraEntity.setComponent(Camera);
+            editorCameraEntity.name = "EditorCamera";
+            editorCameraEntity.setTag("editor");
+            editorCameraEntity.transform.position.set(0, 0, 10);
+        })
         .then(() => DefaultAssetsInternal.load())
         .then(() => {
-            editorReady = true;
-            Events.editorReady.post();
+            State.engineReady = true;
             update();
         });
     });
