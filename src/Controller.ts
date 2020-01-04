@@ -93,7 +93,8 @@ namespace Private {
             const renderables = Components.ofTypes([
                 Visual,
                 Light,
-                Camera
+                Camera,
+                Screen
             ]);
             const sceneCameras = renderables.Camera as Camera[];
             sceneCameras.sort((a, b) => a.priority - b.priority);
@@ -272,10 +273,8 @@ namespace Private {
         })
         .then(() => loadEditorSettings())        
         .then(() => DefaultAssetsInternal.load())
-        .then(() => {
-            State.engineReady = true;
-            update();
-        })
+        .then(() => openScene(editorSettings.lastEditedSceneId))
+        .then(() => initEditor())
         .catch(error => {
             if ([
                 editorSettingsNotFound, 
