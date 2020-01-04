@@ -21,6 +21,9 @@ import { Debug } from "../../spider-engine/src/io/Debug";
 import { EngineError } from "../../spider-engine/src/core/EngineError";
 import { SavedDataInternal } from "../../spider-engine/src/io/SavedData";
 import { Screen } from "../../spider-engine/src/ui/Screen";
+import { Folder } from "../../spider-engine/src/io/Folder";
+import { UniqueObject } from "../../spider-engine/src/core/UniqueObject";
+import { Folders } from "../../spider-engine/src/io/Folders";
 
 namespace Private {
 
@@ -261,11 +264,11 @@ namespace Private {
     Events.canvasMounted.attach(canvas => {
         Engine.create({
             container: canvas,
-            // customTypes: [
-            //     [Folder, UniqueObject],
-            //     [Folders, UniqueObject],                
-            //     [EditorSettings, UniqueObject]
-            // ]
+            customTypes: [
+                [Folder, UniqueObject],
+                [Folders, UniqueObject],                
+                [EditorSettings, UniqueObject]
+            ]
         })
         .then(() => loadEditorSettings())        
         .then(() => DefaultAssetsInternal.load())
