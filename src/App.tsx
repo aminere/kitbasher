@@ -79,7 +79,9 @@ export class App extends React.Component {
                     title: "Assets",
                     navBarTitle: "Assets",
                     id: "Assets",
-                    isVisible: false
+                    isVisible: false,
+                    width: 20,
+                    isClosable: false
                 }
             },
             Properties: {
@@ -104,7 +106,7 @@ export class App extends React.Component {
                     props: {
                         selectedNodes: []
                     },
-                    width: 12
+                    width: 20
                 }
             },
             Canvas: {
@@ -134,15 +136,14 @@ export class App extends React.Component {
                 {
                     type: "row",
                     content: [
-                        views.Scene.config,
+                        views.Assets.config,
                         {
                             type: "stack",
                             content: [
-                                views.Canvas.config,
-                                views.Assets.config
+                                views.Canvas.config                                
                             ]
                         },
-                        views.Properties.config,
+                        views.Scene.config,
                     ]
                 }
             ]
