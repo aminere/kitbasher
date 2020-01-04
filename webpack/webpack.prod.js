@@ -1,6 +1,11 @@
 const webpack = require('webpack');
 const resolvePath = _path => require('path').resolve(__dirname, _path);
 
+const sources = [
+  resolvePath("../src"),
+  resolvePath("../../spider-engine/src"),
+];
+
 module.exports = {
   entry: './src/index.tsx',
   output: {
@@ -13,7 +18,7 @@ module.exports = {
       {
         test: /\.tsx?$/,
         enforce: 'pre',
-        include: resolvePath("../src"),
+        include: sources,
         loader: 'tslint-loader',
         options: {
           typeCheck: false
@@ -21,7 +26,7 @@ module.exports = {
       },
       {
         test: /\.tsx?$/,
-        include: resolvePath("../src"),
+        include: sources,
         loader: 'ts-loader'
       },
       {
@@ -48,6 +53,10 @@ module.exports = {
   },
   mode: 'production',
   plugins: [    
+    new webpack.DefinePlugin({      
+      'process.env.PLATFORM': JSON.stringify('web'),
+      'process.env.CONFIG': JSON.stringify('editor')
+    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false

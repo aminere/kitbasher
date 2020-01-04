@@ -4,12 +4,15 @@
     "module": "commonjs", 
     "jsx": "react",       
     "sourceMap": true,    
-    "outDir": "dist",     
-    "rootDir": "src",     
+    "outDir": "dist",
     "incremental": true,  
-    "strict": true,       
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "suppressImplicitAnyIndexErrors": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../spider-engine/src/**/*"
   ]
 }

@@ -4,6 +4,7 @@ import * as GoldenLayout from "golden-layout";
 import { Button, FocusStyleManager } from "@blueprintjs/core";
 import { NavBar } from "./NavBar";
 
+import "./common.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 
@@ -15,6 +16,7 @@ import { Properties } from "./components/Properties";
 import { Hierarchy } from "./components/Hierarchy";
 import { Assets } from "./components/Assets";
 import { Canvas } from "./components/Canvas";
+import { Controller } from "./Controller";
 
 interface ILayoutConfig {
     type: string;
@@ -33,6 +35,22 @@ interface ILayout {
     instance?: React.Component;
     // tslint:disable-next-line
     container?: any;
+}
+
+namespace Private {
+    // tslint:disable-next-line
+    export function makeFocusGetter(id: string, container: any) {
+        return () => {
+            const parent = container.glContainer.parent.parent;
+            if (parent && parent.isStack) {
+                const activeItem = parent.getActiveContentItem();
+                if (activeItem.config.id === id) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
 }
 
 export class App extends React.Component {
@@ -217,7 +235,10 @@ export class App extends React.Component {
 
         // tslint:disable-next-line
         layout.registerComponent("Canvas", (container: any, state: any) => {
+            const id = container.glContainer._config.id;
             const instance = new Canvas({});
+            container.glContainer.on("resize", (e: UIEvent) => Controller.onResize());
+            Controller.canvasFocusGetter = Private.makeFocusGetter(id, container);
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
             this._canvas = instance;
@@ -248,10 +269,8 @@ export class App extends React.Component {
         const navbarWidth = "46px";
         return (
             <div
-                className="bp3-dark"
+                className="fill-parent bp3-dark"
                 style={{
-                    width: "100%",
-                    height: "100%",
                     backgroundColor: "black"
                 }}
             >
