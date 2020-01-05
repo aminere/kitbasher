@@ -1,5 +1,6 @@
 
 const webpack = require('webpack');
+const copyPlugin = require('copy-webpack-plugin');
 const resolvePath = _path => require('path').resolve(__dirname, _path);
 
 const sources = [
@@ -63,7 +64,10 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({      
       'process.env.PLATFORM': JSON.stringify('web'),
-      'process.env.CONFIG': JSON.stringify('editor')
+      'process.env.CONFIG': JSON.stringify('standalone')
     }),
+    new copyPlugin([
+      { from: '../spider-engine/dist/default-assets.json', to: '.' }
+    ])
   ]
 };

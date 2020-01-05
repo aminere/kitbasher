@@ -1,0 +1,9 @@
+{
+  "typeName": "EngineSettings",
+  "version": 3,
+  "properties": {
+    "id": "429c2ca5-0c4a-4cbf-9270-ba51c5b312e9",
+    "name": "EngineSettings",
+    "canvasAlpha": false
+  }
+}

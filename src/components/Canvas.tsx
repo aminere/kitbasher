@@ -22,7 +22,7 @@ export class Canvas extends React.Component {
             >
                 <canvas
                     ref={e => this._canvas = e as HTMLCanvasElement}
-                    className="fr-fill-parent"
+                    className="fill-parent"
                     onMouseDown={e => Controller.onMouseDown(e)}
                     onMouseMove={e => this.handleMouseMove(e)}
                     onMouseUp={e => {
