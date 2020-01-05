@@ -1,0 +1,149 @@
+{
+  "typeName": "Scene",
+  "version": 5,
+  "id": "5b6f74a0-80ab-4254-be13-d1a0fc469791",
+  "name": "Startup",
+  "root": {
+    "id": "c32d62b1-9ee1-4500-b405-bb091c6ee119",
+    "name": "root",
+    "active": true,
+    "children": [
+      {
+        "id": "1a8b330c-111f-4a68-8325-07528d652b9c",
+        "name": "Camera",
+        "active": true,
+        "components": {
+          "Transform": {
+            "version": 2,
+            "properties": {
+              "_active": true,
+              "_position": {
+                "_x": 0,
+                "_y": 0,
+                "_z": 10
+              },
+              "_rotation": {
+                "_x": 0,
+                "_y": 0,
+                "_z": 0,
+                "_w": 1
+              },
+              "_scale": {
+                "_x": 1,
+                "_y": 1,
+                "_z": 1
+              }
+            }
+          },
+          "Camera": {
+            "version": 3,
+            "properties": {
+              "_active": true,
+              "_projector": {
+                "baseTypeName": "Projector",
+                "data": {
+                  "typeName": "PerspectiveProjector",
+                  "version": 2,
+                  "properties": {
+                    "_zNear": 0.1,
+                    "_zFar": 1000,
+                    "_fov": 60
+                  }
+                }
+              },
+              "_clearValue": "Environment",
+              "_priority": 0,
+              "_filter": {
+                "baseTypeName": "VisualFilter"
+              },
+              "_renderTarget": {
+                "typeName": "RenderTarget"
+              },
+              "_postEffects": {
+                "baseTypeName": "PostEffects"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "dd91e4ad-4fd9-43b2-b343-3b7582763b1b",
+        "name": "Light",
+        "active": true,
+        "components": {
+          "Transform": {
+            "version": 2,
+            "properties": {
+              "_active": true,
+              "_position": {
+                "_x": 5,
+                "_y": 5,
+                "_z": 10
+              },
+              "_rotation": {
+                "_x": -0.24999994128421196,
+                "_y": 0.24999994128421196,
+                "_z": 0.06698726420820995,
+                "_w": 0.93301273579179
+              },
+              "_scale": {
+                "_x": 1,
+                "_y": 1,
+                "_z": 1
+              }
+            }
+          },
+          "Light": {
+            "version": 3,
+            "properties": {
+              "_active": true,
+              "intensity": 1,
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+              },
+              "_type": {
+                "baseTypeName": "LightType",
+                "data": {
+                  "typeName": "DirectionalLight",
+                  "version": 1,
+                  "properties": {}
+                }
+              },
+              "_shadows": {
+                "baseTypeName": "Shadow",
+                "data": {
+                  "typeName": "PCFSoftShadow",
+                  "version": 1,
+                  "properties": {
+                    "radius": 4
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "environment": {
+    "baseTypeName": "Environment",
+    "data": {
+      "typeName": "ColorEnvironment",
+      "version": 1,
+      "properties": {
+        "color": {
+          "r": 0,
+          "g": 0,
+          "b": 0,
+          "a": 0
+        }
+      }
+    }
+  },
+  "fog": {
+    "baseTypeName": "Fog"
+  }
+}

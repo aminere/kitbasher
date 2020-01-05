@@ -1,13 +1,14 @@
 
 import { Events } from "./Events";
 import { Engine, EngineHandlersInternal } from "../../spider-engine/src/core/Engine";
+import { Scenes } from "../../spider-engine/src/core/Scenes";
 namespace Private {
 
     export let canvasHasFocus: () => boolean;
     function checkCanvasStatus () {
         if (canvasHasFocus()) {
             EngineHandlersInternal.onWindowResized();
-            // TODO load first scene!
+            Scenes.load("Assets/Startup.Scene");
             return;
         }
         requestAnimationFrame(checkCanvasStatus);
