@@ -1,0 +1,57 @@
+{
+  "typeName": "ObjectDefinition",
+  "version": 1,
+  "properties": {
+    "id": "bff1e443-ae11-465f-8b8b-5bae3ff37c09",
+    "name": "cube",
+    "_pins": {
+      "typeName": "BasePin",
+      "data": [
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "AssetPin",
+            "version": 2,
+            "properties": {
+              "id": "db38a336-4bbd-4b7e-b733-5746b7e8c9b7",
+              "name": "thumbnail",
+              "type": 2,
+              "_assetType": "Texture2D",
+              "value": {
+                "typeName": "AssetReference",
+                "data": {
+                  "typeName": "Texture2D",
+                  "id": "Assets/Kits/cube.Texture2D"
+                }
+              }
+            }
+          }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "AssetPin",
+            "version": 2,
+            "properties": {
+              "id": "f93d8d05-8eab-40e9-ad08-2f1bdaa058f8",
+              "name": "mesh",
+              "type": 2,
+              "_assetType": "StaticMeshAsset",
+              "value": {
+                "typeName": "AssetReference",
+                "data": {
+                  "typeName": "StaticMeshAsset",
+                  "id": "Assets/DefaultAssets/Geometry/Meshes/Cube.StaticMeshAsset"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "_declaration": {
+      "typeName": "ObjectDeclaration",
+      "id": "Assets/Kit.ObjectDeclaration"
+    }
+  }
+}

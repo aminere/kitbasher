@@ -1,25 +1,26 @@
-import { Events } from "./Events";
 
-namespace Private {    
-    export let engineReady = false;
-    export let renderingActive = false;
+import { IKitAsset } from "./Types";
+
+enum EditMode {
+    None,
+    Select,
+    Insert
 }
 
-export class State {
+namespace Private {
+    export let editMode = EditMode.None;
+    export let selectedKit: IKitAsset | null = null;
+}
 
-    static get engineReady() { return Private.engineReady; }
-    static set engineReady(ready: boolean) {        
-        if (ready) {
-            Events.engineReady.post();
-        }
-        Private.engineReady = ready;
+export class State {   
+    public static set editMode(mode: EditMode)  {
+        Private.editMode = mode;
     }
 
-    static get renderingActive() { return Private.renderingActive; }
-    static set renderingActive(active: boolean) {
-        if (active !== Private.renderingActive) {
-            Events.renderingActivated.post(active);
-        }
-        Private.renderingActive = active;
+    public static get editMode() { return Private.editMode; }
+
+    public static set selectedKit(kit: IKitAsset | null) {
+        Private.selectedKit = kit;
     }
+    public static get selectedKit() { return Private.selectedKit; }
 }
