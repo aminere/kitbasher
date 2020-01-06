@@ -7,6 +7,7 @@ import { NavBar } from "./NavBar";
 import "./common.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
+import "./icomoon/style.css";
 
 // TODO move this to async container
 import "../public/goldenlayout-base.css";
@@ -348,6 +349,8 @@ export class App extends React.Component {
         if (e.key === "Escape") {
             if (State.instance.editMode === EditMode.Insert) {
                 State.instance.editMode = EditMode.None;
+            } else if (State.instance.editMode === EditMode.Select) {
+                // TODO clear selection
             }
         }
     }

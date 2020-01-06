@@ -21,8 +21,12 @@ export class State {
 
     public get editMode() { return this._editMode; }
     public set editMode(mode: EditMode) {
+        if (mode === this._editMode) {
+            return;
+        }
+
         this._editMode = mode;
-        if (mode === EditMode.None) {
+        if (mode !== EditMode.Insert) {
             if (this.selectedKit) {
                 this.selectedKit = null;
             }
@@ -32,6 +36,10 @@ export class State {
 
     public get selectedKit() { return this._selectedKit; }
     public set selectedKit(kit: IKitAsset | null) {
+        if (kit === this._selectedKit) {
+            return;
+        }
+
         this._selectedKit = kit;
         if (kit) {
             if (this.editMode !== EditMode.Insert) {

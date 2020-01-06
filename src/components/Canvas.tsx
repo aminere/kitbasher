@@ -73,15 +73,27 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         <div
                             style={{ width: "30px" }}
                         >
+                            <Tooltip content="Select" position={Position.LEFT}>
+                                <Button
+                                    icon={(
+                                        <span
+                                            style={{
+                                                fontFamily: "icomoon"
+                                            }}
+                                        >
+                                            &#xe900;
+                                        </span>
+                                    )}
+                                    onClick={() => State.instance.editMode = EditMode.Select}
+                                    intent={State.instance.editMode === EditMode.Select ? "primary" : "none"}
+                                    active={State.instance.editMode === EditMode.Select}
+                                    onFocus={e => e.currentTarget.blur()}
+                                />
+                            </Tooltip>
                             <Tooltip content="Insert" position={Position.LEFT}>
                                 <Button
                                     icon="plus"
-                                    onClick={() => {
-                                        if (State.instance.editMode === EditMode.Insert) {
-                                            return;
-                                        }
-                                        State.instance.editMode = EditMode.Insert;
-                                    }}
+                                    onClick={() => State.instance.editMode = EditMode.Insert}
                                     intent={State.instance.editMode === EditMode.Insert ? "primary" : "none"}
                                     active={State.instance.editMode === EditMode.Insert}
                                     onFocus={e => e.currentTarget.blur()}
