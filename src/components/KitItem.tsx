@@ -10,22 +10,9 @@ export interface IKitItemProps {
     onClicked: () => void;
 }
 
-export interface IKitItemState {
-    backgroundColor: string;
-    hovered: boolean;
-}
-
-export class KitItem extends React.Component<IKitItemProps, IKitItemState> {
+export class KitItem extends React.Component<IKitItemProps, {}> {
 
     private _canvas!: HTMLCanvasElement;
-
-    constructor(props: IKitItemProps) {
-        super(props);
-        this.state = {
-            backgroundColor: "transparent",
-            hovered: false
-        };
-    }
 
     public componentDidMount() {
         const { image } = this.props;
@@ -37,19 +24,6 @@ export class KitItem extends React.Component<IKitItemProps, IKitItemState> {
     }
 
     public render() {
-
-        const selected = this.props.isSelected();
-        const { hovered } = this.state;
-        // Chrome hack because css :hover state is not updated during a drag-and-drop!
-        let backgroundColor = "transparent";        
-        if (selected) {
-            backgroundColor = "#137cbd";
-        } else {
-            if (this.state.hovered) {
-                backgroundColor = "#273139";
-            }
-        }
-
         return (
             <div
                 style={{
@@ -57,22 +31,7 @@ export class KitItem extends React.Component<IKitItemProps, IKitItemState> {
                     textAlign: "center",
                     width: "64px",
                     height: "80px",
-                    cursor: "pointer",
                     position: "relative"
-                }}
-                onMouseEnter={e => {
-                    if (!hovered) {
-                        this.setState({ hovered: true });
-                    }
-                }}
-                onMouseLeave={e => {
-                    if (hovered) {
-                        this.setState({ hovered: false });
-                    }
-                }}
-                onClick={e => {
-                    e.stopPropagation();
-                    this.props.onClicked();
                 }}
             >
                 <canvas
@@ -81,21 +40,27 @@ export class KitItem extends React.Component<IKitItemProps, IKitItemState> {
                     height={64}
                 />
                 <div
-                    key="2"
+                    className="hoverable"
                     style={{
                         position: "absolute",
                         left: "0px",
                         top: "0px",
                         width: "100%",
                         height: "100%",
-                        backgroundColor,
+                        cursor: "pointer",
+                        backgroundColor: this.props.isSelected() ? "#137cbd" : undefined,
                         opacity: .5
+                    }}
+                    onClick={e => {
+                        e.stopPropagation();
+                        this.props.onClicked();
                     }}
                 />
                 <div
                     style={{
                         position: "absolute",
-                        width: "100%"
+                        width: "100%",
+                        pointerEvents: "none"
                     }}
                 >
                     {Utils.capitalize(this.props.name)}

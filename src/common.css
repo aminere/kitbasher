@@ -3,3 +3,6 @@
     width: 100% !important;
     height: 100% !important;
 }
+
+.hoverable { background-color: transparent; }
+.hoverable:hover { background-color: #273139; }
