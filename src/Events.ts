@@ -1,7 +1,8 @@
 
-import { SyncEvent, VoidAsyncEvent, AsyncEvent, VoidSyncEvent } from "ts-events";
+import { VoidAsyncEvent, AsyncEvent } from "ts-events";
 
 export class Events {
-    public static canvasMounted = new SyncEvent<HTMLCanvasElement>(); 
-    public static engineReady = new VoidSyncEvent();
+    public static canvasMounted = new AsyncEvent<HTMLCanvasElement>(); 
+    public static engineReady = new VoidAsyncEvent();
+    public static assetBrowserReady = new VoidAsyncEvent();
 }

@@ -2,13 +2,31 @@
 import * as React from "react";
 import { Events } from "../Events";
 import { Controller } from "../Controller";
+import { Tooltip, Position, Button } from "@blueprintjs/core";
+import { State, EditMode } from "../State";
 
-export class Canvas extends React.Component {
+interface ICanvasState {
+    enabled: boolean;
+}
+
+export class Canvas extends React.Component<{}, ICanvasState> {
 
     private _canvas!: HTMLCanvasElement;
 
+    constructor(props: {}) {
+        super(props);
+        this.state = {
+            enabled: false
+        };
+    }
+
     public componentDidMount() {
         Events.canvasMounted.post(this._canvas);
+        Events.assetBrowserReady.attach(() => {
+            this.setState({ enabled: true });
+        });
+
+        State.editModeChanged.attach(mode => this.forceUpdate());
     }
 
     public render() {
@@ -41,6 +59,38 @@ export class Canvas extends React.Component {
                     }}
                     onContextMenu={e => e.preventDefault()}
                 />
+                {
+                    this.state.enabled
+                    &&
+                    <div
+                        style={{
+                            position: "absolute",
+                            padding: "4px",
+                            right: "0px",
+                            bottom: "0px"
+                        }}
+                    >
+                        <div
+                            style={{ width: "30px" }}
+                        >
+                            <Tooltip content="Insert" position={Position.LEFT}>
+                                <Button
+                                    icon="plus"
+                                    onClick={() => {
+                                        if (State.instance.editMode === EditMode.Insert) {
+                                            return;
+                                        }
+                                        State.instance.editMode = EditMode.Insert;
+                                    }}
+                                    intent={State.instance.editMode === EditMode.Insert ? "primary" : "none"}
+                                    active={State.instance.editMode === EditMode.Insert}
+                                    onFocus={e => e.currentTarget.blur()}
+                                />
+                            </Tooltip>
+                        </div>
+                    </div>
+                }
+
             </div>
         );
     }

@@ -17,6 +17,7 @@ import { Hierarchy } from "./components/Hierarchy";
 import { Assets } from "./components/Assets";
 import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
+import { State, EditMode } from "./State";
 
 interface ILayoutConfig {
     type: string;
@@ -252,7 +253,12 @@ export class App extends React.Component {
             layout.init();
 
             this.onWindowResized = this.onWindowResized.bind(this);
+            this.onKeyDown = this.onKeyDown.bind(this);
+            this.onKeyUp = this.onKeyUp.bind(this);
             window.addEventListener("resize", this.onWindowResized);
+            window.addEventListener("keyup", this.onKeyUp);
+            window.addEventListener("keydown", this.onKeyDown);
+    
         } catch (e) {
             // Failed initializing the layout.
             setTimeout(
@@ -263,6 +269,12 @@ export class App extends React.Component {
                 100
             );
         }
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("resize", this.onWindowResized);
+        window.removeEventListener("keyup", this.onKeyUp);
+        window.removeEventListener("keydown", this.onKeyDown);
     }
 
     public render() {
@@ -325,6 +337,18 @@ export class App extends React.Component {
                 delete this._windowResizeTimer;
             }, 60);
 
+        }
+    }
+
+    private onKeyDown(e: KeyboardEvent) {
+
+    }
+
+    private onKeyUp(e: KeyboardEvent) {
+        if (e.key === "Escape") {
+            if (State.instance.editMode === EditMode.Insert) {
+                State.instance.editMode = EditMode.None;
+            }
         }
     }
 }

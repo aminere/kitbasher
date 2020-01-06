@@ -4,7 +4,7 @@ import { Assets as SpiderAssets } from "../../../spider-engine/src/assets/Assets
 import { KitItem, IKitItemProps } from "./KitItem";
 import { Events } from "../Events";
 import { IKitAsset } from "../Types";
-import { State } from "../State";
+import { State, EditMode } from "../State";
 
 interface IAssetsState {
     items: IKitItemProps[];
@@ -18,8 +18,20 @@ export class Assets extends React.Component {
         items: []
     };
 
+    private _kits!: IKitAsset[];
+
     public componentDidMount() {
         Events.engineReady.attach(() => this.populate());
+
+        State.editModeChanged.attach(mode => {
+            if (mode === EditMode.Insert) {
+                if (!State.instance.selectedKit) {
+                    State.instance.selectedKit = this._kits[0];
+                }
+            }
+        });
+
+        State.selectedKitChanged.attach(kit => this.forceUpdate());
     }
 
     public render() {
@@ -34,7 +46,7 @@ export class Assets extends React.Component {
                 {this._mockState.items.map(i => (
                     <KitItem 
                         key={i.id}                         
-                        {...i} 
+                        {...i}
                     />
                 ))}
             </div>
@@ -47,28 +59,26 @@ export class Assets extends React.Component {
             "sphere"
         ];
 
-        const assets = (await Promise.all(kitNames.map(k => {
+        this._kits = (await Promise.all(kitNames.map(k => {
             return SpiderAssets.load(`Assets/Kits/${k}.ObjectDefinition`);
         }))) as unknown[] as IKitAsset[];
-        const textures = await Promise.all(assets.map(a => a.thumbnail.loadTextureData()));
+        const textures = await Promise.all(this._kits.map(a => a.thumbnail.loadTextureData()));
 
         Object.assign(this._mockState, {
             items: textures.reduce(
                 (prev, cur, index) => {
                     return prev.concat({
-                        id: assets[index].id,
+                        id: this._kits[index].id,
                         name: kitNames[index],
                         image: cur,
-                        isSelected: () => State.instance.selectedKit === assets[index],
-                        onClicked: () => {
-                            State.instance.selectedKit = assets[index];
-                            this.forceUpdate();
-                        }
+                        isSelected: () => State.instance.selectedKit === this._kits[index],
+                        onClicked: () => State.instance.selectedKit = this._kits[index]
                     });
                 },
                 [] as IKitItemProps[]
             )
         });
         this.forceUpdate();
+        Events.assetBrowserReady.post();
     }
 }
