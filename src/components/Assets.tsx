@@ -27,7 +27,7 @@ export class Assets extends React.Component {
             <div
                 className="fill-parent"
                 onClick={() => {
-                    State.selectedKit = null;
+                    State.instance.selectedKit = null;
                     this.forceUpdate();
                 }}
             >
@@ -59,9 +59,9 @@ export class Assets extends React.Component {
                         id: assets[index].id,
                         name: kitNames[index],
                         image: cur,
-                        isSelected: () => State.selectedKit === assets[index],
+                        isSelected: () => State.instance.selectedKit === assets[index],
                         onClicked: () => {
-                            State.selectedKit = assets[index];
+                            State.instance.selectedKit = assets[index];
                             this.forceUpdate();
                         }
                     });

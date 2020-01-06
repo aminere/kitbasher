@@ -7,20 +7,18 @@ enum EditMode {
     Insert
 }
 
-namespace Private {
-    export let editMode = EditMode.None;
-    export let selectedKit: IKitAsset | null = null;
+export class State {    
+    public static get instance() {
+        if (!Private.instance) {
+            Private.instance = new State();
+        }
+        return Private.instance;
+    }   
+
+    public editMode = EditMode.None;
+    public selectedKit: IKitAsset | null = null;    
 }
 
-export class State {   
-    public static set editMode(mode: EditMode)  {
-        Private.editMode = mode;
-    }
-
-    public static get editMode() { return Private.editMode; }
-
-    public static set selectedKit(kit: IKitAsset | null) {
-        Private.selectedKit = kit;
-    }
-    public static get selectedKit() { return Private.selectedKit; }
+namespace Private {
+    export let instance: State;
 }
