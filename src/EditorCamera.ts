@@ -3,6 +3,7 @@ import { Vector2 } from "../../spider-engine/src/math/Vector2";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
+import { Camera } from "../../spider-engine/src/graphics/Camera";
 
 namespace Private {
     export let camera: Entity;
@@ -25,6 +26,10 @@ namespace Private {
 
 export class EditorCamera {
     public static set camera(camera: Entity) { Private.camera = camera; }
+    
+    public static getWorldRay(x: number, y: number) {
+        return (Private.camera.getComponent(Camera) as Camera).getWorldRay(x, y);
+    }
 
     public static onMouseDown(x: number, y: number) {
         Private.touchStartPos.set(x, y);
@@ -45,6 +50,7 @@ export class EditorCamera {
                 cameraRotation.setFromAxisAngle(Vector3.up, MathEx.toRadians(-deltaX * upFactor) / 6);
                 camera.transform.rotation.multiply(cameraRotation).normalize();
                 Private.previousTouchPos.set(x, y);
+                return true;
             } else {
                 const deltaX = x - Private.touchStartPos.x;
                 const deltaY = y - Private.touchStartPos.y;
@@ -65,6 +71,7 @@ export class EditorCamera {
                 cameraTranslationUp.copy(camera.transform.worldUp).multiply(deltaY / 70);
                 camera.transform.position.add(cameraTranslation.add(cameraTranslationUp));
                 Private.previousTouchPos.set(x, y);
+                return true;
             } else {
                 const deltaX = x - Private.touchStartPos.x;
                 const deltaY = y - Private.touchStartPos.y;
@@ -74,8 +81,8 @@ export class EditorCamera {
                 }
             }
         }
-
-        Private.previousTouchPos.set(x, y);
+        
+        return false;
     }
 
     public static onMouseUp(x: number, y: number) {

@@ -10,17 +10,14 @@ import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Material } from "../../spider-engine/src/graphics/Material";
 import { Color } from "../../spider-engine/src/graphics/Color";
-import { StaticMesh, defaultAssets } from "../../spider-engine/src/spider-engine";
+import { StaticMesh, defaultAssets, Plane } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { DOMUtils } from "../../spider-engine/src/common/DOMUtils";
-
-interface IKit {
-    thumbnail: Texture2D;
-    mesh: StaticMeshAsset;
-}
+import { IKitAsset } from "./Types";
+import { State } from "./State";
 
 namespace Private {
 
@@ -45,7 +42,7 @@ namespace Private {
             .then(() => {
                 return Assets.load("Assets/Kits/cube.ObjectDefinition")
                     .then((_kit: unknown) => {
-                        const kit = _kit as IKit;
+                        const kit = _kit as IKitAsset;
                         Entities.create()
                             .setComponent(Transform)
                             .setComponent(Visual, {
@@ -84,6 +81,33 @@ namespace Private {
     // Touch input
     export let touchPressed = false;
     export let touchLeftButton = false;
+
+    // Snapping
+    export let potentialKit: Entity | null = null;
+    State.selectedKitChanged.attach(kit => {
+        if (potentialKit) {
+            potentialKit.destroy();
+            potentialKit = null;
+        }
+        if (kit) {
+            potentialKit = Entities.create()
+                .setComponent(Transform)
+                .setComponent(Visual, {
+                    geometry: new StaticMesh({ mesh: kit.mesh }),
+                    material: new Material({
+                        shader: defaultAssets.shaders.phong,
+                        shaderParams: {
+                            diffuse: Color.white,
+                            ambient: new Color(.1, .1, .2)
+                        }
+                    })
+                });
+            potentialKit.active = false;
+        }
+    });
+
+    export let groundPlane = new Plane();
+    export let gridSize = 1;
 }
 
 export class Controller {
@@ -106,9 +130,29 @@ export class Controller {
 
     public static onMouseMove(e: React.MouseEvent<HTMLElement>, localX: number, localY: number) {
         if (!Private.touchPressed) {
+            const { potentialKit } = Private;
+            if (potentialKit) {
+                potentialKit.active = true;
+
+                const ray = EditorCamera.getWorldRay(localX, localY);
+                const intersect = ray?.castOnPlane(Private.groundPlane);
+                if (intersect && intersect.intersection) {
+                    const { gridSize } = Private;
+                    const snap = (i: number) => {
+                        const ratio = i / gridSize;
+                        const ratioInt = Math.floor(ratio);
+                        const ratioFract = ratio - ratioInt;
+                        return gridSize * (ratioInt + Math.round(ratioFract));
+                    };
+                    potentialKit.transform.position.x = snap(intersect.intersection.x);
+                    potentialKit.transform.position.z = snap(intersect.intersection.z);
+                }
+            }
             return;
         }
-        EditorCamera.onMouseMove(localX, localY, Private.touchLeftButton);
+        if (EditorCamera.onMouseMove(localX, localY, Private.touchLeftButton)) {
+            return;
+        }
     }
 
     public static onMouseUp(e: React.MouseEvent<HTMLCanvasElement>, localX: number, localY: number) {
