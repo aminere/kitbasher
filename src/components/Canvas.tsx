@@ -27,6 +27,13 @@ export class Canvas extends React.Component<{}, ICanvasState> {
         });
 
         State.editModeChanged.attach(mode => this.forceUpdate());
+
+        this.handleMouseWheel = this.handleMouseWheel.bind(this);
+        this._canvas.addEventListener("wheel", this.handleMouseWheel, { passive: false });
+    }
+
+    public componentWillUnmount() {
+        this._canvas.removeEventListener("wheel", this.handleMouseWheel);
     }
 
     public render() {
@@ -41,8 +48,20 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                 <canvas
                     ref={e => this._canvas = e as HTMLCanvasElement}
                     className="fill-parent"
-                    onMouseDown={e => Controller.onMouseDown(e)}
-                    onMouseMove={e => this.handleMouseMove(e)}
+                    onMouseDown={e => {
+                        Controller.onMouseDown(
+                            e,
+                            e.clientX - this._canvas.getBoundingClientRect().left,
+                            e.clientY - this._canvas.getBoundingClientRect().top
+                        );
+                    }}
+                    onMouseMove={e => {
+                        Controller.onMouseMove(
+                            e,
+                            e.clientX - this._canvas.getBoundingClientRect().left,
+                            e.clientY - this._canvas.getBoundingClientRect().top
+                        );
+                    }}
                     onMouseUp={e => {
                         Controller.onMouseUp(
                             e,
@@ -107,11 +126,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
         );
     }
 
-    private handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
-        Controller.onMouseMove(
-            e,
-            e.clientX - this._canvas.getBoundingClientRect().left,
-            e.clientY - this._canvas.getBoundingClientRect().top
-        );
+    private handleMouseWheel(e: WheelEvent) {
+        Controller.onMouseWheel(e);
+        e.stopPropagation();
     }
 }

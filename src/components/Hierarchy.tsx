@@ -2,8 +2,9 @@
 import * as React from "react";
 
 export class Hierarchy extends React.Component {
-    public componentDidMount() {        
-    }
+    
+    // tslint:disable-next-line
+    public componentDidMount() {}
 
     public render() {
         return (

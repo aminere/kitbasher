@@ -341,9 +341,8 @@ export class App extends React.Component {
         }
     }
 
-    private onKeyDown(e: KeyboardEvent) {
-
-    }
+    // tslint:disable-next-line
+    private onKeyDown(e: KeyboardEvent) {}
 
     private onKeyUp(e: KeyboardEvent) {
         if (e.key === "Escape") {
