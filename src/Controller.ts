@@ -1,10 +1,9 @@
 
 import { Events } from "./Events";
 import { Engine, EngineHandlersInternal } from "../../spider-engine/src/core/Engine";
-import { Scenes } from "../../spider-engine/src/core/Scenes";
+import { Vector3 } from "../../spider-engine/src/math/Vector3";
+import { Scenes, ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { Assets } from "../../spider-engine/src/assets/Assets";
-import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
-import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
 import { Entities } from "../../spider-engine/src/core/Entities";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
@@ -18,8 +17,18 @@ import { Entity } from "../../spider-engine/src/core/Entity";
 import { DOMUtils } from "../../spider-engine/src/common/DOMUtils";
 import { IKitAsset } from "./Types";
 import { State } from "./State";
+import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
+import { Debug } from "../../spider-engine/src/io/Debug";
 
 namespace Private {
+
+    const currentScenePath = "currentScene.Scene";
+
+    export function saveCurrentScene() {
+        const scene = ScenesInternal.list()[0];
+        const data = JSON.stringify(scene.serialize(), null, 2);
+        return IndexedDb.write("files", currentScenePath, data);            
+    }
 
     export let canvasHasFocus: () => boolean;
     function checkCanvasStatus() {
@@ -33,29 +42,27 @@ namespace Private {
         // For debugging
         Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });
 
-        // This is done here because loadGraphicObjects() fails if canvas doesn't have the focus
-        Scenes.load("Assets/Startup.Scene")
+        Promise.resolve()
+            .then(() => {
+                return new Promise(resolve => {
+                    IndexedDb.read("files", currentScenePath)
+                        .then(data => {
+                            ObjectManagerInternal.loadObjectFromData(currentScenePath, data)
+                                .then(resolve)
+                                .catch(e => {
+                                    // tslint:disable-next-line
+                                    Debug.logError(e);
+                                });
+                        })
+                        .catch(() => {                            
+                            Scenes.load("Assets/Startup.Scene")
+                                .then(() => saveCurrentScene())
+                                .then(resolve);
+                        });
+                });
+            })
             .then(() => {
                 EditorCamera.camera = Entities.find("Camera") as Entity;
-            })
-            // TODO load persistent scene            
-            .then(() => {
-                return Assets.load("Assets/Kits/cube.ObjectDefinition")
-                    .then((_kit: unknown) => {
-                        const kit = _kit as IKitAsset;
-                        Entities.create()
-                            .setComponent(Transform)
-                            .setComponent(Visual, {
-                                geometry: new StaticMesh({ mesh: kit.mesh }),
-                                material: new Material({
-                                    shader: defaultAssets.shaders.phong,
-                                    shaderParams: {
-                                        diffuse: Color.white,
-                                        ambient: new Color(.1, .1, .2)
-                                    }
-                                })
-                            });
-                    });
             });
     }
 
@@ -68,6 +75,11 @@ namespace Private {
             postRender: Renderer.postRender
         })
             .then(() => Renderer.load())
+            .then(() => {
+                const dbName = `kitbasher-${process.env.CONFIG}`;
+                const dbVersion = 1;
+                return IndexedDb.initialize(dbName, dbVersion);
+            })
             .then(() => {
                 Events.engineReady.post();
                 checkCanvasStatus();
@@ -83,15 +95,9 @@ namespace Private {
     export let touchLeftButton = false;
 
     // Snapping
-    export let potentialKit: Entity | null = null;
-    State.selectedKitChanged.attach(kit => {
-        if (potentialKit) {
-            potentialKit.destroy();
-            potentialKit = null;
-        }
-        if (kit) {
-            potentialKit = Entities.create()
-                .setComponent(Transform)
+    export function createKit(kit: IKitAsset, position?: Vector3) {
+        return Entities.create()
+                .setComponent(Transform, position ? { position } : undefined)
                 .setComponent(Visual, {
                     geometry: new StaticMesh({ mesh: kit.mesh }),
                     material: new Material({
@@ -102,6 +108,16 @@ namespace Private {
                         }
                     })
                 });
+    }
+
+    export let potentialKit: Entity | null = null;
+    State.selectedKitChanged.attach(kit => {
+        if (potentialKit) {
+            potentialKit.destroy();
+            potentialKit = null;
+        }
+        if (kit) {
+            potentialKit = createKit(kit);
             potentialKit.active = false;
         }
     });
@@ -150,6 +166,7 @@ export class Controller {
             }
             return;
         }
+
         if (EditorCamera.onMouseMove(localX, localY, Private.touchLeftButton)) {
             return;
         }
@@ -159,8 +176,26 @@ export class Controller {
         if (!Private.touchPressed) {
             return;
         }
+
         Private.touchPressed = false;
-        EditorCamera.onMouseUp(localX, localY);
+        if (EditorCamera.onMouseUp(localX, localY)) {
+            return;
+        }
+
+        if (Private.touchLeftButton) {
+            // Click
+            const { potentialKit } = Private;
+            if (potentialKit) {
+                potentialKit.destroy();
+                Private.saveCurrentScene()
+                    .then(() => {
+                        Private.potentialKit = Private.createKit(
+                            State.instance.selectedKit as IKitAsset,
+                            potentialKit.transform.position
+                        );
+                    });
+            }
+        }
     }
 
     public static onMouseLeave(e: React.MouseEvent<HTMLCanvasElement>, localX: number, localY: number) {

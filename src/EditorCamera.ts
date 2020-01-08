@@ -90,9 +90,13 @@ export class EditorCamera {
         if (cameraLookStarted) {
             Private.sanitizeCameraRotation();
             Private.cameraLookStarted = false;
+            return true;
         } else if (cameraStrafeStarted) {
             Private.cameraStrafeStarted = false;
+            return true;
         }
+
+        return false;
     }
 
     public static onMouseWheel(delta: number) {
