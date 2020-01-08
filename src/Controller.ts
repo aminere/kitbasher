@@ -3,13 +3,11 @@ import { Events } from "./Events";
 import { Engine, EngineHandlersInternal } from "../../spider-engine/src/core/Engine";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Scenes, ScenesInternal } from "../../spider-engine/src/core/Scenes";
-import { Assets } from "../../spider-engine/src/assets/Assets";
 import { Entities } from "../../spider-engine/src/core/Entities";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Color } from "../../spider-engine/src/graphics/Color";
-import { StaticMesh, defaultAssets, Plane } from "../../spider-engine/src/spider-engine";
+import { StaticMesh, Plane, Assets } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -23,8 +21,13 @@ import { Debug } from "../../spider-engine/src/io/Debug";
 namespace Private {
 
     const currentScenePath = "currentScene.Scene";
+    let defaultMaterial: Material;
 
     export function saveCurrentScene() {
+        const engineHud = Entities.find("EngineHud");
+        if (engineHud) {
+            engineHud.destroy();
+        }
         const scene = ScenesInternal.list()[0];
         const data = JSON.stringify(scene.serialize(), null, 2);
         return IndexedDb.write("files", currentScenePath, data);            
@@ -47,14 +50,11 @@ namespace Private {
                 return new Promise(resolve => {
                     IndexedDb.read("files", currentScenePath)
                         .then(data => {
-                            ObjectManagerInternal.loadObjectFromData(currentScenePath, data)
-                                .then(resolve)
-                                .catch(e => {
-                                    // tslint:disable-next-line
-                                    Debug.logError(e);
-                                });
+                            const scene = Scenes.create();
+                            scene.deserialize(JSON.parse(data))
+                                .then(resolve);
                         })
-                        .catch(() => {                            
+                        .catch(() => {
                             Scenes.load("Assets/Startup.Scene")
                                 .then(() => saveCurrentScene())
                                 .then(resolve);
@@ -75,6 +75,11 @@ namespace Private {
             postRender: Renderer.postRender
         })
             .then(() => Renderer.load())
+            .then(() => new Promise(resolve => {
+                Assets.load("Assets/Editor/Default.Material")
+                    .then(asset => defaultMaterial = asset as Material)
+                    .then(resolve);
+            }))            
             .then(() => {
                 const dbName = `kitbasher-${process.env.CONFIG}`;
                 const dbVersion = 1;
@@ -100,13 +105,7 @@ namespace Private {
                 .setComponent(Transform, position ? { position } : undefined)
                 .setComponent(Visual, {
                     geometry: new StaticMesh({ mesh: kit.mesh }),
-                    material: new Material({
-                        shader: defaultAssets.shaders.phong,
-                        shaderParams: {
-                            diffuse: Color.white,
-                            ambient: new Color(.1, .1, .2)
-                        }
-                    })
+                    material: defaultMaterial
                 });
     }
 
@@ -186,7 +185,6 @@ export class Controller {
             // Click
             const { potentialKit } = Private;
             if (potentialKit) {
-                potentialKit.destroy();
                 Private.saveCurrentScene()
                     .then(() => {
                         Private.potentialKit = Private.createKit(

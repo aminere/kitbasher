@@ -1,0 +1,41 @@
+{
+  "typeName": "Material",
+  "version": 4,
+  "properties": {
+    "id": "cad21513-dfd7-4034-a282-71c071450e9c",
+    "name": "DebugMaterial",
+    "_blending": "Linear",
+    "_renderPass": "Opaque",
+    "_cullMode": "None",
+    "_depthTest": true,
+    "_priority": 0,
+    "_shaderParams": {
+      "typeName": "SerializableObject",
+      "version": 1,
+      "properties": {
+        "ambient": {
+          "typeName": "Color",
+          "data": {
+            "r": 0.1,
+            "g": 0.1,
+            "b": 0.2,
+            "a": 1
+          }
+        },
+        "diffuse": {
+          "typeName": "Color",
+          "data": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    "_shader": {
+      "typeName": "Shader",
+      "id": "Assets/DefaultAssets/Shaders/Phong.PhongShader"
+    }
+  }
+}
