@@ -4,7 +4,7 @@ import { Assets as SpiderAssets } from "../../../spider-engine/src/assets/Assets
 import { KitItem, IKitItemProps } from "./KitItem";
 import { Events } from "../Events";
 import { IKitAsset } from "../Types";
-import { State, EditMode } from "../State";
+import { State } from "../State";
 
 interface IAssetsState {
     items: IKitItemProps[];
@@ -23,11 +23,9 @@ export class Assets extends React.Component {
     public componentDidMount() {
         Events.engineReady.attach(() => this.populate());
 
-        State.editModeChanged.attach(mode => {
-            if (mode === EditMode.Insert) {
-                if (!State.instance.selectedKit) {
-                    State.instance.selectedKit = this._kits[0];
-                }
+        Events.onInsertClicked.attach(() => {
+            if (!State.instance.selectedKit) {
+                State.instance.selectedKit = State.instance.lastUsedKit || this._kits[0];
             }
         });
 

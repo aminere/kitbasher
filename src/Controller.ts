@@ -6,6 +6,8 @@ import { Scenes, ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { Entities } from "../../spider-engine/src/core/Entities";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
+import { Ray } from "../../spider-engine/src/math/Ray";
+import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
 import { StaticMesh, Plane, Assets } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
@@ -17,6 +19,9 @@ import { IKitAsset } from "./Types";
 import { State } from "./State";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Debug } from "../../spider-engine/src/io/Debug";
+import { Triangle } from "../../spider-engine/src/math/Triangle";
+import { Components } from "../../spider-engine/src/core/Components";
+import { CullModes } from "../../spider-engine/src/graphics/GraphicTypes";
 
 namespace Private {
 
@@ -30,7 +35,7 @@ namespace Private {
         }
         const scene = ScenesInternal.list()[0];
         const data = JSON.stringify(scene.serialize(), null, 2);
-        return IndexedDb.write("files", currentScenePath, data);            
+        return IndexedDb.write("files", currentScenePath, data);
     }
 
     export let canvasHasFocus: () => boolean;
@@ -79,7 +84,7 @@ namespace Private {
                 Assets.load("Assets/Editor/Default.Material")
                     .then(asset => defaultMaterial = asset as Material)
                     .then(resolve);
-            }))            
+            }))
             .then(() => {
                 const dbName = `kitbasher-${process.env.CONFIG}`;
                 const dbVersion = 1;
@@ -102,11 +107,11 @@ namespace Private {
     // Snapping
     export function createKit(kit: IKitAsset, position?: Vector3) {
         return Entities.create()
-                .setComponent(Transform, position ? { position } : undefined)
-                .setComponent(Visual, {
-                    geometry: new StaticMesh({ mesh: kit.mesh }),
-                    material: defaultMaterial
-                });
+            .setComponent(Transform, position ? { position } : undefined)
+            .setComponent(Visual, {
+                geometry: new StaticMesh({ mesh: kit.mesh }),
+                material: defaultMaterial
+            });
     }
 
     export let potentialKit: Entity | null = null;
@@ -181,18 +186,85 @@ export class Controller {
             return;
         }
 
-        if (Private.touchLeftButton) {
-            // Click
-            const { potentialKit } = Private;
-            if (potentialKit) {
-                Private.saveCurrentScene()
-                    .then(() => {
-                        Private.potentialKit = Private.createKit(
-                            State.instance.selectedKit as IKitAsset,
-                            potentialKit.transform.position
-                        );
-                    });
+        if (!Private.touchLeftButton) {
+            return;
+        }
+
+        // Click
+        const { potentialKit } = Private;
+        if (potentialKit) {
+            // Insert kit
+            Private.saveCurrentScene()
+                .then(() => {
+                    Private.potentialKit = Private.createKit(
+                        State.instance.selectedKit as IKitAsset,
+                        potentialKit.transform.position
+                    );
+                });
+            return;
+        }
+
+        // Pick entity
+        let closest: Entity | undefined;
+        const localPickingRay = new Ray();
+        const pickingRay = EditorCamera.getWorldRay(localX, localY);
+        if (!pickingRay) {
+            return;
+        }
+        const invWorld = Matrix44.fromPool();
+        let distToClosest = Number.MAX_VALUE;
+        const v1 = Vector3.fromPool();
+        const v2 = Vector3.fromPool();
+        const v3 = Vector3.fromPool();
+        const plane = Plane.fromPool();
+        const triangle = Triangle.fromPool();
+
+        const visuals = Components.ofType(Visual);
+        for (const v of visuals) {
+            const vb = v.geometry ? v.geometry.getVertexBuffer() : undefined;
+            const boundingBox = v.geometry ? v.geometry.getBoundingBox() : undefined;
+            if (!vb || !boundingBox || !v.material) {
+                continue;
             }
+
+            if (vb.primitiveType === "TRIANGLES") {
+                const useBackFaces = v.material.cullMode === CullModes.Front;
+                const world = v.worldTransform;
+                invWorld.getInverse(world);
+                localPickingRay.copy(pickingRay).transform(invWorld);
+                if (localPickingRay.castOnAABB(boundingBox)) {
+                    const positions = vb.attributes.position as number[];
+                    for (let i = 0; i < positions.length; i += 9) {
+                        v1.set(positions[i], positions[i + 1], positions[i + 2]);
+                        v2.set(positions[i + 3], positions[i + 4], positions[i + 5]);
+                        v3.set(positions[i + 6], positions[i + 7], positions[i + 8]);
+                        plane.setFromPoints(v1, v2, v3);
+                        const result = localPickingRay.castOnPlane(plane);
+                        if (result.intersection) {
+                            const rayShootingIntoPlane = plane.normal.dot(localPickingRay.direction) < 0;
+                            const useTriangle = useBackFaces ? !rayShootingIntoPlane : rayShootingIntoPlane;
+                            if (useTriangle) {
+                                triangle.set(v1, v2, v3);
+                                if (triangle.contains(result.intersection)) {
+                                    const distance = Vector3.distance(
+                                        result.intersection.transform(world), 
+                                        pickingRay.origin
+                                    );
+                                    if (distance < distToClosest) {
+                                        distToClosest = distance;
+                                        closest = v.entity;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        console.log(closest);
+        if (closest) {
+            // TODO
         }
     }
 

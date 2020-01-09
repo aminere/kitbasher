@@ -18,7 +18,7 @@ import { Hierarchy } from "./components/Hierarchy";
 import { Assets } from "./components/Assets";
 import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
-import { State, EditMode } from "./State";
+import { State } from "./State";
 
 interface ILayoutConfig {
     type: string;
@@ -346,10 +346,11 @@ export class App extends React.Component {
 
     private onKeyUp(e: KeyboardEvent) {
         if (e.key === "Escape") {
-            if (State.instance.editMode === EditMode.Insert) {
-                State.instance.editMode = EditMode.None;
-            } else if (State.instance.editMode === EditMode.Select) {
+            if (State.instance.selectedKit) {
+                State.instance.selectedKit = null;
+            } else {
                 // TODO clear selection
+                
             }
         }
     }

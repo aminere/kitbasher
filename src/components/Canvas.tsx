@@ -3,7 +3,7 @@ import * as React from "react";
 import { Events } from "../Events";
 import { Controller } from "../Controller";
 import { Tooltip, Position, Button } from "@blueprintjs/core";
-import { State, EditMode } from "../State";
+import { State } from "../State";
 
 interface ICanvasState {
     enabled: boolean;
@@ -26,7 +26,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
             this.setState({ enabled: true });
         });
 
-        State.editModeChanged.attach(mode => this.forceUpdate());
+        State.selectedKitChanged.attach(() => this.forceUpdate());
 
         this.handleMouseWheel = this.handleMouseWheel.bind(this);
         this._canvas.addEventListener("wheel", this.handleMouseWheel, { passive: false });
@@ -103,18 +103,18 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                             &#xe900;
                                         </span>
                                     )}
-                                    onClick={() => State.instance.editMode = EditMode.Select}
-                                    intent={State.instance.editMode === EditMode.Select ? "primary" : "none"}
-                                    active={State.instance.editMode === EditMode.Select}
+                                    onClick={() => State.instance.selectedKit = null}
+                                    intent={!State.instance.selectedKit ? "primary" : "none"}
+                                    active={!State.instance.selectedKit}
                                     onFocus={e => e.currentTarget.blur()}
                                 />
                             </Tooltip>
                             <Tooltip content="Insert" position={Position.LEFT}>
                                 <Button
                                     icon="plus"
-                                    onClick={() => State.instance.editMode = EditMode.Insert}
-                                    intent={State.instance.editMode === EditMode.Insert ? "primary" : "none"}
-                                    active={State.instance.editMode === EditMode.Insert}
+                                    onClick={() => Events.onInsertClicked.post()}
+                                    intent={State.instance.selectedKit ? "primary" : "none"}
+                                    active={Boolean(State.instance.selectedKit)}
                                     onFocus={e => e.currentTarget.blur()}
                                 />
                             </Tooltip>

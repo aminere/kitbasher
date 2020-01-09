@@ -1,60 +1,51 @@
 
 import { IKitAsset } from "./Types";
 import { AsyncEvent } from "ts-events";
-
-export enum EditMode {
-    None,
-    Select,
-    Insert
-}
+import { Entity } from "../../spider-engine/src/core/Entity";
 
 export class State {    
+
     public static get instance() {
         if (!Private.instance) {
             Private.instance = new State();
         }
         return Private.instance;
     }   
-
-    public static editModeChanged = new AsyncEvent<EditMode>();
+    
     public static selectedKitChanged = new AsyncEvent<IKitAsset | null>();
 
-    public get editMode() { return this._editMode; }
-    public set editMode(mode: EditMode) {
-        if (mode === this._editMode) {
-            return;
-        }
-
-        this._editMode = mode;
-        if (mode !== EditMode.Insert) {
-            if (this.selectedKit) {
-                this.selectedKit = null;
-            }
-        }
-        State.editModeChanged.post(mode);
-    }
+    private _selectedKit: IKitAsset | null = null;
+    private _lastUsedKit: IKitAsset | null = null;
+    private _selection: Entity[] = [];
 
     public get selectedKit() { return this._selectedKit; }
     public set selectedKit(kit: IKitAsset | null) {
         if (kit === this._selectedKit) {
             return;
         }
-
         this._selectedKit = kit;
         if (kit) {
-            if (this.editMode !== EditMode.Insert) {
-                this.editMode = EditMode.Insert;
-            }
-        } else {
-            if (this.editMode === EditMode.Insert) {
-                this.editMode = EditMode.None;
-            }
+            this._lastUsedKit = kit;
         }
         State.selectedKitChanged.post(kit);
     }
 
-    private _editMode = EditMode.None;
-    private _selectedKit: IKitAsset | null = null;
+    public get lastUsedKit() { return this._lastUsedKit; }
+
+    public addToSelection(entity: Entity) {
+        this._selection.push(entity);
+    }
+
+    public removeFromSelection(entity: Entity) {
+        const index = this._selection.findIndex(e => e === entity);
+        if (index >= 0) {
+            this._selection.splice(index, 1);
+        }
+    }
+
+    public clearSelection() {
+        this._selection.length = 0;
+    }
 }
 
 namespace Private {
