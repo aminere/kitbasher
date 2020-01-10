@@ -28,7 +28,7 @@ export class QuaternionEditor extends React.Component<IQuaternionEditorProps, IQ
         this.setState({ euler });
     }
 
-    render() {
+    public render() {
         return [
             <NumberEditor 
                 key="x"
@@ -57,7 +57,7 @@ export class QuaternionEditor extends React.Component<IQuaternionEditorProps, IQ
         ];
     }
 
-    onChanged() {
+    private onChanged() {
         this.props.onChanged(new Quaternion().setFromEulerVector(this.state.euler));
     }
 }
