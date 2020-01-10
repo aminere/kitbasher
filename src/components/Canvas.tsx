@@ -4,6 +4,7 @@ import { Events } from "../Events";
 import { Controller } from "../Controller";
 import { Tooltip, Position, Button } from "@blueprintjs/core";
 import { State } from "../State";
+import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
 
 interface ICanvasState {
     enabled: boolean;
@@ -27,6 +28,10 @@ export class Canvas extends React.Component<{}, ICanvasState> {
         });
 
         State.selectedKitChanged.attach(() => this.forceUpdate());
+
+        State.entitySelectionChanged.attach(selection => {
+
+        });
 
         this.handleMouseWheel = this.handleMouseWheel.bind(this);
         this._canvas.addEventListener("wheel", this.handleMouseWheel, { passive: false });
@@ -121,7 +126,26 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         </div>
                     </div>
                 }
-
+                <div
+                    style={{
+                        position: "absolute",
+                        right: "0",
+                        top: "0",
+                        width: "250px",
+                        height: "250px",
+                        backgroundColor: "red"
+                    }}
+                >
+                    <PropertyGrid 
+                        target={{
+                            hola: 666,
+                            wtf: 52
+                        }}
+                        onPropertyChanged={(name, newValue) => {
+                            console.log(name, newValue);
+                        }}
+                    />
+                </div>
             </div>
         );
     }

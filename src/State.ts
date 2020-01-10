@@ -13,6 +13,7 @@ export class State {
     }   
     
     public static selectedKitChanged = new AsyncEvent<IKitAsset | null>();
+    public static entitySelectionChanged = new AsyncEvent<Entity[]>();
 
     private _selectedKit: IKitAsset | null = null;
     private _lastUsedKit: IKitAsset | null = null;
@@ -34,17 +35,23 @@ export class State {
 
     public addToSelection(entity: Entity) {
         this._selection.push(entity);
+        State.entitySelectionChanged.post(this._selection);
     }
 
     public removeFromSelection(entity: Entity) {
         const index = this._selection.findIndex(e => e === entity);
         if (index >= 0) {
             this._selection.splice(index, 1);
+            State.entitySelectionChanged.post(this._selection);
         }
     }
 
     public clearSelection() {
+        if (this._selection.length === 0) {
+            return;
+        }
         this._selection.length = 0;
+        State.entitySelectionChanged.post(this._selection);
     }
 }
 

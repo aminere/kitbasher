@@ -261,10 +261,9 @@ export class Controller {
                 }
             }
         }
-
-        console.log(closest);
+        
         if (closest) {
-            // TODO            
+            State.instance.addToSelection(closest);
         }
     }
 

@@ -1,0 +1,19 @@
+
+.property-root {
+    height: 38px;
+}
+
+.property-name {
+    float: left;
+    width: 30%;
+    text-overflow: ellipsis;
+    white-space: pre;
+    line-height: 38px;
+}
+
+.property-editor {
+    float: left;
+    width: 70%;
+    height: 100%;
+    display: flex;
+}
