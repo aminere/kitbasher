@@ -14,7 +14,7 @@ namespace Private {
 
     function prettify(str: string) {
         if (str.length > 0) {
-            let firstChar = String(str).charAt(0);
+            const firstChar = String(str).charAt(0);
             if (firstChar === "_") {
                 if (str.length > 1) {
                     return String(str).charAt(1) + String(str).slice(2);
@@ -25,9 +25,9 @@ namespace Private {
     }
 
     function capitalize(str: string) {
-        let _str = prettify(str);
+        const _str = prettify(str);
         if (_str.length > 0) {
-            let firstChar = String(_str).charAt(0);
+            const firstChar = String(_str).charAt(0);
             return firstChar.toUpperCase() + String(_str).slice(1);
         }
         return _str;
@@ -44,7 +44,7 @@ namespace Private {
             const propertyKey = property.slice(1);
             const propertyValue = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), propertyKey);
             if (propertyValue && propertyValue.get) {
-                return propertyValue.get.call(obj);                
+                return propertyValue.get.call(obj);
             }
         }
         return obj[property];

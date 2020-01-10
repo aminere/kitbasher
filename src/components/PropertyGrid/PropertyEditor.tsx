@@ -2,6 +2,8 @@
 import * as React from "react";
 import { NumberEditor } from "./NumberEditor";
 import { Vector3 } from "../../../../spider-engine/src/math/Vector3";
+import { QuaternionEditor } from "./QuaternionEditor";
+import { Quaternion } from "../../../../spider-engine/src/math/Quaternion";
 
 interface IPropertyEditorProps {
     // tslint:disable-next-line
@@ -34,6 +36,16 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
                     onChanged={e => onChanged(new Vector3(v.x, v.y, e))}
                 />
             ];
+        }
+
+        if (typeName === "Quaternion") {
+            const v = initialValue as Quaternion;
+            return (
+                <QuaternionEditor
+                    initialValue={v}
+                    onChanged={newValue => onChanged(newValue)}
+                />
+            );
         }
 
         if (typeof (initialValue) === "number") {
