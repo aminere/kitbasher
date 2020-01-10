@@ -31,6 +31,7 @@ export class NumberEditor extends React.Component<INumberEditorProps, INumberEdi
     public render() {
         return (
             <InputGroup
+                className="bp3-fill"
                 value={this.state.valueAsString}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     this.setState({

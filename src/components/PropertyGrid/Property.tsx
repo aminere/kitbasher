@@ -18,7 +18,7 @@ export class Property extends React.Component<IPropertyProps> {
                     {this.props.name}
                 </div>
                 <div className="property-editor">
-                    <PropertyEditor 
+                    <PropertyEditor
                         initialValue={this.props.initialValue}
                         onChanged={newValue => this.props.onChanged(newValue)}
                     />

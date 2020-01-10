@@ -5,6 +5,7 @@ import { Controller } from "../Controller";
 import { Tooltip, Position, Button } from "@blueprintjs/core";
 import { State } from "../State";
 import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
+import { Vector3 } from "../../../spider-engine/src/math/Vector3";
 
 interface ICanvasState {
     enabled: boolean;
@@ -132,13 +133,12 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         right: "0",
                         top: "0",
                         width: "250px",
-                        height: "250px",
-                        backgroundColor: "red"
+                        backgroundColor: "#202b3366"
                     }}
                 >
                     <PropertyGrid 
                         target={{
-                            hola: 666,
+                            position: new Vector3(1, 2, 3),
                             wtf: 52
                         }}
                         onPropertyChanged={(name, newValue) => {
