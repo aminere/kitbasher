@@ -20,6 +20,17 @@ namespace Private {
 
 export class NumberEditor extends React.Component<INumberEditorProps, INumberEditorState> {
 
+    public static getDerivedStateFromProps(props: INumberEditorProps, state: INumberEditorState) {
+        const valueAsString = Private.toString(props.initialValue);
+        if (valueAsString === state.valueAsString) {
+            return null;
+        }
+        return {
+            valueAsString: Private.toString(props.initialValue),
+            valueAsNumber: props.initialValue
+        };
+    }
+
     constructor(props: INumberEditorProps) {
         super(props);
         this.state = {
@@ -31,7 +42,7 @@ export class NumberEditor extends React.Component<INumberEditorProps, INumberEdi
     public render() {
         return (
             <InputGroup
-                className="bp3-fill"
+                className="bp3-fill property-editor"
                 value={this.state.valueAsString}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     this.setState({

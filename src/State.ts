@@ -33,6 +33,11 @@ export class State {
 
     public get lastUsedKit() { return this._lastUsedKit; }
 
+    public setSelection(entity: Entity) {
+        this._selection = [entity];
+        State.entitySelectionChanged.post(this._selection);
+    }
+
     public addToSelection(entity: Entity) {
         this._selection.push(entity);
         State.entitySelectionChanged.post(this._selection);

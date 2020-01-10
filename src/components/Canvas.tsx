@@ -5,15 +5,19 @@ import { Controller } from "../Controller";
 import { Tooltip, Position, Button } from "@blueprintjs/core";
 import { State } from "../State";
 import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
-import { Vector3 } from "../../../spider-engine/src/math/Vector3";
+import { Entity } from "../../../spider-engine/src/core/Entity";
+import { Transform } from "../../../spider-engine/src/core/Transform";
 
 interface ICanvasState {
-    enabled: boolean;
+    enabled: boolean;    
 }
 
 export class Canvas extends React.Component<{}, ICanvasState> {
 
-    private _canvas!: HTMLCanvasElement;
+    private _canvas!: HTMLCanvasElement;    
+    private _mockState = {
+        selection: [] as Entity[]
+    };
 
     constructor(props: {}) {
         super(props);
@@ -29,9 +33,9 @@ export class Canvas extends React.Component<{}, ICanvasState> {
         });
 
         State.selectedKitChanged.attach(() => this.forceUpdate());
-
         State.entitySelectionChanged.attach(selection => {
-
+            Object.assign(this._mockState, { selection });
+            this.forceUpdate();
         });
 
         this.handleMouseWheel = this.handleMouseWheel.bind(this);
@@ -127,25 +131,26 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         </div>
                     </div>
                 }
-                <div
-                    style={{
-                        position: "absolute",
-                        right: "0",
-                        top: "0",
-                        width: "250px",
-                        backgroundColor: "#202b3366"
-                    }}
-                >
-                    <PropertyGrid 
-                        target={{
-                            position: new Vector3(1, 2, 3),
-                            wtf: 52
+                {
+                    this._mockState.selection.length > 0
+                    &&
+                    <div
+                        style={{
+                            position: "absolute",
+                            right: "0",
+                            top: "0",
+                            width: "250px",
+                            backgroundColor: "#202b3366"
                         }}
-                        onPropertyChanged={(name, newValue) => {
-                            console.log(name, newValue);
-                        }}
-                    />
-                </div>
+                    >
+                        <PropertyGrid
+                            target={this._mockState.selection[0].getComponent(Transform) as Transform}
+                            onPropertyChanged={(name, newValue) => {
+                                console.log(name, newValue);
+                            }}
+                        />
+                    </div>
+                }
             </div>
         );
     }

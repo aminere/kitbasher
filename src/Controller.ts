@@ -263,7 +263,10 @@ export class Controller {
         }
         
         if (closest) {
-            State.instance.addToSelection(closest);
+            // TODO multi-selection
+            State.instance.setSelection(closest);
+        } else {
+            State.instance.clearSelection();
         }
     }
 
