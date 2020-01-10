@@ -7,6 +7,7 @@ import { State } from "../State";
 import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
 import { Entity } from "../../../spider-engine/src/core/Entity";
 import { Transform } from "../../../spider-engine/src/core/Transform";
+import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine/src/serialization/SerializerUtils";
 
 interface ICanvasState {
     enabled: boolean;    
@@ -146,7 +147,13 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         <PropertyGrid
                             target={this._mockState.selection[0].getComponent(Transform) as Transform}
                             onPropertyChanged={(name, newValue) => {
-                                console.log(name, newValue);
+                                SerializerUtilsInternal.tryUsePropertySetter = true;
+                                SerializerUtils.setProperty(
+                                    this._mockState.selection[0].getComponent(Transform) as Transform,
+                                    name,
+                                    newValue
+                                );
+                                SerializerUtilsInternal.tryUsePropertySetter = false;
                             }}
                         />
                     </div>
