@@ -82,7 +82,6 @@ export class App extends React.Component {
                     navBarTitle: "Assets",
                     id: "Assets",
                     isVisible: false,
-                    width: 20,
                     isClosable: false
                 }
             },
@@ -93,8 +92,7 @@ export class App extends React.Component {
                     title: "Properties",
                     navBarTitle: "Properties",
                     id: "Properties",
-                    isVisible: false,
-                    width: 20
+                    isVisible: false
                 }
             },
             Scene: {
@@ -107,8 +105,7 @@ export class App extends React.Component {
                     isVisible: false,
                     props: {
                         selectedNodes: []
-                    },
-                    width: 20
+                    }
                 }
             },
             Canvas: {
@@ -138,14 +135,21 @@ export class App extends React.Component {
                 {
                     type: "row",
                     content: [
-                        views.Assets.config,
+                        {
+                            type: "stack",
+                            content: [
+                                views.Assets.config,
+                                views.Scene.config                              
+                            ],
+                            width: 20
+                        },
                         {
                             type: "stack",
                             content: [
                                 views.Canvas.config                                
-                            ]
-                        },
-                        views.Scene.config,
+                            ],
+                            width: 80
+                        }                       
                     ]
                 }
             ]
