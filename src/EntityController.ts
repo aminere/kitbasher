@@ -65,6 +65,9 @@ namespace Private {
     export const ringColor = new Color(.5, .5, .5, 1);
     export const _intersection = new Vector3();
 
+    // Scale
+    export const initialScale = new Vector3();
+
     export let selectedAxis = Axis.None;
 }
 
@@ -91,6 +94,7 @@ export class EntityController {
             initialIntersection,
             initialPosition,
             initialRotation,
+            initialScale,
             localRight,
             localUp,
             localForward,
@@ -112,7 +116,8 @@ export class EntityController {
                     const toCamera = Vector3.fromPool().copy(camera.entity.transform.worldPosition)
                         .substract(transform.worldPosition).normalize();
                     const toObject = Vector3.fromPool().copy(toCamera).flip();
-                    if (controlMode === ControlMode.Translate) {
+                    if (controlMode === ControlMode.Translate
+                        || controlMode === ControlMode.Scale) {
                         if (selectedAxis === Axis.X) {
                             const dotZ = Math.abs(toObject.dot(transform.worldForward));
                             const dotY = Math.abs(toObject.dot(transform.worldUp));
@@ -147,7 +152,11 @@ export class EntityController {
                         const pickingRay = camera.getWorldRay(clickStart.x, clickStart.y);
                         if (pickingRay) {
                             initialIntersection.copy(pickingRay.castOnPlane(controlPlane).intersection as Vector3);
-                            initialPosition.copy(transform.position);
+                            if (controlMode === ControlMode.Translate) {
+                                initialPosition.copy(transform.position);
+                            } else {
+                                initialScale.copy(transform.scale);
+                            } 
                         } else {
                             return false;
                         }
@@ -303,6 +312,50 @@ export class EntityController {
                         // skip entityTransformChanged event
                         return true;
                     }
+                } else {
+                    // Scale
+                    translation.substractVectors(currentIntersection, initialIntersection);
+                    initialIntersection.copy(currentIntersection);
+                    const parentScale = (transform.parent && transform.parent.transform)
+                        ? transform.parent.transform.worldScale
+                        : Vector3.one;
+                    
+                    if (selectedAxis === Axis.X) {
+
+                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
+                        transform.scale.x += translation.x;
+                    } else if (selectedAxis === Axis.Y) {
+
+                        translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
+                        transform.scale.y += translation.y;
+                    } else if (selectedAxis === Axis.Z) {
+
+                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
+                        transform.scale.z += translation.z;                            
+                    } else if (selectedAxis === Axis.XY) {
+
+                        translation2.copy(translation);
+                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
+                        transform.scale.x += translation.x;
+                        translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
+                        transform.scale.y += translation2.y;
+                        
+                    } else if (selectedAxis === Axis.XZ) {
+
+                        translation2.copy(translation);
+                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
+                        transform.scale.x += translation.x;
+                        translation2.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
+                        transform.scale.z += translation2.z;
+
+                    } else if (selectedAxis === Axis.ZY) {
+
+                        translation2.copy(translation);
+                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
+                        transform.scale.z += translation.z;
+                        translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
+                        transform.scale.y += translation2.y;
+                    }
                 }
 
                 Events.transformChanged.post(selectedEntity);
@@ -330,7 +383,8 @@ export class EntityController {
             invWorldNoScale.getInverse(worldNoScale);
             localPickingRay.copy(pickingRay).transform(invWorldNoScale);
 
-            if (controlMode === ControlMode.Translate) {
+            if (controlMode === ControlMode.Translate
+                || controlMode === ControlMode.Scale) {
                 // update the axis bounding boxes          
                 let t = axisLength * Private.axisThicknessFactor;
                 Private.xAxisAABB.min.set(0, -t, -t);
@@ -527,42 +581,58 @@ export class EntityController {
             .compose(position, rotation, scale.copy(Vector3.one)
                 .multiply(axisLength));
         const localCameraPos = transform.worldToLocal(camera.entity.transform.worldPosition, Vector3.fromPool());
-        if (controlMode === ControlMode.Translate) {
+        if (
+            controlMode === ControlMode.Translate
+            || controlMode === ControlMode.Scale
+        ) {
             const xColor = selectedAxis === Axis.X ? Color.yellow : Color.red;
             const yColor = selectedAxis === Axis.Y ? Color.yellow : Color.green;
             const zColor = selectedAxis === Axis.Z ? Color.yellow : Color.blue;
             GeometryRenderer.drawLine(Vector3.zero, Vector3.right, xColor, worldMatrix);
             GeometryRenderer.drawLine(Vector3.zero, Vector3.up, yColor, worldMatrix);
             GeometryRenderer.drawLine(Vector3.zero, Vector3.forward, zColor, worldMatrix);
-            const coneRadius = distFromCamera * coneRadiusFactor;
-            const coneLength = distFromCamera * coneLengthFactor;
-            GeometryRenderer.drawCone(
-                coneRadius,
-                coneLength,
-                axisLength,
-                transform.worldRight,
-                transform.worldUp,
-                xColor,
-                position
-            );
-            GeometryRenderer.drawCone(
-                coneRadius,
-                coneLength,
-                axisLength,
-                transform.worldUp,
-                transform.worldRight,
-                yColor,
-                position
-            );
-            GeometryRenderer.drawCone(
-                coneRadius,
-                coneLength,
-                axisLength,
-                transform.worldForward,
-                transform.worldUp,
-                zColor,
-                position
-            );
+
+            if (controlMode === ControlMode.Translate) {
+                const coneRadius = distFromCamera * coneRadiusFactor;
+                const coneLength = distFromCamera * coneLengthFactor;
+                GeometryRenderer.drawCone(
+                    coneRadius,
+                    coneLength,
+                    axisLength,
+                    transform.worldRight,
+                    transform.worldUp,
+                    xColor,
+                    position
+                );
+                GeometryRenderer.drawCone(
+                    coneRadius,
+                    coneLength,
+                    axisLength,
+                    transform.worldUp,
+                    transform.worldRight,
+                    yColor,
+                    position
+                );
+                GeometryRenderer.drawCone(
+                    coneRadius,
+                    coneLength,
+                    axisLength,
+                    transform.worldForward,
+                    transform.worldUp,
+                    zColor,
+                    position
+                );
+            } else {
+                const extentFactor = distFromCamera * .01;
+                const extent = Vector3.fromPool().copy(Vector3.one).multiply(extentFactor);
+                const xPos = Vector3.fromPool().copy(Vector3.right).multiply(axisLength);
+                const yPos = Vector3.fromPool().copy(Vector3.up).multiply(axisLength);
+                const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
+                const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
+                GeometryRenderer.drawBox(xPos, extent, xColor, matrixNoScale);
+                GeometryRenderer.drawBox(yPos, extent, yColor, matrixNoScale);
+                GeometryRenderer.drawBox(zPos, extent, zColor, matrixNoScale);
+            }            
 
             const xyzMatrix = Matrix44.fromPool();
             xyzMatrix.compose(
