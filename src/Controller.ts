@@ -6,10 +6,11 @@ import { Scenes, ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { Entities } from "../../spider-engine/src/core/Entities";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
+import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { StaticMesh, Plane, Assets } from "../../spider-engine/src/spider-engine";
+import { StaticMesh, Plane, Assets, Vector2 } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -22,6 +23,8 @@ import { Debug } from "../../spider-engine/src/io/Debug";
 import { Triangle } from "../../spider-engine/src/math/Triangle";
 import { Components } from "../../spider-engine/src/core/Components";
 import { CullModes } from "../../spider-engine/src/graphics/GraphicTypes";
+import { EntityController } from "./EntityController";
+import { Commands } from "./Commands";
 
 namespace Private {
 
@@ -67,9 +70,39 @@ namespace Private {
                 });
             })
             .then(() => {
-                EditorCamera.camera = Entities.find("Camera") as Entity;
+                EditorCamera.cameraEntity = Entities.find("Camera") as Entity;
             });
     }
+
+    // Touch input
+    export let touchPressed = false;
+    export let touchLeftButton = false;
+    export let touchStart = new Vector2();
+
+    // Snapping
+    export function createKit(kit: IKitAsset, position?: Vector3) {
+        return Entities.create()
+            .setComponent(Transform, position ? { position } : undefined)
+            .setComponent(Visual, {
+                geometry: new StaticMesh({ mesh: kit.mesh }),
+                material: defaultMaterial
+            });
+    }
+
+    export let potentialKit: Entity | null = null;
+    State.selectedKitChanged.attach(kit => {
+        if (potentialKit) {
+            potentialKit.destroy();
+            potentialKit = null;
+        }
+        if (kit) {
+            potentialKit = createKit(kit);
+            potentialKit.active = false;
+        }
+    });
+
+    export let groundPlane = new Plane();
+    export let gridSize = 1;
 
     Events.canvasMounted.attach(canvas => {
         Engine.create({
@@ -100,34 +133,7 @@ namespace Private {
             });
     });
 
-    // Touch input
-    export let touchPressed = false;
-    export let touchLeftButton = false;
-
-    // Snapping
-    export function createKit(kit: IKitAsset, position?: Vector3) {
-        return Entities.create()
-            .setComponent(Transform, position ? { position } : undefined)
-            .setComponent(Visual, {
-                geometry: new StaticMesh({ mesh: kit.mesh }),
-                material: defaultMaterial
-            });
-    }
-
-    export let potentialKit: Entity | null = null;
-    State.selectedKitChanged.attach(kit => {
-        if (potentialKit) {
-            potentialKit.destroy();
-            potentialKit = null;
-        }
-        if (kit) {
-            potentialKit = createKit(kit);
-            potentialKit.active = false;
-        }
-    });
-
-    export let groundPlane = new Plane();
-    export let gridSize = 1;
+    Commands.saveScene.attach(() => saveCurrentScene());
 }
 
 export class Controller {
@@ -145,12 +151,19 @@ export class Controller {
         }
         Private.touchPressed = true;
         Private.touchLeftButton = e.button === 0;
+        Private.touchStart.set(localX, localY);
         EditorCamera.onMouseDown(localX, localY);
     }
 
     public static onMouseMove(e: React.MouseEvent<HTMLElement>, localX: number, localY: number) {
-        if (!Private.touchPressed) {
-            const { potentialKit } = Private;
+
+        const { 
+            potentialKit,
+            touchLeftButton,
+            touchStart
+        } = Private;
+
+        if (!Private.touchPressed) {        
             if (potentialKit) {
                 potentialKit.active = true;
 
@@ -167,11 +180,18 @@ export class Controller {
                     potentialKit.transform.position.x = snap(intersect.intersection.x);
                     potentialKit.transform.position.z = snap(intersect.intersection.z);
                 }
+                return;
             }
+
+            EntityController.onMouseMove(localX, localY, EditorCamera.camera, false, Vector2.zero);
             return;
         }
 
-        if (EditorCamera.onMouseMove(localX, localY, Private.touchLeftButton)) {
+        if (EntityController.onMouseMove(localX, localY, EditorCamera.camera, touchLeftButton, touchStart)) {
+            return;
+        }
+
+        if (EditorCamera.onMouseMove(localX, localY, touchLeftButton)) {
             return;
         }
     }
@@ -182,7 +202,14 @@ export class Controller {
         }
 
         Private.touchPressed = false;
+
+        if (EntityController.onMouseUp()) {
+            Private.saveCurrentScene();
+            return;
+        }
+
         if (EditorCamera.onMouseUp(localX, localY)) {
+            Private.saveCurrentScene();
             return;
         }
 

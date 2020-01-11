@@ -25,7 +25,8 @@ namespace Private {
 }
 
 export class EditorCamera {
-    public static set camera(camera: Entity) { Private.camera = camera; }
+    public static set cameraEntity(camera: Entity) { Private.camera = camera; }
+    public static get camera() { return Private.camera.getComponent(Camera) as Camera; }
     
     public static getWorldRay(x: number, y: number) {
         return (Private.camera.getComponent(Camera) as Camera).getWorldRay(x, y);

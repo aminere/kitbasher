@@ -8,6 +8,7 @@ import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
 import { Entity } from "../../../spider-engine/src/core/Entity";
 import { Transform } from "../../../spider-engine/src/core/Transform";
 import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine/src/serialization/SerializerUtils";
+import { Commands } from "../Commands";
 
 interface ICanvasState {
     enabled: boolean;    
@@ -154,6 +155,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     newValue
                                 );
                                 SerializerUtilsInternal.tryUsePropertySetter = false;
+                                Commands.saveScene.post();
                             }}
                         />
                     </div>
