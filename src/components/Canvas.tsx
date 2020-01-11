@@ -141,7 +141,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                             right: "0",
                             top: "0",
                             width: "250px",
-                            backgroundColor: "#202b3366"
+                            backgroundColor: "rgba(32, 43, 51, .9)"
                         }}
                     >
                         <PropertyGrid

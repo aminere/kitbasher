@@ -6,3 +6,13 @@ export interface IKitAsset {
     thumbnail: Texture2D;
     mesh: StaticMeshAsset;
 }
+
+export enum Axis {
+    None,
+    X,
+    Y,
+    Z,
+    XY,
+    XZ,
+    ZY
+}

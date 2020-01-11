@@ -7,6 +7,8 @@ import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { WebGL } from "../../spider-engine/src/graphics/WebGL";
 import { GraphicUtils } from "../../spider-engine/src/graphics/GraphicUtils";
 import { Color } from "../../spider-engine/src/graphics/Color";
+import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/GeometryRenderer";
+import { EntityController } from "./EntityController";
 
 namespace Private {
     export let debugMaterial: Material;
@@ -63,7 +65,8 @@ export class Renderer {
                 return Assets.load(a.path)
                     .then(asset => a.set(asset));
             })
-        );
+        )
+        .then(() => GeometryRenderer.init());
     }
 
     public static preRender(camera: Camera) {
@@ -77,6 +80,14 @@ export class Renderer {
         }
     }
 
-    // tslint:disable-next-line
-    public static postRender(camera: Camera) {}
+    public static postRender(camera: Camera) {
+        if (!GeometryRenderer.begin()) {
+            return;
+        }
+
+        GeometryRenderer.applyProjectionMatrix(camera.getProjectionMatrix());
+        GeometryRenderer.setViewMatrix(camera.getViewMatrix());
+
+        EntityController.render(camera);
+    }
 }

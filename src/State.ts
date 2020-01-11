@@ -3,6 +3,12 @@ import { IKitAsset } from "./Types";
 import { AsyncEvent } from "ts-events";
 import { Entity } from "../../spider-engine/src/core/Entity";
 
+export enum ControlMode {
+    Translate,
+    Rotate,
+    Scale
+}
+
 export class State {    
 
     public static get instance() {
@@ -18,6 +24,7 @@ export class State {
     private _selectedKit: IKitAsset | null = null;
     private _lastUsedKit: IKitAsset | null = null;
     private _selection: Entity[] = [];
+    private _controlMode = ControlMode.Translate;
 
     public get selectedKit() { return this._selectedKit; }
     public set selectedKit(kit: IKitAsset | null) {
@@ -32,6 +39,9 @@ export class State {
     }
 
     public get lastUsedKit() { return this._lastUsedKit; }
+
+    public get selection() { return this._selection; }
+    public get controlMode() { return this._controlMode; }
 
     public setSelection(entity: Entity) {
         this._selection = [entity];
