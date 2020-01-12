@@ -13,6 +13,8 @@ import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { WebGL } from "../../spider-engine/src/graphics/WebGL";
 import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/GeometryRenderer";
+import { Snapping } from "./Snapping";
+import { Settings } from "./Settings";
 
 namespace Private {
     export const axisThickness = .2;
@@ -222,93 +224,104 @@ export class EntityController {
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
+
+                    const snap = (a: Vector3, b: Vector3) => {
+                        transform.position.x = Snapping.snap(a.x + b.x, Settings.gridSize);
+                        transform.position.y = Snapping.snap(a.y + b.y, Settings.gridSize);
+                        transform.position.z = Snapping.snap(a.z + b.z, Settings.gridSize);
+                    };
+
                     if (selectedAxis === Axis.X) {
 
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldRight));
-                        transform.position.addVectors(
-                            initialPosition,
-                            translation.copy(transform.right).multiply(length * dir)
-                        );
+
+                        translation.copy(transform.right).multiply(length * dir);
+                        snap(initialPosition, translation);
+
                     } else if (selectedAxis === Axis.Y) {
 
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldUp));
-                        transform.position.addVectors(
-                            initialPosition,
-                            translation.copy(transform.up).multiply(length * dir)
-                        );
+
+                        translation.copy(transform.up).multiply(length * dir);
+                        snap(initialPosition, translation);
                     } else if (selectedAxis === Axis.Z) {
 
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldForward));
-                        transform.position.addVectors(
-                            initialPosition,
-                            translation.copy(transform.forward).multiply(length * dir)
-                        );
+
+                        translation.copy(transform.forward).multiply(length * dir);
+                        snap(initialPosition, translation);
                     } else if (selectedAxis === Axis.XY) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const length = translation.length;
                         let dir = Math.sign(translation.dot(transform.worldRight));
-                        transform.position.addVectors(
-                            initialPosition,
-                            translation.copy(transform.right).multiply(length * dir)
-                        );
+
+                        translation.copy(transform.right).multiply(length * dir);
+                        snap(initialPosition, translation);
+
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
                         const length2 = translation2.length;
                         dir = Math.sign(translation2.dot(transform.worldUp));
-                        transform.position.add(translation2.copy(transform.up).multiply(length2 * dir));
+
+                        translation2.copy(transform.up).multiply(length2 * dir);
+                        snap(transform.position, translation2);
+
                     } else if (selectedAxis === Axis.XZ) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const length = translation.length;
                         let dir = Math.sign(translation.dot(transform.worldRight));
-                        transform.position.addVectors(
-                            initialPosition,
-                            translation.copy(transform.right).multiply(length * dir)
-                        );
+                        translation.copy(transform.right).multiply(length * dir);
+                        snap(initialPosition, translation);
+
                         translation2.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
                         const length2 = translation2.length;
                         dir = Math.sign(translation2.dot(transform.worldForward));
-                        transform.position.add(translation2.copy(transform.forward).multiply(length2 * dir));
+                        translation2.copy(transform.forward).multiply(length2 * dir);
+                        snap(transform.position, translation2);
+
                     } else if (selectedAxis === Axis.ZY) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
                         const length = translation.length;
                         let dir = Math.sign(translation.dot(transform.worldForward));
-                        transform.position.addVectors(
-                            initialPosition,
-                            translation.copy(transform.forward).multiply(length * dir)
-                        );
+                        translation.copy(transform.forward).multiply(length * dir);
+                        snap(initialPosition, translation);
+
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
                         const length2 = translation2.length;
                         dir = Math.sign(translation2.dot(transform.worldUp));
-                        transform.position.add(translation2.copy(transform.up).multiply(length2 * dir));
+                        translation2.copy(transform.up).multiply(length2 * dir);
+                        snap(transform.position, translation2);
                     }
 
                     // Rotation
                 } else if (controlMode === ControlMode.Rotate) {
+
                     currentIntersection.substract(transform.worldPosition).normalize();
                     const angle = Math.acos(initialIntersection.dot(currentIntersection));
                     if (Math.abs(angle) > 0.001) {
+                        const snapped = Snapping.snap(angle, Settings.angleSnap);
                         const rotation = Quaternion.fromPool();
                         const cross = Vector3.fromPool().crossVectors(initialIntersection, currentIntersection);
                         if (selectedAxis === Axis.X) {
                             const dir = Math.sign(localRight.dot(cross));
-                            rotation.setFromAxisAngle(localRight, angle * dir);
+                            rotation.setFromAxisAngle(localRight, snapped * dir);
                         } else if (selectedAxis === Axis.Y) {
                             const dir = Math.sign(localUp.dot(cross));
-                            rotation.setFromAxisAngle(localUp, angle * dir);
+                            rotation.setFromAxisAngle(localUp, snapped * dir);
                         } else if (selectedAxis === Axis.Z) {
                             const dir = Math.sign(localForward.dot(cross));
-                            rotation.setFromAxisAngle(localForward, angle * dir);
+                            rotation.setFromAxisAngle(localForward, snapped * dir);
                         }
                         transform.rotation.multiplyQuaternions(initialRotation, rotation);
                     } else {
@@ -316,57 +329,67 @@ export class EntityController {
                         return true;
                     }
                 } else {
+
                     // Scale
                     translation.substractVectors(currentIntersection, initialIntersection);
-                    initialIntersection.copy(currentIntersection);
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
 
+                    const snap = (
+                        prop: "x" | "y" | "z",
+                        offset: Vector3,
+                        axis: Vector3,
+                        factor?: number
+                    ) => {
+                        const dir = Math.sign(offset.dot(axis));
+                        transform.scale[prop] = Snapping.snap(
+                            initialScale[prop] + offset.length * (factor ?? 1) * dir, 
+                            Settings.gridSize
+                        );
+                    };
+
                     if (selectedAxis === Axis.X) {
 
                         translation.projectOnVector(Vector3.right).multiply(1 / parentScale.x);
-                        transform.scale.x += translation.length
-                            * Math.sign(translation.dot(transform.worldRight));
+                        snap("x", translation, transform.worldRight);
+
                     } else if (selectedAxis === Axis.Y) {
 
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        transform.scale.y += translation.length
-                            * Math.sign(translation.dot(transform.worldUp));
+                        snap("y", translation, transform.worldUp);
+
                     } else if (selectedAxis === Axis.Z) {
 
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        transform.scale.z += translation.length
-                            * Math.sign(translation.dot(transform.worldForward));
+                        snap("z", translation, transform.worldForward);
+
                     } else if (selectedAxis === Axis.XY) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        transform.scale.x += translation.length * Private.xPlaneDir
-                            * Math.sign(translation.dot(transform.worldRight));
+                        snap("x", translation, transform.worldRight, Private.xPlaneDir);
+
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        transform.scale.y += translation2.length * Private.yPlaneDir
-                            * Math.sign(translation2.dot(transform.worldUp));
+                        snap("y", translation2, transform.worldUp, Private.yPlaneDir);
 
                     } else if (selectedAxis === Axis.XZ) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        transform.scale.x += translation.length * Private.xPlaneDir
-                            * Math.sign(translation.dot(transform.worldRight));
+                        snap("x", translation, transform.worldRight, Private.xPlaneDir);
+
                         translation2.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        transform.scale.z += translation2.length * Private.zPlaneDir
-                            * Math.sign(translation2.dot(transform.worldForward));
+                        snap("z", translation2, transform.worldForward, Private.zPlaneDir);
 
                     } else if (selectedAxis === Axis.ZY) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        transform.scale.z += translation.length * Private.zPlaneDir
-                            * Math.sign(translation.dot(transform.worldForward));
+                        snap("z", translation, transform.worldForward, Private.zPlaneDir);
+
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        transform.scale.y += translation2.length * Private.yPlaneDir
-                            * Math.sign(translation2.dot(transform.worldUp));
+                        snap("y", translation2, transform.worldUp, Private.yPlaneDir);
                     }
                 }
 

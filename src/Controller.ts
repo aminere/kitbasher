@@ -25,11 +25,32 @@ import { Components } from "../../spider-engine/src/core/Components";
 import { CullModes } from "../../spider-engine/src/graphics/GraphicTypes";
 import { EntityController } from "./EntityController";
 import { Commands } from "./Commands";
+import { Snapping } from "./Snapping";
+import { Settings } from "./Settings";
 
 namespace Private {
 
     const currentScenePath = "currentScene.Scene";
     let defaultMaterial: Material;
+    export let sceneLoaded = false;
+
+    // Touch input
+    export let touchPressed = false;
+    export let touchLeftButton = false;
+    export let touchStart = new Vector2();
+
+    // Snapping
+    export function createKit(kit: IKitAsset, position?: Vector3) {
+        return Entities.create()
+            .setComponent(Transform, position ? { position } : undefined)
+            .setComponent(Visual, {
+                geometry: new StaticMesh({ mesh: kit.mesh }),
+                material: defaultMaterial
+            });
+    }
+
+    export let potentialKit: Entity | null = null;
+    export let groundPlane = new Plane();
 
     export function saveCurrentScene() {
         const engineHud = Entities.find("EngineHud");
@@ -50,9 +71,6 @@ namespace Private {
 
         EngineHandlersInternal.onWindowResized();
 
-        // For debugging
-        Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });
-
         Promise.resolve()
             .then(() => {
                 return new Promise(resolve => {
@@ -71,38 +89,20 @@ namespace Private {
             })
             .then(() => {
                 EditorCamera.cameraEntity = Entities.find("Camera") as Entity;
+                Commands.saveScene.attach(() => saveCurrentScene());
+                State.selectedKitChanged.attach(kit => {
+                    if (potentialKit) {
+                        potentialKit.destroy();
+                        potentialKit = null;
+                    }
+                    if (kit) {
+                        potentialKit = createKit(kit);
+                        potentialKit.active = false;
+                    }
+                });
+                sceneLoaded = true;
             });
     }
-
-    // Touch input
-    export let touchPressed = false;
-    export let touchLeftButton = false;
-    export let touchStart = new Vector2();
-
-    // Snapping
-    export function createKit(kit: IKitAsset, position?: Vector3) {
-        return Entities.create()
-            .setComponent(Transform, position ? { position } : undefined)
-            .setComponent(Visual, {
-                geometry: new StaticMesh({ mesh: kit.mesh }),
-                material: defaultMaterial
-            });
-    }
-
-    export let potentialKit: Entity | null = null;
-    State.selectedKitChanged.attach(kit => {
-        if (potentialKit) {
-            potentialKit.destroy();
-            potentialKit = null;
-        }
-        if (kit) {
-            potentialKit = createKit(kit);
-            potentialKit.active = false;
-        }
-    });
-
-    export let groundPlane = new Plane();
-    export let gridSize = 1;
 
     Events.canvasMounted.attach(canvas => {
         Engine.create({
@@ -124,6 +124,8 @@ namespace Private {
                 return IndexedDb.initialize(dbName, dbVersion);
             })
             .then(() => {
+                // For debugging
+                Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });
                 Events.engineReady.post();
                 checkCanvasStatus();
             })
@@ -132,8 +134,6 @@ namespace Private {
                 console.error(error);
             });
     });
-
-    Commands.saveScene.attach(() => saveCurrentScene());
 }
 
 export class Controller {
@@ -146,6 +146,9 @@ export class Controller {
     }
 
     public static onMouseDown(e: React.MouseEvent<HTMLCanvasElement>, localX: number, localY: number) {
+        if (!Private.sceneLoaded) {
+            return;
+        }
         if (Private.touchPressed) {
             return;
         }
@@ -156,29 +159,25 @@ export class Controller {
     }
 
     public static onMouseMove(e: React.MouseEvent<HTMLElement>, localX: number, localY: number) {
-
-        const { 
+        if (!Private.sceneLoaded) {
+            return;
+        }
+        const {
             potentialKit,
             touchLeftButton,
             touchStart
         } = Private;
 
-        if (!Private.touchPressed) {        
+        if (!Private.touchPressed) {
             if (potentialKit) {
                 potentialKit.active = true;
 
                 const ray = EditorCamera.getWorldRay(localX, localY);
                 const intersect = ray?.castOnPlane(Private.groundPlane);
-                if (intersect && intersect.intersection) {
-                    const { gridSize } = Private;
-                    const snap = (i: number) => {
-                        const ratio = i / gridSize;
-                        const ratioInt = Math.floor(ratio);
-                        const ratioFract = ratio - ratioInt;
-                        return gridSize * (ratioInt + Math.round(ratioFract));
-                    };
-                    potentialKit.transform.position.x = snap(intersect.intersection.x);
-                    potentialKit.transform.position.z = snap(intersect.intersection.z);
+                if (intersect && intersect.intersection) {              
+                    const { x, z } = intersect.intersection;      
+                    potentialKit.transform.position.x = Snapping.snap(x, Settings.gridSize);
+                    potentialKit.transform.position.z = Snapping.snap(z, Settings.gridSize);
                 }
                 return;
             }
@@ -197,6 +196,9 @@ export class Controller {
     }
 
     public static onMouseUp(e: React.MouseEvent<HTMLCanvasElement>, localX: number, localY: number) {
+        if (!Private.sceneLoaded) {
+            return;
+        }
         if (!Private.touchPressed) {
             return;
         }
@@ -274,7 +276,7 @@ export class Controller {
                                 triangle.set(v1, v2, v3);
                                 if (triangle.contains(result.intersection)) {
                                     const distance = Vector3.distance(
-                                        result.intersection.transform(world), 
+                                        result.intersection.transform(world),
                                         pickingRay.origin
                                     );
                                     if (distance < distToClosest) {
@@ -288,7 +290,7 @@ export class Controller {
                 }
             }
         }
-        
+
         if (closest) {
             // TODO multi-selection
             State.instance.setSelection(closest);
@@ -298,10 +300,16 @@ export class Controller {
     }
 
     public static onMouseLeave(e: React.MouseEvent<HTMLCanvasElement>, localX: number, localY: number) {
+        if (!Private.sceneLoaded) {
+            return;
+        }
         Controller.onMouseUp(e, localX, localY);
     }
 
     public static onMouseWheel(e: WheelEvent) {
+        if (!Private.sceneLoaded) {
+            return;
+        }
         const delta = DOMUtils.getWheelDelta(e.deltaY, e.deltaMode);
         EditorCamera.onMouseWheel(delta);
     }

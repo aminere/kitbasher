@@ -19,6 +19,7 @@ import { Assets } from "./components/Assets";
 import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
 import { State } from "./State";
+import { Commands } from "./Commands";
 
 interface ILayoutConfig {
     type: string;
@@ -353,9 +354,16 @@ export class App extends React.Component {
             if (State.instance.selectedKit) {
                 State.instance.selectedKit = null;
             } else {
-                // TODO clear selection
-                
+                State.instance.clearSelection();
             }
+        } else if (e.key === "Delete") {
+            if (State.instance.selection.length) {
+                for (const entity of State.instance.selection) {
+                    entity.destroy();
+                }
+                State.instance.clearSelection();
+                Commands.saveScene.post();
+            }            
         }
     }
 }
