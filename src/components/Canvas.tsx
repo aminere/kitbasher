@@ -2,8 +2,8 @@
 import * as React from "react";
 import { Events } from "../Events";
 import { Controller } from "../Controller";
-import { Tooltip, Position, Button } from "@blueprintjs/core";
-import { State } from "../State";
+import { Tooltip, Position, Button, Intent } from "@blueprintjs/core";
+import { State, ControlMode } from "../State";
 import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
 import { Entity } from "../../../spider-engine/src/core/Entity";
 import { Transform } from "../../../spider-engine/src/core/Transform";
@@ -11,12 +11,12 @@ import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine
 import { Commands } from "../Commands";
 
 interface ICanvasState {
-    enabled: boolean;    
+    enabled: boolean;
 }
 
 export class Canvas extends React.Component<{}, ICanvasState> {
 
-    private _canvas!: HTMLCanvasElement;    
+    private _canvas!: HTMLCanvasElement;
     private _mockState = {
         selection: [] as Entity[]
     };
@@ -49,6 +49,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
     }
 
     public render() {
+        const { controlMode } = State.instance;
         return (
             <div
                 className="fill-parent"
@@ -104,12 +105,55 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         <div
                             style={{ width: "30px" }}
                         >
+                            <div
+                                style={{
+                                    display: State.instance.selection.length ? "block" : "none",
+                                    marginBottom: "8px"
+                                }}
+                            >
+                                <Tooltip content="Translate" position={Position.LEFT}>
+                                    <Button
+                                        icon="move"
+                                        active={controlMode === ControlMode.Translate}
+                                        intent={controlMode === ControlMode.Translate ? Intent.PRIMARY : Intent.NONE}
+                                        onClick={() => {
+                                            State.instance.controlMode = ControlMode.Translate;
+                                            this.forceUpdate();
+                                        }}
+                                        onFocus={e => e.currentTarget.blur()}
+                                    />
+                                </Tooltip>
+                                <Tooltip content="Rotate" position={Position.LEFT}>
+                                    <Button
+                                        icon="refresh"
+                                        active={controlMode === ControlMode.Rotate}
+                                        intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
+                                        onClick={() => {
+                                            State.instance.controlMode = ControlMode.Rotate;
+                                            this.forceUpdate();
+                                        }}
+                                        onFocus={e => e.currentTarget.blur()}
+                                    />
+                                </Tooltip>
+                                <Tooltip content="Scale" position={Position.LEFT}>
+                                    <Button
+                                        icon="maximize"
+                                        active={controlMode === ControlMode.Scale}
+                                        intent={controlMode === ControlMode.Scale ? Intent.PRIMARY : Intent.NONE}
+                                        onClick={() => {
+                                            State.instance.controlMode = ControlMode.Scale;
+                                            this.forceUpdate();
+                                        }}
+                                        onFocus={e => e.currentTarget.blur()}
+                                    />
+                                </Tooltip>
+                            </div>
                             <Tooltip content="Select" position={Position.LEFT}>
                                 <Button
                                     icon={(
                                         <span
                                             style={{
-                                                fontFamily: "icomoon"
+                                                fontFamily: "icomoon",
                                             }}
                                         >
                                             &#xe900;

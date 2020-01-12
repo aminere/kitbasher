@@ -35,13 +35,22 @@ export class State {
         if (kit) {
             this._lastUsedKit = kit;
         }
+
+        if (this._selection.length) {
+            this.clearSelection();
+        }
+
         State.selectedKitChanged.post(kit);
     }
 
     public get lastUsedKit() { return this._lastUsedKit; }
 
     public get selection() { return this._selection; }
+
     public get controlMode() { return this._controlMode; }
+    public set controlMode(mode: ControlMode) {
+        this._controlMode = mode;
+    }
 
     public setSelection(entity: Entity) {
         this._selection = [entity];

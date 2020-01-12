@@ -67,6 +67,9 @@ namespace Private {
 
     // Scale
     export const initialScale = new Vector3();
+    export let xPlaneDir = 1;
+    export let yPlaneDir = 1;
+    export let zPlaneDir = 1;
 
     export let selectedAxis = Axis.None;
 }
@@ -156,7 +159,7 @@ export class EntityController {
                                 initialPosition.copy(transform.position);
                             } else {
                                 initialScale.copy(transform.scale);
-                            } 
+                            }
                         } else {
                             return false;
                         }
@@ -319,42 +322,51 @@ export class EntityController {
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
-                    
+
                     if (selectedAxis === Axis.X) {
 
-                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        transform.scale.x += translation.x;
+                        translation.projectOnVector(Vector3.right).multiply(1 / parentScale.x);
+                        transform.scale.x += translation.length
+                            * Math.sign(translation.dot(transform.worldRight));
                     } else if (selectedAxis === Axis.Y) {
 
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        transform.scale.y += translation.y;
+                        transform.scale.y += translation.length
+                            * Math.sign(translation.dot(transform.worldUp));
                     } else if (selectedAxis === Axis.Z) {
 
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        transform.scale.z += translation.z;                            
+                        transform.scale.z += translation.length
+                            * Math.sign(translation.dot(transform.worldForward));
                     } else if (selectedAxis === Axis.XY) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        transform.scale.x += translation.x;
+                        transform.scale.x += translation.length * Private.xPlaneDir
+                            * Math.sign(translation.dot(transform.worldRight));
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        transform.scale.y += translation2.y;
-                        
+                        transform.scale.y += translation2.length * Private.yPlaneDir
+                            * Math.sign(translation2.dot(transform.worldUp));
+
                     } else if (selectedAxis === Axis.XZ) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        transform.scale.x += translation.x;
+                        transform.scale.x += translation.length * Private.xPlaneDir
+                            * Math.sign(translation.dot(transform.worldRight));
                         translation2.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        transform.scale.z += translation2.z;
+                        transform.scale.z += translation2.length * Private.zPlaneDir
+                            * Math.sign(translation2.dot(transform.worldForward));
 
                     } else if (selectedAxis === Axis.ZY) {
 
                         translation2.copy(translation);
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        transform.scale.z += translation.z;
+                        transform.scale.z += translation.length * Private.zPlaneDir
+                            * Math.sign(translation.dot(transform.worldForward));
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        transform.scale.y += translation2.y;
+                        transform.scale.y += translation2.length * Private.yPlaneDir
+                            * Math.sign(translation2.dot(transform.worldUp));
                     }
                 }
 
@@ -632,7 +644,7 @@ export class EntityController {
                 GeometryRenderer.drawBox(xPos, extent, xColor, matrixNoScale);
                 GeometryRenderer.drawBox(yPos, extent, yColor, matrixNoScale);
                 GeometryRenderer.drawBox(zPos, extent, zColor, matrixNoScale);
-            }            
+            }
 
             const xyzMatrix = Matrix44.fromPool();
             xyzMatrix.compose(
@@ -640,32 +652,32 @@ export class EntityController {
                 rotation,
                 scale.copy(Vector3.one).multiply(axisLength * xyzLengthFactor)
             );
-            const dirX = Math.sign(localCameraPos.x) || 1;
-            const dirY = Math.sign(localCameraPos.y) || 1;
-            const dirZ = Math.sign(localCameraPos.z) || 1;
+            Private.xPlaneDir = Math.sign(localCameraPos.x) || 1;
+            Private.yPlaneDir = Math.sign(localCameraPos.y) || 1;
+            Private.zPlaneDir = Math.sign(localCameraPos.z) || 1;
             GeometryRenderer.drawQuad(
-                xyzPoint1.set(0, dirY, 0),
-                xyzPoint2.set(dirX, dirY, 0),
+                xyzPoint1.set(0, Private.yPlaneDir, 0),
+                xyzPoint2.set(Private.xPlaneDir, Private.yPlaneDir, 0),
                 xyzPoint3.set(0, 0, 0),
-                xyzPoint4.set(dirX, 0, 0),
+                xyzPoint4.set(Private.xPlaneDir, 0, 0),
                 selectedAxis === Axis.XY ? Color.yellow : xyControllerColor,
                 xyzMatrix
             );
 
             GeometryRenderer.drawQuad(
-                xyzPoint1.set(0, dirY, 0),
-                xyzPoint2.set(0, dirY, dirZ),
+                xyzPoint1.set(0, Private.yPlaneDir, 0),
+                xyzPoint2.set(0, Private.yPlaneDir, Private.zPlaneDir),
                 xyzPoint3.set(0, 0, 0),
-                xyzPoint4.set(0, 0, dirZ),
+                xyzPoint4.set(0, 0, Private.zPlaneDir),
                 selectedAxis === Axis.ZY ? Color.yellow : zyControllerColor,
                 xyzMatrix
             );
 
             GeometryRenderer.drawQuad(
-                xyzPoint1.set(0, 0, dirZ),
-                xyzPoint2.set(dirX, 0, dirZ),
+                xyzPoint1.set(0, 0, Private.zPlaneDir),
+                xyzPoint2.set(Private.xPlaneDir, 0, Private.zPlaneDir),
                 xyzPoint3.set(0, 0, 0),
-                xyzPoint4.set(dirX, 0, 0),
+                xyzPoint4.set(Private.xPlaneDir, 0, 0),
                 selectedAxis === Axis.XZ ? Color.yellow : xzControllerColor,
                 xyzMatrix
             );
