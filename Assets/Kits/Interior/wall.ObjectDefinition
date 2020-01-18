@@ -1,9 +1,9 @@
 {
-  "typeName": "ObjectDeclaration",
+  "typeName": "ObjectDefinition",
   "version": 1,
   "properties": {
-    "id": "5223c827-ea53-4213-887f-09751ff97d6c",
-    "name": "Kit",
+    "id": "2bc6d5a8-ddf5-4a73-9b38-4977e4359a47",
+    "name": "wall",
     "_pins": {
       "typeName": "BasePin",
       "data": [
@@ -20,7 +20,8 @@
               "value": {
                 "typeName": "AssetReference",
                 "data": {
-                  "typeName": "Texture2D"
+                  "typeName": "Texture2D",
+                  "id": "Assets/Kits/default.Texture2D"
                 }
               }
             }
@@ -39,13 +40,18 @@
               "value": {
                 "typeName": "AssetReference",
                 "data": {
-                  "typeName": "Model"
+                  "typeName": "Model",
+                  "id": "Assets/Kits/Models/Wall.Model"
                 }
               }
             }
           }
         }
       ]
+    },
+    "_declaration": {
+      "typeName": "ObjectDeclaration",
+      "id": "Assets/Kit.ObjectDeclaration"
     }
   }
 }

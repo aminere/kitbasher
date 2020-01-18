@@ -2,8 +2,8 @@
   "typeName": "ObjectDefinition",
   "version": 1,
   "properties": {
-    "id": "bff1e443-ae11-465f-8b8b-5bae3ff37c09",
-    "name": "cube",
+    "id": "bb1408ef-9801-44e2-b362-192ce922323d",
+    "name": "roof",
     "_pins": {
       "typeName": "BasePin",
       "data": [
@@ -21,7 +21,7 @@
                 "typeName": "AssetReference",
                 "data": {
                   "typeName": "Texture2D",
-                  "id": "Assets/Kits/cube.Texture2D"
+                  "id": "Assets/Kits/default.Texture2D"
                 }
               }
             }
@@ -34,14 +34,14 @@
             "version": 2,
             "properties": {
               "id": "f93d8d05-8eab-40e9-ad08-2f1bdaa058f8",
-              "name": "mesh",
+              "name": "model",
               "type": 2,
-              "_assetType": "StaticMeshAsset",
+              "_assetType": "Model",
               "value": {
                 "typeName": "AssetReference",
                 "data": {
-                  "typeName": "StaticMeshAsset",
-                  "id": "Assets/DefaultAssets/Geometry/Meshes/Cube.StaticMeshAsset"
+                  "typeName": "Model",
+                  "id": "Assets/Kits/Models/Roof.Model"
                 }
               }
             }

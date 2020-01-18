@@ -1,0 +1,68 @@
+{
+  "typeName": "Model",
+  "version": 2,
+  "properties": {
+    "id": "ebb2bdb2-8da7-479b-a4e6-332025b3d356",
+    "name": "Roof",
+    "fbxScaleFactor": 0.01,
+    "elements": {
+      "typeName": "ModelElement",
+      "data": [
+        {
+          "baseTypeName": "ModelElement",
+          "data": {
+            "typeName": "ModelMesh",
+            "version": 2,
+            "properties": {
+              "id": "5def2933-09ac-4670-ae44-47243e51f481",
+              "name": "Roof",
+              "children": {
+                "typeName": "ModelElement",
+                "data": []
+              },
+              "transform": {
+                "typeName": "Transform",
+                "version": 2,
+                "properties": {
+                  "_active": true,
+                  "_position": {
+                    "_x": 0,
+                    "_y": 0,
+                    "_z": 0
+                  },
+                  "_rotation": {
+                    "_x": -0.7071066949639712,
+                    "_y": 0,
+                    "_z": 0,
+                    "_w": 0.7071068674091134
+                  },
+                  "_scale": {
+                    "_x": 100,
+                    "_y": 100,
+                    "_z": 100
+                  }
+                }
+              },
+              "material": {
+                "typeName": "Material",
+                "id": "Assets/Kits/Models/Materials/Default.Material"
+              },
+              "mesh": {
+                "typeName": "StaticMeshAsset",
+                "id": "Assets/Kits/Models/Meshes/Roof.StaticMeshAsset"
+              },
+              "fbxNodeId": {
+                "typeName": "Number",
+                "data": 201684394
+              }
+            }
+          }
+        }
+      ]
+    },
+    "_animations": {
+      "typeName": "Animation",
+      "data": []
+    }
+  }
+}

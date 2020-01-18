@@ -1,9 +1,9 @@
 {
-  "typeName": "ObjectDeclaration",
+  "typeName": "ObjectDefinition",
   "version": 1,
   "properties": {
-    "id": "5223c827-ea53-4213-887f-09751ff97d6c",
-    "name": "Kit",
+    "id": "bff1e443-ae11-465f-8b8b-5bae3ff37c09",
+    "name": "cube",
     "_pins": {
       "typeName": "BasePin",
       "data": [
@@ -20,7 +20,8 @@
               "value": {
                 "typeName": "AssetReference",
                 "data": {
-                  "typeName": "Texture2D"
+                  "typeName": "Texture2D",
+                  "id": "Assets/Kits/Primitives/cube.Texture2D"
                 }
               }
             }
@@ -39,13 +40,18 @@
               "value": {
                 "typeName": "AssetReference",
                 "data": {
-                  "typeName": "Model"
+                  "typeName": "Model",
+                  "id": "Assets/DefaultAssets/Geometry/cube.Model"
                 }
               }
             }
           }
         }
       ]
+    },
+    "_declaration": {
+      "typeName": "ObjectDeclaration",
+      "id": "Assets/Kit.ObjectDeclaration"
     }
   }
 }

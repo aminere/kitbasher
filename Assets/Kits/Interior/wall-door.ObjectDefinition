@@ -2,8 +2,8 @@
   "typeName": "ObjectDefinition",
   "version": 1,
   "properties": {
-    "id": "1bc2f9b5-aa14-4b09-af3e-a1e2e44ab70b",
-    "name": "sphere",
+    "id": "82b6dcc0-c8a9-49c3-9737-1fa7163718c6",
+    "name": "wall-door",
     "_pins": {
       "typeName": "BasePin",
       "data": [
@@ -21,7 +21,7 @@
                 "typeName": "AssetReference",
                 "data": {
                   "typeName": "Texture2D",
-                  "id": "Assets/Kits/sphere.Texture2D"
+                  "id": "Assets/Kits/default.Texture2D"
                 }
               }
             }
@@ -34,14 +34,14 @@
             "version": 2,
             "properties": {
               "id": "f93d8d05-8eab-40e9-ad08-2f1bdaa058f8",
-              "name": "mesh",
+              "name": "model",
               "type": 2,
-              "_assetType": "StaticMeshAsset",
+              "_assetType": "Model",
               "value": {
                 "typeName": "AssetReference",
                 "data": {
-                  "typeName": "StaticMeshAsset",
-                  "id": "Assets/DefaultAssets/Geometry/Meshes/Sphere.StaticMeshAsset"
+                  "typeName": "Model",
+                  "id": "Assets/Kits/Models/WallDoor.Model"
                 }
               }
             }

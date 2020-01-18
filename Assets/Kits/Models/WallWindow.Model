@@ -1,0 +1,68 @@
+{
+  "typeName": "Model",
+  "version": 2,
+  "properties": {
+    "id": "6c616b9d-916a-4c8a-bcdb-ff1d8d8f65fa",
+    "name": "WallWindow",
+    "fbxScaleFactor": 0.01,
+    "elements": {
+      "typeName": "ModelElement",
+      "data": [
+        {
+          "baseTypeName": "ModelElement",
+          "data": {
+            "typeName": "ModelMesh",
+            "version": 2,
+            "properties": {
+              "id": "08279fda-b0af-4cc9-a31f-f5c0f49cf133",
+              "name": "Window",
+              "children": {
+                "typeName": "ModelElement",
+                "data": []
+              },
+              "transform": {
+                "typeName": "Transform",
+                "version": 2,
+                "properties": {
+                  "_active": true,
+                  "_position": {
+                    "_x": 0,
+                    "_y": 0,
+                    "_z": 0
+                  },
+                  "_rotation": {
+                    "_x": -0.7071066949639712,
+                    "_y": 0,
+                    "_z": 0,
+                    "_w": 0.7071068674091134
+                  },
+                  "_scale": {
+                    "_x": 100,
+                    "_y": 100,
+                    "_z": 100
+                  }
+                }
+              },
+              "material": {
+                "typeName": "Material",
+                "id": "Assets/Kits/Models/Materials/Default.Material"
+              },
+              "mesh": {
+                "typeName": "StaticMeshAsset",
+                "id": "Assets/Kits/Models/Meshes/Window.StaticMeshAsset"
+              },
+              "fbxNodeId": {
+                "typeName": "Number",
+                "data": 292351875
+              }
+            }
+          }
+        }
+      ]
+    },
+    "_animations": {
+      "typeName": "Animation",
+      "data": []
+    }
+  }
+}

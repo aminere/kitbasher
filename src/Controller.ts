@@ -27,6 +27,7 @@ import { EntityController } from "./EntityController";
 import { Commands } from "./Commands";
 import { Snapping } from "./Snapping";
 import { Settings } from "./Settings";
+import { Model } from "./Model";
 
 namespace Private {
 
@@ -41,11 +42,12 @@ namespace Private {
 
     // Snapping
     export function createKit(kit: IKitAsset, position?: Vector3) {
-        return Entities.create()
-            .setComponent(Transform, position ? { position } : undefined)
-            .setComponent(Visual, {
-                geometry: new StaticMesh({ mesh: kit.mesh }),
-                material: defaultMaterial
+        return Model.instantiate(kit.model)
+            .then(instance => {
+                if (position) {
+                    instance.updateComponent(Transform, { position });
+                }
+                return instance;
             });
     }
 
@@ -96,8 +98,10 @@ namespace Private {
                         potentialKit = null;
                     }
                     if (kit) {
-                        potentialKit = createKit(kit);
-                        potentialKit.active = false;
+                        createKit(kit).then(instance => {
+                            potentialKit = instance;
+                            potentialKit.active = false;
+                        });
                     }
                 });
                 sceneLoaded = true;
@@ -225,10 +229,10 @@ export class Controller {
             // Insert kit
             Private.saveCurrentScene()
                 .then(() => {
-                    Private.potentialKit = Private.createKit(
+                    Private.createKit(
                         State.instance.selectedKit as IKitAsset,
                         potentialKit.transform.position
-                    );
+                    ).then(instance => Private.potentialKit = instance);                    
                 });
             return;
         }

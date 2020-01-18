@@ -52,13 +52,18 @@ export class Assets extends React.Component {
     }
 
     private async populate() {
-        const kitNames = [
-            "cube",
-            "sphere"
+        const kits: Array<[string, string]> = [
+            ["Primitives", "cube"],
+            ["Primitives", "sphere"],
+            ["Interior", "ground"],
+            ["Interior", "roof"],
+            ["Interior", "wall"],
+            ["Interior", "wall-door"],
+            ["Interior", "wall-window"],
         ];
 
-        this._kits = (await Promise.all(kitNames.map(k => {
-            return SpiderAssets.load(`Assets/Kits/${k}.ObjectDefinition`);
+        this._kits = (await Promise.all(kits.map(([section, name]) => {
+            return SpiderAssets.load(`Assets/Kits/${section}/${name}.ObjectDefinition`);
         }))) as unknown[] as IKitAsset[];
         const textures = await Promise.all(this._kits.map(a => a.thumbnail.loadTextureData()));
 
@@ -67,7 +72,7 @@ export class Assets extends React.Component {
                 (prev, cur, index) => {
                     return prev.concat({
                         id: this._kits[index].id,
-                        name: kitNames[index],
+                        name: kits[index][1],
                         image: cur,
                         isSelected: () => State.instance.selectedKit === this._kits[index],
                         onClicked: () => State.instance.selectedKit = this._kits[index]
