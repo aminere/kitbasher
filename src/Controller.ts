@@ -193,12 +193,21 @@ export class Controller {
             return;
         }
 
-        if (EntityController.onMouseMove(localX, localY, EditorCamera.camera, touchLeftButton, touchStart)) {
-            return;
-        }
-
-        if (EditorCamera.onMouseMove(localX, localY, touchLeftButton)) {
-            return;
+        const doEntityControl = EntityController.transformStarted || !EditorCamera.transformStarted;
+        if (doEntityControl) {
+            if (EntityController.onMouseMove(localX, localY, EditorCamera.camera, touchLeftButton, touchStart)) {
+                return;
+            }
+            if (EditorCamera.onMouseMove(localX, localY, touchLeftButton)) {
+                return;
+            }
+        } else {
+            if (EditorCamera.onMouseMove(localX, localY, touchLeftButton)) {
+                return;
+            }
+            if (EntityController.onMouseMove(localX, localY, EditorCamera.camera, touchLeftButton, touchStart)) {
+                return;
+            }            
         }
     }
 

@@ -78,6 +78,7 @@ namespace Private {
 
 export class EntityController {
     public static get gizmoHighlighted() { return Private.selectedAxis !== Axis.None; }
+    public static get transformStarted() { return Private.transformStarted; }
 
     public static onMouseMove(
         localX: number,

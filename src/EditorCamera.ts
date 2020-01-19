@@ -32,6 +32,8 @@ export class EditorCamera {
         return (Private.camera.getComponent(Camera) as Camera).getWorldRay(x, y);
     }
 
+    public static get transformStarted() { return Private.cameraLookStarted || Private.cameraStrafeStarted; }
+
     public static onMouseDown(x: number, y: number) {
         Private.touchStartPos.set(x, y);
         Private.previousTouchPos.copy(Private.touchStartPos);
