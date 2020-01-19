@@ -22,6 +22,7 @@ export class State {
     public static entitySelectionChanged = new AsyncEvent<Entity[]>();
 
     private _selectedKit: IKitAsset | null = null;
+    private _selectedKitInstance: Entity | null = null;
     private _lastUsedKit: IKitAsset | null = null;
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Translate;
@@ -41,6 +42,11 @@ export class State {
         }
 
         State.selectedKitChanged.post(kit);
+    }
+
+    public get selectedKitInstance() { return this._selectedKitInstance; }
+    public set selectedKitInstance(e: Entity | null) {
+        this._selectedKitInstance = e;
     }
 
     public get lastUsedKit() { return this._lastUsedKit; }

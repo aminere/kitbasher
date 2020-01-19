@@ -2,15 +2,15 @@
 import { Events } from "./Events";
 import { Engine, EngineHandlersInternal } from "../../spider-engine/src/core/Engine";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
+import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Scenes, ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { Entities } from "../../spider-engine/src/core/Entities";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
-import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { StaticMesh, Plane, Assets, Vector2 } from "../../spider-engine/src/spider-engine";
+import { Plane, Assets, Vector2 } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -41,17 +41,19 @@ namespace Private {
     export let touchStart = new Vector2();
 
     // Snapping
-    export function createKit(kit: IKitAsset, position?: Vector3) {
+    export function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
         return Model.instantiate(kit.model)
             .then(instance => {
                 if (position) {
                     instance.updateComponent(Transform, { position });
                 }
+                if (rotation) {
+                    instance.updateComponent(Transform, { rotation });
+                }
                 return instance;
             });
     }
 
-    export let potentialKit: Entity | null = null;
     export let groundPlane = new Plane();
 
     export function saveCurrentScene() {
@@ -93,14 +95,15 @@ namespace Private {
                 EditorCamera.cameraEntity = Entities.find("Camera") as Entity;
                 Commands.saveScene.attach(() => saveCurrentScene());
                 State.selectedKitChanged.attach(kit => {
-                    if (potentialKit) {
-                        potentialKit.destroy();
-                        potentialKit = null;
+                    const { selectedKitInstance } = State.instance;
+                    if (selectedKitInstance) {
+                        selectedKitInstance.destroy();
+                        State.instance.selectedKitInstance = null;
                     }
                     if (kit) {
                         createKit(kit).then(instance => {
-                            potentialKit = instance;
-                            potentialKit.active = false;
+                            State.instance.selectedKitInstance = instance;
+                            instance.active = false;
                         });
                     }
                 });
@@ -167,21 +170,21 @@ export class Controller {
             return;
         }
         const {
-            potentialKit,
             touchLeftButton,
             touchStart
         } = Private;
 
         if (!Private.touchPressed) {
-            if (potentialKit) {
-                potentialKit.active = true;
+            const { selectedKitInstance } = State.instance;
+            if (selectedKitInstance) {
+                selectedKitInstance.active = true;
 
                 const ray = EditorCamera.getWorldRay(localX, localY);
                 const intersect = ray?.castOnPlane(Private.groundPlane);
                 if (intersect && intersect.intersection) {              
                     const { x, z } = intersect.intersection;      
-                    potentialKit.transform.position.x = Snapping.snap(x, Settings.gridSize);
-                    potentialKit.transform.position.z = Snapping.snap(z, Settings.gridSize);
+                    selectedKitInstance.transform.position.x = Snapping.snap(x, Settings.gridSize);
+                    selectedKitInstance.transform.position.z = Snapping.snap(z, Settings.gridSize);
                 }
                 return;
             }
@@ -224,15 +227,16 @@ export class Controller {
         }
 
         // Click
-        const { potentialKit } = Private;
-        if (potentialKit) {
+        const { selectedKitInstance } = State.instance;
+        if (selectedKitInstance) {
             // Insert kit
             Private.saveCurrentScene()
                 .then(() => {
                     Private.createKit(
                         State.instance.selectedKit as IKitAsset,
-                        potentialKit.transform.position
-                    ).then(instance => Private.potentialKit = instance);                    
+                        selectedKitInstance.transform.position,
+                        selectedKitInstance.transform.rotation
+                    ).then(instance => State.instance.selectedKitInstance = instance);                    
                 });
             return;
         }

@@ -20,6 +20,9 @@ import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
 import { State } from "./State";
 import { Commands } from "./Commands";
+import { Quaternion } from "../../spider-engine/src/math/Quaternion";
+import { Vector3 } from "../../spider-engine/src/math/Vector3";
+import { Entity } from "../../spider-engine/src/core/Entity";
 
 interface ILayoutConfig {
     type: string;
@@ -350,6 +353,8 @@ export class App extends React.Component {
     private onKeyDown(e: KeyboardEvent) {}
 
     private onKeyUp(e: KeyboardEvent) {
+        // tslint:disable-next-line
+        console.log(e.key, e.keyCode);
         if (e.key === "Escape") {
             if (State.instance.selectedKit) {
                 State.instance.selectedKit = null;
@@ -364,6 +369,23 @@ export class App extends React.Component {
                 State.instance.clearSelection();
                 Commands.saveScene.post();
             }            
+        } else if (e.key.toLowerCase() === "r") {
+
+            const rotate = (entity: Entity) => {
+                entity.transform.rotation.multiply(Quaternion.fromAxisAngle(Vector3.up, Math.PI / 2));
+            };
+
+            const selectedEntities = State.instance.selection;
+            if (selectedEntities.length > 0) {
+                // TODO multi selection
+                rotate(selectedEntities[0]);
+                Commands.saveScene.post();
+            } else {
+                const { selectedKitInstance } = State.instance;
+                if (selectedKitInstance) {
+                    rotate(selectedKitInstance);
+                }
+            }
         }
     }
 }
