@@ -17,7 +17,7 @@ import { Bone } from "../../spider-engine/src/core/Bone";
 import { AnimationComponent } from "../../spider-engine/src/animation/AnimationComponent";
 import { AnimationInstance } from "../../spider-engine/src/animation/AnimationInstance";
 import * as spiderAnimation from "../../spider-engine/src/animation/Animation";
-import { ScenesInternal } from "../../spider-engine/src/core/Scenes";
+import { Entities } from "../../spider-engine/src/core/Entities";
 
 namespace Private {
     export function loadElement(element: ModelElement) {
@@ -195,8 +195,9 @@ export class Model {
                 }
 
                 return Promise.all(animationLoaders).then(() => {
-                    ScenesInternal.list()[0].root.addChild(entity as Entity);
-                    return entity as Entity;
+                    const container = Entities.create().setComponent(Transform);
+                    container.addChild(entity as Entity);
+                    return container;
                 });
             });
     }

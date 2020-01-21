@@ -310,7 +310,7 @@ export class Controller {
 
         if (closest) {
             // TODO multi-selection
-            State.instance.setSelection(closest);
+            State.instance.setSelection(closest.parent as Entity);
         } else {
             State.instance.clearSelection();
         }
