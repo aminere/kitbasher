@@ -15,6 +15,8 @@ import { WebGL } from "../../spider-engine/src/graphics/WebGL";
 import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/GeometryRenderer";
 import { Snapping } from "./Snapping";
 import { Settings } from "./Settings";
+import { Visual } from "../../spider-engine/src/graphics/Visual";
+import { Entity } from "../../spider-engine/src/core/Entity";
 
 namespace Private {
     export const axisThickness = .2;
@@ -74,6 +76,17 @@ namespace Private {
     export let zPlaneDir = 1;
 
     export let selectedAxis = Axis.None;
+
+    export function makeCenteredPos(entity: Entity, position: Vector3) {
+        const bbox = entity.children[0].getComponent(Visual)?.geometry?.getBoundingBox();
+        if (bbox) {
+            const transformedBbox = AABB.fromPool().copy(bbox)
+                .transform(entity.children[0].transform.worldMatrix);
+            position.x = (transformedBbox.min.x + transformedBbox.max.x) / 2;
+            position.y = (transformedBbox.min.y + transformedBbox.max.y) / 2;
+            position.z = (transformedBbox.min.z + transformedBbox.max.z) / 2;
+        }
+    }
 }
 
 export class EntityController {
@@ -229,7 +242,7 @@ export class EntityController {
                     const snap = (a: Vector3, b: Vector3) => {
                         transform.position.x = Snapping.snap(a.x + b.x, Settings.gridSize);
                         transform.position.y = Snapping.snap(a.y + b.y, Settings.gridSize);
-                        transform.position.z = Snapping.snap(a.z + b.z, Settings.gridSize);
+                        transform.position.z = Snapping.snap(a.z + b.z, Settings.gridSize);                
                     };
 
                     if (selectedAxis === Axis.X) {
@@ -415,6 +428,7 @@ export class EntityController {
             const rotation = Quaternion.fromPool();
             const scale = Vector3.fromPool();
             transform.worldMatrix.decompose(position, rotation, scale);
+            Private.makeCenteredPos(selectedEntity, position);
             worldNoScale.compose(position, rotation, Vector3.one);
             invWorldNoScale.getInverse(worldNoScale);
             localPickingRay.copy(pickingRay).transform(invWorldNoScale);
@@ -610,6 +624,7 @@ export class EntityController {
         const scale = Vector3.fromPool();
         const { controlMode } = State.instance;
         transform.worldMatrix.decompose(position, rotation, scale);
+        Private.makeCenteredPos(selectedEntity, position);
         const distFromCamera = position.distFrom(camera.entity.transform.worldPosition);
         const axisLength = distFromCamera * axisLengthFactor;
         Private.axisLength = axisLength;

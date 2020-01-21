@@ -17,6 +17,8 @@ interface ICanvasState {
 export class Canvas extends React.Component<{}, ICanvasState> {
 
     private _canvas!: HTMLCanvasElement;
+    private _transform!: PropertyGrid;
+
     private _mockState = {
         selection: [] as Entity[]
     };
@@ -33,6 +35,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
         Events.assetBrowserReady.attach(() => {
             this.setState({ enabled: true });
         });
+
+        Events.transformChanged.attach(() => this._transform.forceUpdate());
 
         State.selectedKitChanged.attach(() => this.forceUpdate());
         State.entitySelectionChanged.attach(selection => {
@@ -190,6 +194,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         }}
                     >
                         <PropertyGrid
+                            ref={e => this._transform = e as PropertyGrid}
                             target={this._mockState.selection[0].getComponent(Transform) as Transform}
                             onPropertyChanged={(name, newValue) => {
                                 SerializerUtilsInternal.tryUsePropertySetter = true;
