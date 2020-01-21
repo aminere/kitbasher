@@ -21,7 +21,7 @@ namespace BeepWatcher
             watcher.Changed += new FileSystemEventHandler((object sender, FileSystemEventArgs e) =>
             {
                 Console.WriteLine(string.Format("{0} changed at {1}", e.FullPath, DateTime.Now.ToShortTimeString()));
-                SystemSounds.Beep.Play();
+                SystemSounds.Hand.Play();
             });
             Console.WriteLine(string.Format("Watching changes in {0}...", watcher.Path));
             watcher.EnableRaisingEvents = true;
