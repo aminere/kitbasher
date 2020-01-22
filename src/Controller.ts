@@ -29,10 +29,11 @@ import { Snapping } from "./Snapping";
 import { Settings } from "./Settings";
 import { Model } from "./Model";
 import { BoundingBoxes } from "./BoundingBoxes";
+import { Config } from "./Config";
+import { Utils } from "./Utils";
 
 namespace Private {
 
-    const currentScenePath = "currentScene.Scene";
     let defaultMaterial: Material;
     export let sceneLoaded = false;
 
@@ -40,8 +41,10 @@ namespace Private {
     export let touchPressed = false;
     export let touchLeftButton = false;
     export let touchStart = new Vector2();
+    export let paintBrushMode = false;
 
     // Snapping
+    export let groundPlane = new Plane();
     export function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
         return Model.instantiate(kit.model)
             .then(instance => {
@@ -53,20 +56,47 @@ namespace Private {
                 }
                 return instance;
             });
+    }    
+
+    export let lastInstantiatedKitPos: Vector3 | null = null;
+    export function instantiateKit(instance: Entity) {
+        lastInstantiatedKitPos = new Vector3().copy(instance.transform.position);
+        Utils.saveCurrentScene()
+            .then(() => Private.createKit(
+                State.instance.selectedKit as IKitAsset,
+                instance.transform.position,
+                instance.transform.rotation
+            ))
+            .then(newInstance => {
+                State.instance.selectedKitInstance = newInstance;
+                newInstance.active = false;
+            });
     }
 
-    export let groundPlane = new Plane();
-
-    export function saveCurrentScene() {
-        const engineHud = Entities.find("EngineHud");
-        if (engineHud) {
-            engineHud.destroy();
+    export function determinePotentialKitPosition(instance: Entity, localX: number, localY: number) {
+        const ray = EditorCamera.getWorldRay(localX, localY);
+        const closest = (ray ? Private.tryPickEntity(ray, instance) : null)?.parent;        
+        if (closest) {
+            const yOffset = BoundingBoxes.get(closest)?.max.y ?? 0;
+            return Vector3.fromPool().set(
+                closest.transform.position.x,
+                yOffset,
+                closest.transform.position.z,                
+            );
+        } else {
+            const intersect = ray?.castOnPlane(Private.groundPlane);
+            if (intersect && intersect.intersection) {
+                return Vector3.fromPool().set(
+                    Snapping.snap(intersect.intersection.x, Settings.gridSize),
+                    intersect.intersection.y,
+                    Snapping.snap(intersect.intersection.z, Settings.gridSize)
+                );
+            }
         }
-        const scene = ScenesInternal.list()[0];
-        const data = JSON.stringify(scene.serialize(), null, 2);
-        return IndexedDb.write("files", currentScenePath, data);
+        return null;
     }
 
+    // Picking
     const localPickingRay = new Ray();
     export function tryPickEntity(pickingRay: Ray, exclude?: Entity) {
         let closest: Entity | null = null;
@@ -126,6 +156,7 @@ namespace Private {
         return closest;
     }
 
+    // Initialization
     export let canvasHasFocus: () => boolean;
     function checkCanvasStatus() {
         if (!canvasHasFocus()) {
@@ -138,7 +169,7 @@ namespace Private {
         Promise.resolve()
             .then(() => {
                 return new Promise(resolve => {
-                    IndexedDb.read("files", currentScenePath)
+                    IndexedDb.read("files", Config.currentScenePath)
                         .then(data => {
                             const scene = Scenes.create();
                             scene.deserialize(JSON.parse(data))
@@ -146,19 +177,21 @@ namespace Private {
                         })
                         .catch(() => {
                             Scenes.load("Assets/Startup.Scene")
-                                .then(() => saveCurrentScene())
+                                .then(() => Utils.saveCurrentScene())
                                 .then(resolve);
                         });
                 });
             })
             .then(() => {
                 EditorCamera.cameraEntity = Entities.find("Camera") as Entity;
-                Commands.saveScene.attach(() => saveCurrentScene());
+                Commands.saveScene.attach(() => Utils.saveCurrentScene());
+
                 State.selectedKitChanged.attach(kit => {
                     const { selectedKitInstance } = State.instance;
                     if (selectedKitInstance) {
                         selectedKitInstance.destroy();
                         State.instance.selectedKitInstance = null;
+                        Private.lastInstantiatedKitPos = null;
                     }
                     if (kit) {
                         createKit(kit).then(instance => {
@@ -167,6 +200,7 @@ namespace Private {
                         });
                     }
                 });
+
                 sceneLoaded = true;
             });
     }
@@ -234,33 +268,67 @@ export class Controller {
             touchStart
         } = Private;
 
+        const { selectedKitInstance } = State.instance;
         if (!Private.touchPressed) {
-            const { selectedKitInstance } = State.instance;
             if (selectedKitInstance) {
-                selectedKitInstance.active = true;
-
-                // Snap to highlighted entity
-                const ray = EditorCamera.getWorldRay(localX, localY);
-                const closest = (ray ? Private.tryPickEntity(ray, selectedKitInstance) : null)?.parent;
-                if (closest) {
-                    const yOffset = BoundingBoxes.get(closest)?.max.y ?? 0;
-                    selectedKitInstance.transform.position.x = closest.transform.position.x;
-                    selectedKitInstance.transform.position.z = closest.transform.position.z;
-                    selectedKitInstance.transform.position.y = yOffset;
+                const potentialPos = Private.determinePotentialKitPosition(
+                    selectedKitInstance,
+                    localX,
+                    localY
+                );
+                if (potentialPos) {
+                    if (!Private.lastInstantiatedKitPos) {
+                        selectedKitInstance.active = true;
+                    } else {
+                        if (potentialPos) {
+                            const treshold = Vector3.distance(Private.lastInstantiatedKitPos, potentialPos);
+                            // TODO make this treshold dynamic / dependent on current kit bounds?
+                            if (treshold >= 2) {
+                                selectedKitInstance.active = true;
+                            }
+                        }
+                    }
+                    if (selectedKitInstance.active) {
+                        selectedKitInstance.transform.position = potentialPos;
+                    }
+                }                
+            } else {
+                if (EntityController.visible) {
+                    EntityController.onMouseMove(localX, localY, EditorCamera.camera, false, Vector2.zero);
+                }
+            }
+            return;
+        } else {
+            if (selectedKitInstance) {
+                if (!Private.paintBrushMode) {
+                    const treshold = Vector2.distance(Private.touchStart, Vector2.fromPool().set(localX, localY));
+                    if (treshold > Config.paintBrushActivationPixelTreshold) {
+                        if (selectedKitInstance.active) {
+                            Private.paintBrushMode = true;
+                            Private.instantiateKit(selectedKitInstance);
+                        }
+                    }
                 } else {
-                    const intersect = ray?.castOnPlane(Private.groundPlane);
-                    if (intersect && intersect.intersection) {              
-                        const { x, y, z } = intersect.intersection;      
-                        selectedKitInstance.transform.position.x = Snapping.snap(x, Settings.gridSize);
-                        selectedKitInstance.transform.position.z = Snapping.snap(z, Settings.gridSize);
-                        selectedKitInstance.transform.position.y = y;
+                    const potentialPos = Private.determinePotentialKitPosition(
+                        selectedKitInstance,
+                        localX,
+                        localY
+                    );
+                    if (potentialPos) {
+                        const treshold = Vector3.distance(
+                            Private.lastInstantiatedKitPos as Vector3,
+                            potentialPos
+                        );
+                        // TODO make this treshold dynamic / dependent on current kit bounds?
+                        if (treshold >= 2) {
+                            selectedKitInstance.active = true;
+                            selectedKitInstance.transform.position = potentialPos;
+                            Private.instantiateKit(selectedKitInstance)
+                        }
                     }
                 }
                 return;
             }
-
-            EntityController.onMouseMove(localX, localY, EditorCamera.camera, false, Vector2.zero);
-            return;
         }
 
         const doEntityControl = EntityController.transformStarted || !EditorCamera.transformStarted;
@@ -292,12 +360,12 @@ export class Controller {
         Private.touchPressed = false;
 
         if (EntityController.onMouseUp()) {
-            Private.saveCurrentScene();
+            Utils.saveCurrentScene();
             return;
         }
 
         if (EditorCamera.onMouseUp(localX, localY)) {
-            Private.saveCurrentScene();
+            Utils.saveCurrentScene();
             return;
         }
 
@@ -305,20 +373,21 @@ export class Controller {
             return;
         }
 
+        Private.touchLeftButton = false;
+
         // Click
-        const { selectedKitInstance } = State.instance;
-        if (selectedKitInstance) {
-            // Insert kit
-            Private.saveCurrentScene()
-                .then(() => {
-                    Private.createKit(
-                        State.instance.selectedKit as IKitAsset,
-                        selectedKitInstance.transform.position,
-                        selectedKitInstance.transform.rotation
-                    ).then(instance => State.instance.selectedKitInstance = instance);                    
-                });
+        if (!Private.paintBrushMode) {
+            const { selectedKitInstance } = State.instance;
+            if (selectedKitInstance) {
+                if (selectedKitInstance.active) {
+                    Private.instantiateKit(selectedKitInstance);
+                }
+                return;
+            }
+        } else {
+            Private.paintBrushMode = false;
             return;
-        }
+        }        
 
         // Pick entity
         const ray = EditorCamera.getWorldRay(localX, localY);

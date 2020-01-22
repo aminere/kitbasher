@@ -19,6 +19,7 @@ import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
 
 namespace Private {
+    export let visible = false;
     export const axisThickness = .2;
     export const axisLengthFactor = .16;
     export const axisThicknessFactor = .1;
@@ -88,6 +89,8 @@ namespace Private {
 }
 
 export class EntityController {
+
+    public static get visible() { return Private.visible; }
     public static get gizmoHighlighted() { return Private.selectedAxis !== Axis.None; }
     public static get transformStarted() { return Private.transformStarted; }
 
@@ -587,10 +590,11 @@ export class EntityController {
     }
 
     public static render(camera: Camera) {
+        Private.visible = false;
         const selectedEntities = State.instance.selection;
         // TODO handle multi selection
         const selectedEntity = selectedEntities.length > 0 ? selectedEntities[0] : null;
-        if (!selectedEntity) {
+        if (!selectedEntity) {            
             return;
         }
 
@@ -601,6 +605,7 @@ export class EntityController {
             return;
         }
 
+        Private.visible = true;
         const {
             axisLengthFactor,
             selectedAxis,
