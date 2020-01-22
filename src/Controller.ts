@@ -28,6 +28,7 @@ import { Commands } from "./Commands";
 import { Snapping } from "./Snapping";
 import { Settings } from "./Settings";
 import { Model } from "./Model";
+import { BoundingBoxes } from "./BoundingBoxes";
 
 namespace Private {
 
@@ -64,6 +65,70 @@ namespace Private {
         const scene = ScenesInternal.list()[0];
         const data = JSON.stringify(scene.serialize(), null, 2);
         return IndexedDb.write("files", currentScenePath, data);
+    }
+
+    const localPickingRay = new Ray();
+    export function tryPickEntity(pickingRay: Ray, exclude?: Entity) {
+        let closest: Entity | null = null;
+        const invWorld = Matrix44.fromPool();
+        let distToClosest = Number.MAX_VALUE;
+        const v1 = Vector3.fromPool();
+        const v2 = Vector3.fromPool();
+        const v3 = Vector3.fromPool();
+        const plane = Plane.fromPool();
+        const triangle = Triangle.fromPool();
+        let visuals = Components.ofType(Visual); // TODO pass filter here?
+
+        if (exclude) {
+            visuals = visuals.filter(v => {
+                if (v.entity.parent === exclude) {
+                    return false;
+                }
+                return true;
+            });
+        }
+            
+        for (const v of visuals) {
+            const vb = v.geometry ? v.geometry.getVertexBuffer() : undefined;
+            const boundingBox = v.geometry ? v.geometry.getBoundingBox() : undefined;
+            if (!vb || !boundingBox || !v.material) {
+                continue;
+            }
+            if (vb.primitiveType === "TRIANGLES") {
+                const useBackFaces = v.material.cullMode === CullModes.Front;
+                const world = v.worldTransform;
+                invWorld.getInverse(world);
+                localPickingRay.copy(pickingRay).transform(invWorld);
+                if (localPickingRay.castOnAABB(boundingBox)) {
+                    const positions = vb.attributes.position as number[];
+                    for (let i = 0; i < positions.length; i += 9) {
+                        v1.set(positions[i], positions[i + 1], positions[i + 2]);
+                        v2.set(positions[i + 3], positions[i + 4], positions[i + 5]);
+                        v3.set(positions[i + 6], positions[i + 7], positions[i + 8]);
+                        plane.setFromPoints(v1, v2, v3);
+                        const result = localPickingRay.castOnPlane(plane);
+                        if (result.intersection) {
+                            const rayShootingIntoPlane = plane.normal.dot(localPickingRay.direction) < 0;
+                            const useTriangle = useBackFaces ? !rayShootingIntoPlane : rayShootingIntoPlane;
+                            if (useTriangle) {
+                                triangle.set(v1, v2, v3);
+                                if (triangle.contains(result.intersection)) {
+                                    const distance = Vector3.distance(
+                                        result.intersection.transform(world),
+                                        pickingRay.origin
+                                    );
+                                    if (distance < distToClosest) {
+                                        distToClosest = distance;
+                                        closest = v.entity;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return closest;
     }
 
     export let canvasHasFocus: () => boolean;
@@ -179,12 +244,22 @@ export class Controller {
             if (selectedKitInstance) {
                 selectedKitInstance.active = true;
 
+                // Snap to highlighted entity
                 const ray = EditorCamera.getWorldRay(localX, localY);
-                const intersect = ray?.castOnPlane(Private.groundPlane);
-                if (intersect && intersect.intersection) {              
-                    const { x, z } = intersect.intersection;      
-                    selectedKitInstance.transform.position.x = Snapping.snap(x, Settings.gridSize);
-                    selectedKitInstance.transform.position.z = Snapping.snap(z, Settings.gridSize);
+                const closest = (ray ? Private.tryPickEntity(ray, selectedKitInstance) : null)?.parent;
+                if (closest) {
+                    const yOffset = BoundingBoxes.get(closest)?.max.y ?? 0;
+                    selectedKitInstance.transform.position.x = closest.transform.position.x;
+                    selectedKitInstance.transform.position.z = closest.transform.position.z;
+                    selectedKitInstance.transform.position.y = yOffset;
+                } else {
+                    const intersect = ray?.castOnPlane(Private.groundPlane);
+                    if (intersect && intersect.intersection) {              
+                        const { x, y, z } = intersect.intersection;      
+                        selectedKitInstance.transform.position.x = Snapping.snap(x, Settings.gridSize);
+                        selectedKitInstance.transform.position.z = Snapping.snap(z, Settings.gridSize);
+                        selectedKitInstance.transform.position.y = y;
+                    }
                 }
                 return;
             }
@@ -251,63 +326,8 @@ export class Controller {
         }
 
         // Pick entity
-        let closest: Entity | undefined;
-        const localPickingRay = new Ray();
-        const pickingRay = EditorCamera.getWorldRay(localX, localY);
-        if (!pickingRay) {
-            return;
-        }
-        const invWorld = Matrix44.fromPool();
-        let distToClosest = Number.MAX_VALUE;
-        const v1 = Vector3.fromPool();
-        const v2 = Vector3.fromPool();
-        const v3 = Vector3.fromPool();
-        const plane = Plane.fromPool();
-        const triangle = Triangle.fromPool();
-
-        const visuals = Components.ofType(Visual);
-        for (const v of visuals) {
-            const vb = v.geometry ? v.geometry.getVertexBuffer() : undefined;
-            const boundingBox = v.geometry ? v.geometry.getBoundingBox() : undefined;
-            if (!vb || !boundingBox || !v.material) {
-                continue;
-            }
-
-            if (vb.primitiveType === "TRIANGLES") {
-                const useBackFaces = v.material.cullMode === CullModes.Front;
-                const world = v.worldTransform;
-                invWorld.getInverse(world);
-                localPickingRay.copy(pickingRay).transform(invWorld);
-                if (localPickingRay.castOnAABB(boundingBox)) {
-                    const positions = vb.attributes.position as number[];
-                    for (let i = 0; i < positions.length; i += 9) {
-                        v1.set(positions[i], positions[i + 1], positions[i + 2]);
-                        v2.set(positions[i + 3], positions[i + 4], positions[i + 5]);
-                        v3.set(positions[i + 6], positions[i + 7], positions[i + 8]);
-                        plane.setFromPoints(v1, v2, v3);
-                        const result = localPickingRay.castOnPlane(plane);
-                        if (result.intersection) {
-                            const rayShootingIntoPlane = plane.normal.dot(localPickingRay.direction) < 0;
-                            const useTriangle = useBackFaces ? !rayShootingIntoPlane : rayShootingIntoPlane;
-                            if (useTriangle) {
-                                triangle.set(v1, v2, v3);
-                                if (triangle.contains(result.intersection)) {
-                                    const distance = Vector3.distance(
-                                        result.intersection.transform(world),
-                                        pickingRay.origin
-                                    );
-                                    if (distance < distToClosest) {
-                                        distToClosest = distance;
-                                        closest = v.entity;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
+        const ray = EditorCamera.getWorldRay(localX, localY);
+        const closest = ray ? Private.tryPickEntity(ray) : null;
         if (closest) {
             // TODO multi-selection
             State.instance.setSelection(closest.parent as Entity);

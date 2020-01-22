@@ -15,8 +15,8 @@ import { WebGL } from "../../spider-engine/src/graphics/WebGL";
 import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/GeometryRenderer";
 import { Snapping } from "./Snapping";
 import { Settings } from "./Settings";
-import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Entity } from "../../spider-engine/src/core/Entity";
+import { BoundingBoxes } from "./BoundingBoxes";
 
 namespace Private {
     export const axisThickness = .2;
@@ -78,13 +78,11 @@ namespace Private {
     export let selectedAxis = Axis.None;
 
     export function makeCenteredPos(entity: Entity, position: Vector3) {
-        const bbox = entity.children[0].getComponent(Visual)?.geometry?.getBoundingBox();
-        if (bbox) {
-            const transformedBbox = AABB.fromPool().copy(bbox)
-                .transform(entity.children[0].transform.worldMatrix);
-            position.x = (transformedBbox.min.x + transformedBbox.max.x) / 2;
-            position.y = (transformedBbox.min.y + transformedBbox.max.y) / 2;
-            position.z = (transformedBbox.min.z + transformedBbox.max.z) / 2;
+        const bbox = BoundingBoxes.get(entity);
+        if (bbox) {            
+            position.x = (bbox.min.x + bbox.max.x) / 2;
+            position.y = (bbox.min.y + bbox.max.y) / 2;
+            position.z = (bbox.min.z + bbox.max.z) / 2;
         }
     }
 }
