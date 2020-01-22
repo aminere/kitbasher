@@ -2,7 +2,7 @@
   "typeName": "Model",
   "version": 2,
   "properties": {
-    "id": "ebb2bdb2-8da7-479b-a4e6-332025b3d356",
+    "id": "9c0e7173-a62f-4f04-9bd9-db3b6cf3ffc8",
     "name": "Roof",
     "fbxScaleFactor": 0.01,
     "elements": {
@@ -14,7 +14,7 @@
             "typeName": "ModelMesh",
             "version": 2,
             "properties": {
-              "id": "5def2933-09ac-4670-ae44-47243e51f481",
+              "id": "bb21f903-5684-4580-981d-557ace92c825",
               "name": "Roof",
               "children": {
                 "typeName": "ModelElement",
@@ -53,7 +53,7 @@
               },
               "fbxNodeId": {
                 "typeName": "Number",
-                "data": 201684394
+                "data": 416922299
               }
             }
           }
