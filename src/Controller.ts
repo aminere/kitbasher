@@ -80,12 +80,7 @@ namespace Private {
         let visuals = Components.ofType(Visual); // TODO pass filter here?
 
         if (exclude) {
-            visuals = visuals.filter(v => {
-                if (v.entity.parent === exclude) {
-                    return false;
-                }
-                return true;
-            });
+            visuals = visuals.filter(v => v.entity.parent !== exclude);
         }
             
         for (const v of visuals) {
