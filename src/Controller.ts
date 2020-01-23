@@ -323,7 +323,7 @@ export class Controller {
                         if (treshold >= 2) {
                             selectedKitInstance.active = true;
                             selectedKitInstance.transform.position = potentialPos;
-                            Private.instantiateKit(selectedKitInstance)
+                            Private.instantiateKit(selectedKitInstance);
                         }
                     }
                 }
