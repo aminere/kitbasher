@@ -366,7 +366,7 @@ export class EntityController {
 
                     if (selectedAxis === Axis.X) {
 
-                        translation.projectOnVector(Vector3.right).multiply(1 / parentScale.x);
+                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         snap("x", translation, transform.worldRight);
 
                     } else if (selectedAxis === Axis.Y) {
