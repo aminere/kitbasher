@@ -3,9 +3,13 @@ import * as React from "react";
 
 import "./propertygrid.css";
 import { Property } from "./Property";
+import { Tooltip, Position, Button } from "@blueprintjs/core";
+import { Events } from "../../Events";
+import { State } from "../../State";
 
 interface IPropertyGridProps {
     target: object;
+    actions?: {[property: string]: JSX.Element};
     // tslint:disable-next-line
     onPropertyChanged: (name: string, newValue: any) => void;
 }
@@ -53,7 +57,7 @@ namespace Private {
 
 export class PropertyGrid extends React.Component<IPropertyGridProps> {
     public render() {
-        const { target } = this.props;
+        const { target, actions } = this.props;
         return (
             <div>
                 {
@@ -68,13 +72,29 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                         })
                         .map(([name, value]) => {
                             const v = Private.tryGetValueWithGetter(target, name);
+                            const action = actions ? actions[name] : undefined;
                             return (
-                                <Property
+                                <div
                                     key={name}
-                                    name={Private.getDislayName(target, name)}
-                                    initialValue={v}
-                                    onChanged={newValue => this.props.onPropertyChanged(name, newValue)}
-                                />
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center"
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            marginLeft: "4px"
+                                        }}
+                                    >
+                                        {action}
+                                    </div>
+                                    <Property                                        
+                                        name={Private.getDislayName(target, name)}
+                                        initialValue={v}
+                                        onChanged={newValue => this.props.onPropertyChanged(name, newValue)}
+                                    />
+                                </div>
+
                             );
                         })
                 }

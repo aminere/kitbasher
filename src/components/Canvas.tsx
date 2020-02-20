@@ -9,6 +9,9 @@ import { Entity } from "../../../spider-engine/src/core/Entity";
 import { Transform } from "../../../spider-engine/src/core/Transform";
 import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine/src/serialization/SerializerUtils";
 import { Commands } from "../Commands";
+import { Panel } from "./Panel";
+
+// tslint:disable:max-line-length
 
 interface ICanvasState {
     enabled: boolean;
@@ -109,49 +112,6 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         <div
                             style={{ width: "30px" }}
                         >
-                            <div
-                                style={{
-                                    display: State.instance.selection.length ? "block" : "none",
-                                    marginBottom: "8px"
-                                }}
-                            >
-                                <Tooltip content="Translate" position={Position.LEFT}>
-                                    <Button
-                                        icon="move"
-                                        active={controlMode === ControlMode.Translate}
-                                        intent={controlMode === ControlMode.Translate ? Intent.PRIMARY : Intent.NONE}
-                                        onClick={() => {
-                                            State.instance.controlMode = ControlMode.Translate;
-                                            this.forceUpdate();
-                                        }}
-                                        onFocus={e => e.currentTarget.blur()}
-                                    />
-                                </Tooltip>
-                                <Tooltip content="Rotate" position={Position.LEFT}>
-                                    <Button
-                                        icon="refresh"
-                                        active={controlMode === ControlMode.Rotate}
-                                        intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
-                                        onClick={() => {
-                                            State.instance.controlMode = ControlMode.Rotate;
-                                            this.forceUpdate();
-                                        }}
-                                        onFocus={e => e.currentTarget.blur()}
-                                    />
-                                </Tooltip>
-                                <Tooltip content="Scale" position={Position.LEFT}>
-                                    <Button
-                                        icon="maximize"
-                                        active={controlMode === ControlMode.Scale}
-                                        intent={controlMode === ControlMode.Scale ? Intent.PRIMARY : Intent.NONE}
-                                        onClick={() => {
-                                            State.instance.controlMode = ControlMode.Scale;
-                                            this.forceUpdate();
-                                        }}
-                                        onFocus={e => e.currentTarget.blur()}
-                                    />
-                                </Tooltip>
-                            </div>
                             <Tooltip content="Select" position={Position.LEFT}>
                                 <Button
                                     icon={(
@@ -172,7 +132,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                             <Tooltip content="Insert" position={Position.LEFT}>
                                 <Button
                                     icon="plus"
-                                    onClick={() => Events.onInsertClicked.post()}
+                                    onClick={() => Events.insertClicked.post()}
                                     intent={State.instance.selectedKit ? "primary" : "none"}
                                     active={Boolean(State.instance.selectedKit)}
                                     onFocus={e => e.currentTarget.blur()}
@@ -181,34 +141,116 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         </div>
                     </div>
                 }
-                {
-                    this._mockState.selection.length > 0
-                    &&
-                    <div
-                        style={{
-                            position: "absolute",
-                            right: "0",
-                            top: "0",
-                            width: "250px",
-                            backgroundColor: "rgba(32, 43, 51, .9)"
-                        }}
-                    >
-                        <PropertyGrid
-                            ref={e => this._transform = e as PropertyGrid}
-                            target={this._mockState.selection[0].getComponent(Transform) as Transform}
-                            onPropertyChanged={(name, newValue) => {
-                                SerializerUtilsInternal.tryUsePropertySetter = true;
-                                SerializerUtils.setProperty(
-                                    this._mockState.selection[0].getComponent(Transform) as Transform,
-                                    name,
-                                    newValue
+                <div
+                    style={{
+                        position: "absolute",
+                        left: "0",
+                        top: "0",
+                        width: "250px"
+                    }}
+                >
+                    {
+                        (() => {
+                            if (Boolean(State.instance.selectedKit)) {
+                                return (
+                                    <Panel
+                                        title="Snapping"
+                                        content={(
+                                            <div
+                                                style={{
+                                                    display: "flex"
+                                                }}
+                                            >
+                                                Snapping things
+                                        </div>
+                                        )}
+                                    />
                                 );
-                                SerializerUtilsInternal.tryUsePropertySetter = false;
-                                Commands.saveScene.post();
-                            }}
-                        />
-                    </div>
-                }
+                            } else if (this._mockState.selection.length > 0) {
+
+                            }
+                        })()
+                    }
+                    {
+                        this._mockState.selection.length > 0
+                        &&
+                        (
+                            <div>
+                                <Panel
+                                    title="Transform"
+                                    content={(
+                                        <PropertyGrid
+                                            ref={e => this._transform = e as PropertyGrid}
+                                            target={this._mockState.selection[0].getComponent(Transform) as Transform}
+                                            actions={{
+                                                _position: (
+                                                    <Tooltip content="Translate" position={Position.LEFT}>
+                                                        <Button
+                                                            icon="move"
+                                                            active={controlMode === ControlMode.Translate}
+                                                            intent={controlMode === ControlMode.Translate ? Intent.PRIMARY : Intent.NONE}
+                                                            onClick={() => {
+                                                                State.instance.controlMode = ControlMode.Translate;
+                                                                this.forceUpdate();
+                                                            }}
+                                                            onFocus={e => e.currentTarget.blur()}
+                                                        />
+                                                    </Tooltip>
+                                                ),
+                                                _rotation: (
+                                                    <Tooltip content="Rotate" position={Position.LEFT}>
+                                                        <Button
+                                                            icon="refresh"
+                                                            active={controlMode === ControlMode.Rotate}
+                                                            intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
+                                                            onClick={() => {
+                                                                State.instance.controlMode = ControlMode.Rotate;
+                                                                this.forceUpdate();
+                                                            }}
+                                                            onFocus={e => e.currentTarget.blur()}
+                                                        />
+                                                    </Tooltip>
+                                                ),
+                                                _scale: (
+                                                    <Tooltip content="Scale" position={Position.LEFT}>
+                                                        <Button
+                                                            icon="maximize"
+                                                            active={controlMode === ControlMode.Scale}
+                                                            intent={controlMode === ControlMode.Scale ? Intent.PRIMARY : Intent.NONE}
+                                                            onClick={() => {
+                                                                State.instance.controlMode = ControlMode.Scale;
+                                                                this.forceUpdate();
+                                                            }}
+                                                            onFocus={e => e.currentTarget.blur()}
+                                                        />
+                                                    </Tooltip>
+                                                )
+                                            }}
+                                            onPropertyChanged={(name, newValue) => {
+                                                SerializerUtilsInternal.tryUsePropertySetter = true;
+                                                SerializerUtils.setProperty(
+                                                    this._mockState.selection[0].getComponent(Transform) as Transform,
+                                                    name,
+                                                    newValue
+                                                );
+                                                SerializerUtilsInternal.tryUsePropertySetter = false;
+                                                Commands.saveScene.post();
+                                            }}
+                                        />
+                                    )}
+                                />
+                                <Panel
+                                    title="Material"
+                                    content={(
+                                        <div>
+                                            Material things
+                                    </div>
+                                    )}
+                                />
+                            </div>
+                        )
+                    }
+                </div>
             </div>
         );
     }

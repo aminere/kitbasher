@@ -13,7 +13,7 @@ interface IPropertyProps {
 export class Property extends React.Component<IPropertyProps> {
     public render() {
         return (
-            <div className="property-root">
+            <div className="property-root">                
                 <div className="property-name">
                     {this.props.name}
                 </div>

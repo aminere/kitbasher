@@ -23,7 +23,7 @@ export class Assets extends React.Component {
     public componentDidMount() {
         Events.engineReady.attach(() => this.populate());
 
-        Events.onInsertClicked.attach(() => {
+        Events.insertClicked.attach(() => {
             if (!State.instance.selectedKit) {
                 State.instance.selectedKit = State.instance.lastUsedKit || this._kits[0];
             }

@@ -8,5 +8,5 @@ export class Events {
     public static assetBrowserReady = new VoidAsyncEvent();
     public static transformChanged = new AsyncEvent<Entity>();
 
-    public static onInsertClicked = new VoidAsyncEvent();
+    public static insertClicked = new VoidAsyncEvent();
 }

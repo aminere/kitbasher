@@ -82,8 +82,8 @@ export class App extends React.Component {
                 config: {
                     type: "react-component",
                     component: "Assets",
-                    title: "Assets",
-                    navBarTitle: "Assets",
+                    title: "Models",
+                    navBarTitle: "Models",
                     id: "Assets",
                     isVisible: false,
                     isClosable: false
