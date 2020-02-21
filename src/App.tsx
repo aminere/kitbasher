@@ -23,6 +23,7 @@ import { Commands } from "./Commands";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Entity } from "../../spider-engine/src/core/Entity";
+import { Events } from "./Events";
 
 interface ILayoutConfig {
     type: string;
@@ -373,6 +374,7 @@ export class App extends React.Component {
 
             const rotate = (entity: Entity) => {
                 entity.transform.rotation.multiply(Quaternion.fromAxisAngle(Vector3.up, Math.PI / 2));
+                Events.transformChanged.post(entity);
             };
 
             const selectedEntities = State.instance.selection;

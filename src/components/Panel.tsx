@@ -20,18 +20,27 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
     }
 
     public render() {
+        const borderRadius = "8px";
         return (
             <div
                 style={{
                     margin: "4px",
-                    backgroundColor: "rgba(32, 43, 51, .9)"
+                    backgroundColor: "rgba(32, 43, 51, .9)",
+                    borderRadius
                 }}
             >
                 <div
                     className="unselectable"
                     style={{
-                        height: "26px",
-                        padding: "4px"
+                        height: "30px",
+                        padding: "4px",
+                        backgroundColor: "rgba(84, 99, 111, 0.5)",
+                        borderRadius,
+                        textShadow: "black 1px 1px",
+                        fontWeight: "bold",
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer"
                     }}
                     onClick={() => {
                         this.setState({ collapsed: !this.state.collapsed });
@@ -42,7 +51,8 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                 </div>
                 <div
                     style={{
-                        display: this.state.collapsed ? "none" : "block"
+                        display: this.state.collapsed ? "none" : "block",
+                        padding: "4px"
                     }}
                 >
                     {this.props.content}

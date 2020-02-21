@@ -162,7 +162,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                 }}
                                             >
                                                 Snapping things
-                                        </div>
+                                            </div>
                                         )}
                                     />
                                 );
