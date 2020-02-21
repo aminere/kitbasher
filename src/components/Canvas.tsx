@@ -59,6 +59,9 @@ export class Canvas extends React.Component<{}, ICanvasState> {
 
     public render() {
         const { controlMode } = State.instance;
+        const insertionMode = Boolean(State.instance.selectedKit);
+        const hasSelection = this._mockState.selection.length > 0;
+        console.assert((insertionMode && hasSelection) === false);
         return (
             <div
                 className="fill-parent"
@@ -136,7 +139,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     icon="plus"
                                     onClick={() => Events.insertClicked.post()}
                                     intent={State.instance.selectedKit ? "primary" : "none"}
-                                    active={Boolean(State.instance.selectedKit)}
+                                    active={insertionMode}
                                     onFocus={e => e.currentTarget.blur()}
                                 />
                             </Tooltip>
@@ -153,14 +156,48 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                 >
                     {
                         (() => {
-                            if (Boolean(State.instance.selectedKit)) {
+                            const props: {[name: string]: {
+                                // tslint:disable-next-line
+                                get: () => any,
+                                // tslint:disable-next-line
+                                set: (value: any) => void
+                            }} = {};                            
+
+                            if (hasSelection) {
+                                if (State.instance.controlMode === ControlMode.Rotate) {
+                                    Object.assign(props, {
+                                        angle: {
+                                            get: () => State.instance.angleStep,
+                                            set: (value: number) => State.instance.angleStep = value
+                                        }
+                                    });
+                                } else {
+                                    Object.assign(props, {
+                                        step: {
+                                            get: () => State.instance.gridStep,
+                                            set: (value: number) => State.instance.gridStep = value
+                                        },
+                                    });
+                                }
+                            } else if (insertionMode) {
+                                Object.assign(props, {
+                                    step: {
+                                        get: () => State.instance.gridStep,
+                                        set: (value: number) => State.instance.gridStep = value
+                                    },
+                                });
+                            }
+
+                            if (insertionMode) {
                                 return (
                                     <Panel
                                         title="Snapping"
                                         content={(
                                             <PropertyGrid
                                                 target={{
-                                                    step: State.instance.gridStep,
+                                                    ...Object.entries(props).reduce((prev, cur) => {
+                                                        return { ...prev, ...{ [cur[0]]: cur[1].get() } };
+                                                    }, {}),
                                                     grid: (
                                                         <PlaneSelector />
                                                     )
@@ -177,18 +214,23 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         )}
                                     />
                                 );
-                            } else if (this._mockState.selection.length > 0) {
+                            } else if (hasSelection) {
                                 return (
                                     <Panel
                                         title="Snapping"
                                         content={(
-                                            <div
-                                                style={{
-                                                    display: "flex"
+                                            <PropertyGrid
+                                                target={{
+                                                    ...Object.entries(props).reduce((prev, cur) => {
+                                                        return { ...prev, ...{ [cur[0]]: cur[1].get() } };
+                                                    }, {})
                                                 }}
-                                            >
-                                                Selection snapping
-                                            </div>
+                                                onPropertyChanged={(name, value) => {
+                                                    Object.entries(props)
+                                                        .filter(p => p[0] === name)
+                                                        .forEach(p => p[1].set(value));
+                                                }}
+                                            />
                                         )}
                                     />
                                 );
@@ -196,7 +238,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         })()
                     }
                     {
-                        this._mockState.selection.length > 0
+                        hasSelection
                         &&
                         (
                             <div>
@@ -274,7 +316,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     content={(
                                         <div>
                                             Material things
-                                    </div>
+                                        </div>
                                     )}
                                 />
                             </div>
