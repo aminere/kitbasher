@@ -309,8 +309,11 @@ export class Controller {
                     const treshold = Vector2.distance(Private.touchStart, Vector2.fromPool().set(localX, localY));
                     if (treshold > Config.paintBrushActivationPixelTreshold) {
                         if (selectedKitInstance.active) {
-                            Private.paintBrushMode = true;
-                            Private.instantiateKit(selectedKitInstance);
+                            if (touchLeftButton && !State.instance.altPressed) {
+                                Private.paintBrushMode = true;
+                                Private.instantiateKit(selectedKitInstance);
+                                return;
+                            }
                         }
                     }
                 } else {
@@ -331,8 +334,8 @@ export class Controller {
                             Private.instantiateKit(selectedKitInstance);
                         }
                     }
+                    return;
                 }
-                return;
             }
         }
 

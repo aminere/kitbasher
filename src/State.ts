@@ -22,6 +22,7 @@ export class State {
     private _lastUsedKit: IKitAsset | null = null;
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Translate;
+    private _altPressed = false;
     private _grid = Grid.Y;
     private _gridStep = 1;
     private _angleStep = 45;
@@ -44,18 +45,17 @@ export class State {
     }
 
     public get selectedKitInstance() { return this._selectedKitInstance; }
-    public set selectedKitInstance(e: Entity | null) {
-        this._selectedKitInstance = e;
-    }
+    public set selectedKitInstance(e: Entity | null) { this._selectedKitInstance = e; }
 
     public get lastUsedKit() { return this._lastUsedKit; }
 
     public get selection() { return this._selection; }
 
     public get controlMode() { return this._controlMode; }
-    public set controlMode(mode: ControlMode) {
-        this._controlMode = mode;
-    }
+    public set controlMode(mode: ControlMode) { this._controlMode = mode; }
+
+    public get altPressed() { return this._altPressed; }
+    public set altPressed(pressed: boolean) { this._altPressed = pressed; }
 
     public get grid() { return this._grid; }
     public set grid(grid: Grid) {

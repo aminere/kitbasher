@@ -161,12 +161,25 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                 >
                     {
                         (() => {
-                            const props: {[name: string]: {
-                                // tslint:disable-next-line
-                                get: () => any,
-                                // tslint:disable-next-line
-                                set: (value: any) => void
-                            }} = {};                            
+                            if (!(hasSelection || insertionMode)) {
+                                return null;
+                            }
+
+                            const props: {
+                                [name: string]: {
+                                    // tslint:disable-next-line
+                                    get: () => any,
+                                    // tslint:disable-next-line
+                                    set: (value: any) => void
+                                }
+                            } = {};
+
+                            Object.assign(props, {
+                                step: {
+                                    get: () => State.instance.gridStep,
+                                    set: (value: number) => State.instance.gridStep = value
+                                }
+                            });
 
                             if (hasSelection) {
                                 if (State.instance.controlMode === ControlMode.Rotate) {
@@ -176,70 +189,37 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                             set: (value: number) => State.instance.angleStep = value
                                         }
                                     });
-                                } else {
-                                    Object.assign(props, {
-                                        step: {
-                                            get: () => State.instance.gridStep,
-                                            set: (value: number) => State.instance.gridStep = value
-                                        },
-                                    });
                                 }
-                            } else if (insertionMode) {
-                                Object.assign(props, {
-                                    step: {
-                                        get: () => State.instance.gridStep,
-                                        set: (value: number) => State.instance.gridStep = value
-                                    },
-                                });
                             }
 
-                            if (insertionMode) {
-                                return (
-                                    <Panel
-                                        title="Snapping"
-                                        content={(
-                                            <PropertyGrid
-                                                target={{
-                                                    ...Object.entries(props).reduce((prev, cur) => {
-                                                        return { ...prev, ...{ [cur[0]]: cur[1].get() } };
-                                                    }, {}),
-                                                    grid: (
-                                                        <PlaneSelector />
-                                                    )
-                                                }}
-                                                metadata={{
-                                                    grid: { customEditor: true }
-                                                }}
-                                                onPropertyChanged={(name, value) => {
-                                                    if (name === "step") {
-                                                        State.instance.gridStep = value;
-                                                    }
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                );
-                            } else if (hasSelection) {
-                                return (
-                                    <Panel
-                                        title="Snapping"
-                                        content={(
-                                            <PropertyGrid
-                                                target={{
-                                                    ...Object.entries(props).reduce((prev, cur) => {
-                                                        return { ...prev, ...{ [cur[0]]: cur[1].get() } };
-                                                    }, {})
-                                                }}
-                                                onPropertyChanged={(name, value) => {
-                                                    Object.entries(props)
-                                                        .filter(p => p[0] === name)
-                                                        .forEach(p => p[1].set(value));
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                );
-                            }
+                            Object.assign(props, {
+                                grid: {
+                                    get: () => <PlaneSelector />
+                                }
+                            });
+
+                            return (
+                                <Panel
+                                    title="Snapping"
+                                    content={(
+                                        <PropertyGrid
+                                            target={{
+                                                ...Object.entries(props).reduce((prev, cur) => {
+                                                    return { ...prev, ...{ [cur[0]]: cur[1].get() } };
+                                                }, {})
+                                            }}
+                                            metadata={{
+                                                grid: { customEditor: true }
+                                            }}
+                                            onPropertyChanged={(name, value) => {
+                                                Object.entries(props)
+                                                    .filter(p => p[0] === name)
+                                                    .forEach(p => p[1].set(value));
+                                            }}
+                                        />
+                                    )}
+                                />
+                            );
                         })()
                     }
                     {

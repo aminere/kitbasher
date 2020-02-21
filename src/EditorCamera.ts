@@ -4,6 +4,7 @@ import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Camera } from "../../spider-engine/src/graphics/Camera";
+import { State } from "./State";
 
 namespace Private {
     export let camera: Entity;
@@ -17,7 +18,7 @@ namespace Private {
         camera.transform.rotation.toEuler(dummyVector3);
         const upFactor = camera.transform.worldUp.dot(Vector3.up);
         const expectedZRotation = upFactor > 0 ? 0 : Math.PI;
-        if (!MathEx.isZero(dummyVector3.z - expectedZRotation)) {   
+        if (!MathEx.isZero(dummyVector3.z - expectedZRotation)) {
             // Debug.logWarning("Correcting camera rotation..");         
             camera.transform.rotation.setFromEulerAngles(dummyVector3.x, dummyVector3.y, expectedZRotation);
         }
@@ -27,7 +28,7 @@ namespace Private {
 export class EditorCamera {
     public static set cameraEntity(camera: Entity) { Private.camera = camera; }
     public static get camera() { return Private.camera.getComponent(Camera) as Camera; }
-    
+
     public static getWorldRay(x: number, y: number) {
         return (Private.camera.getComponent(Camera) as Camera).getWorldRay(x, y);
     }
@@ -41,25 +42,27 @@ export class EditorCamera {
 
     public static onMouseMove(x: number, y: number, leftPress: boolean) {
         if (leftPress) {
-            // Look
-            if (Private.cameraLookStarted) {
-                const deltaX = x - Private.previousTouchPos.x;
-                const deltaY = y - Private.previousTouchPos.y;
-                const cameraRotation = Quaternion.fromPool();
-                const { camera } = Private;
-                cameraRotation.setFromAxisAngle(camera.transform.worldRight, MathEx.toRadians(-deltaY) / 6);
-                camera.transform.rotation.multiply(cameraRotation).normalize();
-                const upFactor = Math.sign(camera.transform.worldUp.dot(Vector3.up));
-                cameraRotation.setFromAxisAngle(Vector3.up, MathEx.toRadians(-deltaX * upFactor) / 6);
-                camera.transform.rotation.multiply(cameraRotation).normalize();
-                Private.previousTouchPos.set(x, y);
-                return true;
-            } else {
-                const deltaX = x - Private.touchStartPos.x;
-                const deltaY = y - Private.touchStartPos.y;
-                if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
-                    Private.cameraLookStarted = true;
+            if (State.instance.altPressed) {
+                // Look
+                if (Private.cameraLookStarted) {
+                    const deltaX = x - Private.previousTouchPos.x;
+                    const deltaY = y - Private.previousTouchPos.y;
+                    const cameraRotation = Quaternion.fromPool();
+                    const { camera } = Private;
+                    cameraRotation.setFromAxisAngle(camera.transform.worldRight, MathEx.toRadians(-deltaY) / 6);
+                    camera.transform.rotation.multiply(cameraRotation).normalize();
+                    const upFactor = Math.sign(camera.transform.worldUp.dot(Vector3.up));
+                    cameraRotation.setFromAxisAngle(Vector3.up, MathEx.toRadians(-deltaX * upFactor) / 6);
+                    camera.transform.rotation.multiply(cameraRotation).normalize();
                     Private.previousTouchPos.set(x, y);
+                    return true;
+                } else {
+                    const deltaX = x - Private.touchStartPos.x;
+                    const deltaY = y - Private.touchStartPos.y;
+                    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+                        Private.cameraLookStarted = true;
+                        Private.previousTouchPos.set(x, y);
+                    }
                 }
             }
         } else {
@@ -84,7 +87,7 @@ export class EditorCamera {
                 }
             }
         }
-        
+
         return false;
     }
 

@@ -349,9 +349,12 @@ export class App extends React.Component {
 
         }
     }
-
-    // tslint:disable-next-line
-    private onKeyDown(e: KeyboardEvent) {}
+    
+    private onKeyDown(e: KeyboardEvent) {
+        if (e.key === "Alt") {
+            State.instance.altPressed = true;
+        }
+    }
 
     private onKeyUp(e: KeyboardEvent) {
         // tslint:disable-next-line
@@ -370,6 +373,8 @@ export class App extends React.Component {
                 State.instance.clearSelection();
                 Commands.saveScene.post();
             }            
+        } else if (e.key === "Alt") {
+            State.instance.altPressed = false;
         } else if (e.key.toLowerCase() === "r") {
 
             const rotate = (entity: Entity) => {
