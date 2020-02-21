@@ -80,7 +80,6 @@ namespace Private {
         const ray = EditorCamera.getWorldRay(localX, localY);
         const rayCast = (ray ? Private.tryPickEntity(ray, instance) : null);        
         if (rayCast) {
-            // const yOffset = BoundingBoxes.get(rayCast.closest)?.max.y ?? 0;
             return Vector3.fromPool().set(
                 Snapping.snap(rayCast.intersection.x, gridStep),
                 Snapping.snap(rayCast.intersection.y, gridStep),
