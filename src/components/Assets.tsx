@@ -29,7 +29,7 @@ export class Assets extends React.Component {
             }
         });
 
-        State.selectedKitChanged.attach(kit => this.forceUpdate());
+        Events.selectedKitChanged.attach(kit => this.forceUpdate());
     }
 
     public render() {

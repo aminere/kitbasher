@@ -41,10 +41,14 @@ export class Canvas extends React.Component<{}, ICanvasState> {
             this.setState({ enabled: true });
         });
 
-        Events.transformChanged.attach(() => this._transform.forceUpdate());
+        Events.transformChanged.attach(() => {
+            if (this._mockState.selection.length > 0) {
+                this._transform.forceUpdate();
+            }
+        });
 
-        State.selectedKitChanged.attach(() => this.forceUpdate());
-        State.entitySelectionChanged.attach(selection => {
+        Events.selectedKitChanged.attach(() => this.forceUpdate());
+        Events.selectedEntityChanged.attach(selection => {
             Object.assign(this._mockState, { selection });
             this.forceUpdate();
         });
@@ -61,6 +65,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
         const { controlMode } = State.instance;
         const insertionMode = Boolean(State.instance.selectedKit);
         const hasSelection = this._mockState.selection.length > 0;
+        // tslint:disable-next-line
         console.assert((insertionMode && hasSelection) === false);
         return (
             <div

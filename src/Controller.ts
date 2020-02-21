@@ -16,7 +16,7 @@ import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManage
 import { EditorCamera } from "./EditorCamera";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { DOMUtils } from "../../spider-engine/src/common/DOMUtils";
-import { IKitAsset } from "./Types";
+import { IKitAsset, Grid } from "./Types";
 import { State } from "./State";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Debug } from "../../spider-engine/src/io/Debug";
@@ -44,7 +44,9 @@ namespace Private {
     export let paintBrushMode = false;
 
     // Snapping
-    export let groundPlane = new Plane();
+    export const xPlane = new Plane(new Vector3().copy(Vector3.right));
+    export const yPlane = new Plane(new Vector3().copy(Vector3.up));
+    export const zPlane = new Plane(new Vector3().copy(Vector3.forward));
     export function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
         return Model.instantiate(kit.model)
             .then(instance => {
@@ -84,12 +86,13 @@ namespace Private {
                 closest.transform.position.z,                
             );
         } else {
-            const intersect = ray?.castOnPlane(Private.groundPlane);
+            const intersect = ray?.castOnPlane([xPlane, yPlane, zPlane][State.instance.grid]);
             if (intersect && intersect.intersection) {
                 const { gridStep } = State.instance;
                 return Vector3.fromPool().set(
                     Snapping.snap(intersect.intersection.x, gridStep),
-                    intersect.intersection.y,
+                    Snapping.snap(intersect.intersection.y, gridStep),
+                    // intersect.intersection.y,
                     Snapping.snap(intersect.intersection.z, gridStep)
                 );
             }
@@ -187,7 +190,7 @@ namespace Private {
                 EditorCamera.cameraEntity = Entities.find("Camera") as Entity;
                 Commands.saveScene.attach(() => Utils.saveCurrentScene());
 
-                State.selectedKitChanged.attach(kit => {
+                Events.selectedKitChanged.attach(kit => {
                     const { selectedKitInstance } = State.instance;
                     if (selectedKitInstance) {
                         selectedKitInstance.destroy();
@@ -225,6 +228,7 @@ namespace Private {
                 const dbVersion = 1;
                 return IndexedDb.initialize(dbName, dbVersion);
             })
+            .then(() => State.instance.load())
             .then(() => {
                 // For debugging
                 Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });

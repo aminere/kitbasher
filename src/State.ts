@@ -1,8 +1,12 @@
 
 import { IKitAsset, ControlMode, Grid } from "./Types";
-import { AsyncEvent } from "ts-events";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
+import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
+
+namespace Private {
+    export const path = "kitbasher-state.json";
+}
 
 export class State {    
 
@@ -11,11 +15,8 @@ export class State {
             Private.instance = new State();
         }
         return Private.instance;
-    }   
+    }    
     
-    public static selectedKitChanged = new AsyncEvent<IKitAsset | null>();
-    public static entitySelectionChanged = new AsyncEvent<Entity[]>();
-
     private _selectedKit: IKitAsset | null = null;
     private _selectedKitInstance: Entity | null = null;
     private _lastUsedKit: IKitAsset | null = null;
@@ -39,7 +40,7 @@ export class State {
             this.clearSelection();
         }
 
-        State.selectedKitChanged.post(kit);
+        Events.selectedKitChanged.post(kit);
     }
 
     public get selectedKitInstance() { return this._selectedKitInstance; }
@@ -59,35 +60,38 @@ export class State {
     public get grid() { return this._grid; }
     public set grid(grid: Grid) {
         this._grid = grid;
+        this.save();
         Events.gridChanged.post();
     }
 
     public get gridStep() { return this._gridStep; }
     public set gridStep(step: number) {
         this._gridStep = step;
+        this.save();
         Events.gridChanged.post();        
     }
 
     public get angleStep() { return this._angleStep; }
     public set angleStep(step: Grid) {
         this._angleStep = step;
+        this.save();
     }
 
     public setSelection(entity: Entity) {
         this._selection = [entity];
-        State.entitySelectionChanged.post(this._selection);
+        Events.selectedEntityChanged.post(this._selection);
     }
 
     public addToSelection(entity: Entity) {
         this._selection.push(entity);
-        State.entitySelectionChanged.post(this._selection);
+        Events.selectedEntityChanged.post(this._selection);
     }
 
     public removeFromSelection(entity: Entity) {
         const index = this._selection.findIndex(e => e === entity);
         if (index >= 0) {
             this._selection.splice(index, 1);
-            State.entitySelectionChanged.post(this._selection);
+            Events.selectedEntityChanged.post(this._selection);
         }
     }
 
@@ -96,7 +100,35 @@ export class State {
             return;
         }
         this._selection.length = 0;
-        State.entitySelectionChanged.post(this._selection);
+        Events.selectedEntityChanged.post(this._selection);
+    }
+
+    public load() {
+        return new Promise(resolve => {
+            IndexedDb.read("files", Private.path)
+            .then(data => {
+                Object.entries(JSON.parse(data)).forEach(([name, value]) => {
+                    Object.assign(this, { [name]: value });
+                });
+                resolve();
+            })
+            .catch(resolve);
+        });
+    }
+    
+    public save() {
+        const data = JSON.stringify(
+            [
+                "_grid",
+                "_gridStep",
+                "_angleStep"
+            ].reduce((prev, cur) => {
+                return { ...prev, ...{ [cur]: this[cur] } };
+            }, {}),
+            null,
+            2
+        );
+        return IndexedDb.write("files", Private.path, data);
     }
 }
 
