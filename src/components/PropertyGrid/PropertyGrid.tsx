@@ -3,13 +3,15 @@ import * as React from "react";
 
 import "./propertygrid.css";
 import { Property } from "./Property";
-import { Tooltip, Position, Button } from "@blueprintjs/core";
-import { Events } from "../../Events";
-import { State } from "../../State";
 
 interface IPropertyGridProps {
     target: object;
-    actions?: {[property: string]: JSX.Element};
+    metadata?: {
+        [property: string]: {
+            action?: JSX.Element;
+            customEditor?: boolean;
+        }
+    };
     // tslint:disable-next-line
     onPropertyChanged: (name: string, newValue: any) => void;
 }
@@ -57,11 +59,11 @@ namespace Private {
 
 export class PropertyGrid extends React.Component<IPropertyGridProps> {
     public render() {
-        const { target, actions } = this.props;
+        const { target, metadata } = this.props;
         return (
             <div>
                 {
-                    Object.entries(this.props.target)
+                    Object.entries(target)
                         .filter(([name, value]) => {
                             const hidden = Reflect.getMetadata("hidden", target, name);
                             const unserializable = Reflect.getMetadata("unserializable", target, name);
@@ -72,7 +74,10 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                         })
                         .map(([name, value]) => {
                             const v = Private.tryGetValueWithGetter(target, name);
-                            const action = actions ? actions[name] : undefined;
+                            const { action, customEditor } = (metadata && name in metadata) ? metadata[name] : {
+                                action: undefined,
+                                customEditor: undefined
+                            };
                             return (
                                 <div
                                     key={name}
@@ -81,20 +86,14 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                                         alignItems: "center"
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            marginLeft: "4px"
-                                        }}
-                                    >
-                                        {action}
-                                    </div>
-                                    <Property                                        
+                                    {action && <div style={{ marginLeft: "4px" }}>{action}</div>}
+                                    <Property
                                         name={Private.getDislayName(target, name)}
                                         initialValue={v}
                                         onChanged={newValue => this.props.onPropertyChanged(name, newValue)}
+                                        customEditor={(customEditor === true) ? target[name] : undefined}
                                     />
                                 </div>
-
                             );
                         })
                 }

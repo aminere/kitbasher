@@ -9,4 +9,5 @@ export class Events {
     public static transformChanged = new AsyncEvent<Entity>();
 
     public static insertClicked = new VoidAsyncEvent();
+    public static gridChanged = new VoidAsyncEvent();
 }

@@ -6,8 +6,8 @@ import { Color } from "../../spider-engine/src/graphics/Color";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { Vector2 } from "../../spider-engine/src/math/Vector2";
-import { State, ControlMode } from "./State";
-import { Axis } from "./Types";
+import { State } from "./State";
+import { Axis, ControlMode } from "./Types";
 import { Events } from "./Events";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Transform } from "../../spider-engine/src/core/Transform";
@@ -17,6 +17,7 @@ import { Snapping } from "./Snapping";
 import { Settings } from "./Settings";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
+import { MathEx } from "../../spider-engine/src/math/MathEx";
 
 namespace Private {
     export let visible = false;
@@ -241,9 +242,10 @@ export class EntityController {
                         : Vector3.one;
 
                     const snap = (a: Vector3, b: Vector3) => {
-                        transform.position.x = Snapping.snap(a.x + b.x, Settings.gridSize);
-                        transform.position.y = Snapping.snap(a.y + b.y, Settings.gridSize);
-                        transform.position.z = Snapping.snap(a.z + b.z, Settings.gridSize);                
+                        const { gridStep } = State.instance;
+                        transform.position.x = Snapping.snap(a.x + b.x, gridStep);
+                        transform.position.y = Snapping.snap(a.y + b.y, gridStep);
+                        transform.position.z = Snapping.snap(a.z + b.z, gridStep);                
                     };
 
                     if (selectedAxis === Axis.X) {
@@ -325,7 +327,7 @@ export class EntityController {
                     currentIntersection.substract(transform.worldPosition).normalize();
                     const angle = Math.acos(initialIntersection.dot(currentIntersection));
                     if (Math.abs(angle) > 0.001) {
-                        const snapped = Snapping.snap(angle, Settings.angleSnap);
+                        const snapped = Snapping.snap(angle, State.instance.angleStep * MathEx.degreesToRadians);
                         const rotation = Quaternion.fromPool();
                         const cross = Vector3.fromPool().crossVectors(initialIntersection, currentIntersection);
                         if (selectedAxis === Axis.X) {
@@ -360,7 +362,7 @@ export class EntityController {
                         const dir = Math.sign(offset.dot(axis));
                         transform.scale[prop] = Snapping.snap(
                             initialScale[prop] + offset.length * (factor ?? 1) * dir, 
-                            Settings.gridSize
+                            State.instance.gridStep
                         );
                     };
 

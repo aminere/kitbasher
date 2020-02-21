@@ -86,10 +86,11 @@ namespace Private {
         } else {
             const intersect = ray?.castOnPlane(Private.groundPlane);
             if (intersect && intersect.intersection) {
+                const { gridStep } = State.instance;
                 return Vector3.fromPool().set(
-                    Snapping.snap(intersect.intersection.x, Settings.gridSize),
+                    Snapping.snap(intersect.intersection.x, gridStep),
                     intersect.intersection.y,
-                    Snapping.snap(intersect.intersection.z, Settings.gridSize)
+                    Snapping.snap(intersect.intersection.z, gridStep)
                 );
             }
         }

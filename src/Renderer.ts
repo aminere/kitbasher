@@ -9,6 +9,9 @@ import { GraphicUtils } from "../../spider-engine/src/graphics/GraphicUtils";
 import { Color } from "../../spider-engine/src/graphics/Color";
 import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/GeometryRenderer";
 import { EntityController } from "./EntityController";
+import { Events } from "./Events";
+import { State } from "./State";
+import { Grid } from "./Types";
 
 namespace Private {
     export let debugMaterial: Material;
@@ -23,32 +26,65 @@ namespace Private {
             }
         ];
 
-    let grid: VertexBuffer;
+    let grid: VertexBuffer | null = null;
+    export function invalidateGrid() {
+        if (grid) {
+            grid.unload(WebGL.context);
+        }
+        grid = null;
+    }
+
     export const getGrid = () => {
         if (!grid) {
             grid = new VertexBuffer();
             const gridVertices: number[] = [];
-            const gridSize = 15;
-            const lineStartHoriz = new Vector3(-gridSize, 0, -gridSize);
-            const lineStartVert = new Vector3().copy(lineStartHoriz);
+            const gridSize = 100;
+            const { grid: gridType, gridStep } = State.instance;
+            const horizGridMask = new Vector3(1, 1, 1);
+            const vertGridMask = new Vector3(1, 1, 1);
+            const lineStartHoriz = (() => {
+                if (gridType === Grid.X) {
+                    horizGridMask.set(0, 1, 0);
+                    vertGridMask.set(0, 0, 1);
+                    return new Vector3(0, -gridSize, -gridSize);
+                } else if (gridType === Grid.Y) {
+                    horizGridMask.set(1, 0, 0);
+                    vertGridMask.set(0, 0, 1);
+                    return new Vector3(-gridSize, 0, -gridSize);
+                } else {
+                    horizGridMask.set(1, 0, 0);
+                    vertGridMask.set(0, 1, 0);
+                    return new Vector3(-gridSize, -gridSize, 0);
+                }
+            })();
+            const lineStartVert = new Vector3().copy(lineStartHoriz);            
             for (let i = 0; i <= gridSize * 2; ++i) {
                 gridVertices.push(lineStartHoriz.x); 
                 gridVertices.push(lineStartHoriz.y); 
                 gridVertices.push(lineStartHoriz.z);
 
-                gridVertices.push(lineStartHoriz.x + gridSize * 2); 
-                gridVertices.push(lineStartHoriz.y); 
-                gridVertices.push(lineStartHoriz.z);
+                gridVertices.push(lineStartHoriz.x + (gridSize * 2) * horizGridMask.x);
+                gridVertices.push(lineStartHoriz.y + (gridSize * 2) * horizGridMask.y); 
+                gridVertices.push(lineStartHoriz.z + (gridSize * 2) * horizGridMask.z);
 
                 gridVertices.push(lineStartVert.x); 
                 gridVertices.push(lineStartVert.y); 
                 gridVertices.push(lineStartVert.z);
 
-                gridVertices.push(lineStartVert.x); 
-                gridVertices.push(lineStartVert.y); 
-                gridVertices.push(lineStartVert.z + gridSize * 2);                
-                lineStartHoriz.z++;
-                lineStartVert.x++;
+                gridVertices.push(lineStartVert.x + (gridSize * 2) * vertGridMask.x); 
+                gridVertices.push(lineStartVert.y + (gridSize * 2) * vertGridMask.y); 
+                gridVertices.push(lineStartVert.z + (gridSize * 2) * vertGridMask.z);
+
+                lineStartHoriz.set(
+                    lineStartHoriz.x + vertGridMask.x * gridStep,
+                    lineStartHoriz.y + vertGridMask.y * gridStep,
+                    lineStartHoriz.z + vertGridMask.z * gridStep,
+                );
+                lineStartVert.set(
+                    lineStartVert.x + horizGridMask.x * gridStep,
+                    lineStartVert.y + horizGridMask.y * gridStep,
+                    lineStartVert.z + horizGridMask.z * gridStep,
+                );
             }
             grid.setAttribute("position", gridVertices);
             grid.primitiveType = "LINES";
@@ -66,7 +102,12 @@ export class Renderer {
                     .then(asset => a.set(asset));
             })
         )
-        .then(() => GeometryRenderer.init());
+        .then(() => GeometryRenderer.init())
+        .then(() => {
+            Events.gridChanged.attach(() => {
+                Private.invalidateGrid();
+            });
+        });
     }
 
     public static preRender(camera: Camera) {

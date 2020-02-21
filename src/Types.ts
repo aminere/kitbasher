@@ -7,6 +7,18 @@ export interface IKitAsset {
     model: Model;
 }
 
+export enum ControlMode {
+    Translate,
+    Rotate,
+    Scale
+}
+
+export enum GridType {
+    X,
+    Y,
+    Z
+}
+
 export enum Axis {
     None,
     X,
@@ -15,4 +27,10 @@ export enum Axis {
     XY,
     XZ,
     ZY
+}
+
+export enum Grid {
+    X,
+    Y,
+    Z
 }
