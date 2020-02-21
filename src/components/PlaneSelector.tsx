@@ -2,12 +2,12 @@
 import * as React from "react";
 import { Tooltip, Button, Position, Intent } from "@blueprintjs/core";
 import { State } from "../State";
-import { Grid } from "../Types";
+import { Plane } from "../Types";
 
 export class PlaneSelector extends React.Component {
     public render() {
         const { grid } = State.instance;
-        const selector = (name: string, value: Grid) => {
+        const selector = (name: string, value: Plane) => {
             return (
                 <div key={name} style={{ padding: "4px" }}>
                     <Tooltip content={name} position={Position.BOTTOM}>
@@ -27,9 +27,9 @@ export class PlaneSelector extends React.Component {
             );
         };
         return [
-            selector("X", Grid.X),
-            selector("Y", Grid.Y),
-            selector("Z", Grid.Z)
+            selector("X", Plane.X),
+            selector("Y", Plane.Y),
+            selector("Z", Plane.Z)
         ];
     }
 }

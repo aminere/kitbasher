@@ -11,7 +11,7 @@ import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/Geom
 import { EntityController } from "./EntityController";
 import { Events } from "./Events";
 import { State } from "./State";
-import { Grid } from "./Types";
+import { Plane } from "./Types";
 
 namespace Private {
     export let debugMaterial: Material;
@@ -43,11 +43,11 @@ namespace Private {
             const horizGridMask = new Vector3(1, 1, 1);
             const vertGridMask = new Vector3(1, 1, 1);
             const lineStartHoriz = (() => {
-                if (gridType === Grid.X) {
+                if (gridType === Plane.X) {
                     horizGridMask.set(0, 1, 0);
                     vertGridMask.set(0, 0, 1);
                     return new Vector3(0, -gridSize, -gridSize);
-                } else if (gridType === Grid.Y) {
+                } else if (gridType === Plane.Y) {
                     horizGridMask.set(1, 0, 0);
                     vertGridMask.set(0, 0, 1);
                     return new Vector3(-gridSize, 0, -gridSize);

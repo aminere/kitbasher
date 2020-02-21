@@ -16,7 +16,7 @@ import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManage
 import { EditorCamera } from "./EditorCamera";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { DOMUtils } from "../../spider-engine/src/common/DOMUtils";
-import { IKitAsset, Grid } from "./Types";
+import { IKitAsset } from "./Types";
 import { State } from "./State";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Debug } from "../../spider-engine/src/io/Debug";
@@ -76,23 +76,22 @@ namespace Private {
     }
 
     export function determinePotentialKitPosition(instance: Entity, localX: number, localY: number) {
+        const { gridStep } = State.instance;
         const ray = EditorCamera.getWorldRay(localX, localY);
-        const closest = (ray ? Private.tryPickEntity(ray, instance) : null)?.parent;        
-        if (closest) {
-            const yOffset = BoundingBoxes.get(closest)?.max.y ?? 0;
+        const rayCast = (ray ? Private.tryPickEntity(ray, instance) : null);        
+        if (rayCast) {
+            // const yOffset = BoundingBoxes.get(rayCast.closest)?.max.y ?? 0;
             return Vector3.fromPool().set(
-                closest.transform.position.x,
-                yOffset,
-                closest.transform.position.z,                
+                Snapping.snap(rayCast.intersection.x, gridStep),
+                Snapping.snap(rayCast.intersection.y, gridStep),
+                Snapping.snap(rayCast.intersection.z, gridStep)
             );
         } else {
             const intersect = ray?.castOnPlane([xPlane, yPlane, zPlane][State.instance.grid]);
             if (intersect && intersect.intersection) {
-                const { gridStep } = State.instance;
                 return Vector3.fromPool().set(
                     Snapping.snap(intersect.intersection.x, gridStep),
-                    Snapping.snap(intersect.intersection.y, gridStep),
-                    // intersect.intersection.y,
+                    Snapping.snap(intersect.intersection.y, gridStep),                    
                     Snapping.snap(intersect.intersection.z, gridStep)
                 );
             }
@@ -104,6 +103,7 @@ namespace Private {
     const localPickingRay = new Ray();
     export function tryPickEntity(pickingRay: Ray, exclude?: Entity) {
         let closest: Entity | null = null;
+        const normal = Vector3.fromPool();
         const invWorld = Matrix44.fromPool();
         let distToClosest = Number.MAX_VALUE;
         const v1 = Vector3.fromPool();
@@ -149,6 +149,7 @@ namespace Private {
                                     if (distance < distToClosest) {
                                         distToClosest = distance;
                                         closest = v.entity;
+                                        normal.copy(plane.normal);
                                     }
                                 }
                             }
@@ -157,7 +158,19 @@ namespace Private {
                 }
             }
         }
-        return closest;
+
+        if (!closest) {
+            return null;
+        }
+
+        return {
+            closest: closest.parent as Entity,
+            normal,
+            intersection: new Vector3()
+                .copy(pickingRay.direction)
+                .multiply(distToClosest)
+                .add(pickingRay.origin)
+        };
     }
 
     // Initialization
@@ -399,10 +412,10 @@ export class Controller {
 
         // Pick entity
         const ray = EditorCamera.getWorldRay(localX, localY);
-        const closest = ray ? Private.tryPickEntity(ray) : null;
-        if (closest) {
+        const rayCast = ray ? Private.tryPickEntity(ray) : null;
+        if (rayCast) {
             // TODO multi-selection
-            State.instance.setSelection(closest.parent as Entity);
+            State.instance.setSelection(rayCast.closest);
         } else {
             State.instance.clearSelection();
         }

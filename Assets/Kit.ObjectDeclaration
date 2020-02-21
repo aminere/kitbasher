@@ -44,6 +44,19 @@
               }
             }
           }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "StringPin",
+            "version": 2,
+            "properties": {
+              "id": "8fe5d9c9-702b-49fc-9f70-87db2f9e5169",
+              "name": "plane",
+              "type": 2,
+              "value": ""
+            }
+          }
         }
       ]
     }

@@ -1,5 +1,5 @@
 
-import { IKitAsset, ControlMode, Grid } from "./Types";
+import { IKitAsset, ControlMode, Plane } from "./Types";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
@@ -23,7 +23,7 @@ export class State {
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Translate;
     private _altPressed = false;
-    private _grid = Grid.Y;
+    private _grid = Plane.Y;
     private _gridStep = 1;
     private _angleStep = 45;
 
@@ -58,7 +58,7 @@ export class State {
     public set altPressed(pressed: boolean) { this._altPressed = pressed; }
 
     public get grid() { return this._grid; }
-    public set grid(grid: Grid) {
+    public set grid(grid: Plane) {
         this._grid = grid;
         this.save();
         Events.gridChanged.post();
@@ -72,7 +72,7 @@ export class State {
     }
 
     public get angleStep() { return this._angleStep; }
-    public set angleStep(step: Grid) {
+    public set angleStep(step: number) {
         this._angleStep = step;
         this.save();
     }

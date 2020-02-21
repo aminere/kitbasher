@@ -154,17 +154,13 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                 <div
                     style={{
                         position: "absolute",
-                        left: "0",
+                        right: "0",
                         top: "0",
                         width: "250px"
                     }}
                 >
                     {
                         (() => {
-                            if (!(hasSelection || insertionMode)) {
-                                return null;
-                            }
-
                             const props: {
                                 [name: string]: {
                                     // tslint:disable-next-line
@@ -195,7 +191,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                             Object.assign(props, {
                                 grid: {
                                     get: () => <PlaneSelector />
-                                }
+                                }                                
                             });
 
                             return (
@@ -222,6 +218,15 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                             );
                         })()
                     }
+                </div>
+                <div
+                    style={{
+                        position: "absolute",
+                        left: "0",
+                        top: "0",
+                        width: "250px"
+                    }}
+                >              
                     {
                         hasSelection
                         &&
