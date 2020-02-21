@@ -9,7 +9,7 @@ export class PlaneSelector extends React.Component {
         const { grid } = State.instance;
         const selector = (name: string, value: Grid) => {
             return (
-                <div style={{ padding: "4px" }}>
+                <div key={name} style={{ padding: "4px" }}>
                     <Tooltip content={name} position={Position.BOTTOM}>
                         <Button
                             active={grid === value}
@@ -26,16 +26,10 @@ export class PlaneSelector extends React.Component {
                 </div>
             );
         };
-        return (
-            <div
-                style={{
-                    display: "flex"
-                }}
-            >
-                {selector("X", Grid.X)}
-                {selector("Y", Grid.Y)}
-                {selector("Z", Grid.Z)}
-            </div>
-        );
+        return [
+            selector("X", Grid.X),
+            selector("Y", Grid.Y),
+            selector("Z", Grid.Z)
+        ];
     }
 }

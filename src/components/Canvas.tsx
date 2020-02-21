@@ -169,7 +169,9 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                     grid: { customEditor: true }
                                                 }}
                                                 onPropertyChanged={(name, value) => {
-                                                    
+                                                    if (name === "step") {
+                                                        State.instance.gridStep = value;
+                                                    }
                                                 }}
                                             />
                                         )}

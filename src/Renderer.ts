@@ -58,7 +58,7 @@ namespace Private {
                 }
             })();
             const lineStartVert = new Vector3().copy(lineStartHoriz);            
-            for (let i = 0; i <= gridSize * 2; ++i) {
+            for (let i = 0; i <= gridSize * 2; i += gridStep) {
                 gridVertices.push(lineStartHoriz.x); 
                 gridVertices.push(lineStartHoriz.y); 
                 gridVertices.push(lineStartHoriz.z);
