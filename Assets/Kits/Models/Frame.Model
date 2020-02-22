@@ -2,8 +2,8 @@
   "typeName": "Model",
   "version": 2,
   "properties": {
-    "id": "f1608c31-0096-4b1b-bb8e-dae916a202a3",
-    "name": "Wall",
+    "id": "072f3ae7-8882-43f3-8a3c-454076d20977",
+    "name": "Frame",
     "fbxScaleFactor": 0.01,
     "elements": {
       "typeName": "ModelElement",
@@ -14,8 +14,8 @@
             "typeName": "ModelMesh",
             "version": 2,
             "properties": {
-              "id": "3b357b20-76f4-44cf-9f33-982df1380555",
-              "name": "Wall",
+              "id": "e9a2d83b-39fd-41dd-b8ed-8860e795ae5d",
+              "name": "Monitor",
               "children": {
                 "typeName": "ModelElement",
                 "data": []
@@ -49,11 +49,11 @@
               },
               "mesh": {
                 "typeName": "StaticMeshAsset",
-                "id": "Assets/Kits/Models/Meshes/Wall.StaticMeshAsset"
+                "id": "Assets/Kits/Models/Meshes/Monitor 1.StaticMeshAsset"
               },
               "fbxNodeId": {
                 "typeName": "Number",
-                "data": 352717666
+                "data": 678229271
               }
             }
           }

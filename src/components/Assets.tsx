@@ -58,10 +58,12 @@ export class Assets extends React.Component {
             ["Interior", "ground"],
             ["Interior", "roof"],
             ["Interior", "wall"],
+            ["Interior", "wall2"],
             ["Interior", "wall-door"],
             ["Interior", "wall-window"],
             ["Props", "table"],
-            ["Props", "monitor"]
+            ["Props", "monitor"],
+            ["Props", "frame"]
         ];
 
         this._kits = (await Promise.all(kits.map(([section, name]) => {
