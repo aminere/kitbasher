@@ -76,15 +76,39 @@ namespace Private {
     }
 
     export function determinePotentialKitPosition(instance: Entity, localX: number, localY: number) {
-        const { gridStep } = State.instance;
+        const { gridStep, selectedKit } = State.instance;
         const ray = EditorCamera.getWorldRay(localX, localY);
         const rayCast = (ray ? Private.tryPickEntity(ray, instance) : null);        
         if (rayCast) {
-            return Vector3.fromPool().set(
-                Snapping.snap(rayCast.intersection.x, gridStep),
-                Snapping.snap(rayCast.intersection.y, gridStep),
-                Snapping.snap(rayCast.intersection.z, gridStep)
-            );
+            switch (selectedKit?.type) {
+                case "block": {
+                    const selectors: {
+                        [key: string]: [(v?: Vector3) => number | undefined, Vector3]
+                    } = {
+                        x: [(v?: Vector3) => v?.x, Vector3.right],
+                        y: [(v?: Vector3) => v?.y, Vector3.up],
+                        z: [(v?: Vector3) => v?.z, Vector3.forward]
+                    };
+                    const [selector, direction] = selectors[selectedKit.plane];
+                    const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
+                    const { position } = rayCast.closest.transform;
+                    return Vector3.fromPool().set(
+                        position.x * (1 - direction.x) + offset * direction.x,
+                        position.y * (1 - direction.y) + offset * direction.y,
+                        position.z * (1 - direction.z) + offset * direction.z,
+                    );
+                }
+
+                case "prop":
+                    return Vector3.fromPool().set(
+                        Snapping.snap(rayCast.intersection.x, gridStep),
+                        Snapping.snap(rayCast.intersection.y, gridStep),
+                        Snapping.snap(rayCast.intersection.z, gridStep)
+                    );
+                default:
+                    // tslint:disable-next-line
+                    console.assert(false, `Invalid kit type ${selectedKit?.type}`);
+            }
         } else {
             const intersect = ray?.castOnPlane([xPlane, yPlane, zPlane][State.instance.grid]);
             if (intersect && intersect.intersection) {

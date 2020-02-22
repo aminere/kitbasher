@@ -58,7 +58,6 @@ export class Assets extends React.Component {
             ["Interior", "ground"],
             ["Interior", "roof"],
             ["Interior", "wall"],
-            ["Interior", "wall2"],
             ["Interior", "wall-door"],
             ["Interior", "wall-window"],
             ["Props", "table"],

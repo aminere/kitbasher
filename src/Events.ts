@@ -1,5 +1,5 @@
 
-import { VoidAsyncEvent, AsyncEvent } from "ts-events";
+import { VoidAsyncEvent, AsyncEvent, SyncEvent } from "ts-events";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { IKitAsset } from "./Types";
 
@@ -9,7 +9,7 @@ export class Events {
     public static assetBrowserReady = new VoidAsyncEvent();
     
     public static transformChanged = new AsyncEvent<Entity>();    
-    public static selectedKitChanged = new AsyncEvent<IKitAsset | null>();
+    public static selectedKitChanged = new SyncEvent<IKitAsset | null>();
     public static selectedEntityChanged = new AsyncEvent<Entity[]>();
     public static gridChanged = new VoidAsyncEvent();
 

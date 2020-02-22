@@ -2,7 +2,7 @@
   "typeName": "StaticMeshAsset",
   "version": 1,
   "properties": {
-    "id": "d1a4a470-d6c0-433c-8cf9-5a7e133eb12c",
+    "id": "b1a20558-5393-4dc0-b57e-249e21ef6f63",
     "name": "Monitor 1",
     "_vertexBuffer": {
       "typeName": "VertexBuffer",

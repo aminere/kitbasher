@@ -7,11 +7,15 @@ export enum Plane {
     Z
 }
 
+type PlaneType = "x" | "y" | "z";
+type KitType = "block" | "prop";
+
 export interface IKitAsset {
     id: string;
     thumbnail: Texture2D;
     model: Model;
-    plane: string;
+    plane: PlaneType;
+    type: KitType;
 }
 
 export enum ControlMode {

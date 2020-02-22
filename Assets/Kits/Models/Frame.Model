@@ -2,7 +2,7 @@
   "typeName": "Model",
   "version": 2,
   "properties": {
-    "id": "072f3ae7-8882-43f3-8a3c-454076d20977",
+    "id": "79ddc692-3bc4-43de-bf95-7cbd3cc13ccb",
     "name": "Frame",
     "fbxScaleFactor": 0.01,
     "elements": {
@@ -14,7 +14,7 @@
             "typeName": "ModelMesh",
             "version": 2,
             "properties": {
-              "id": "e9a2d83b-39fd-41dd-b8ed-8860e795ae5d",
+              "id": "8b1b5c3c-73fc-4da3-9450-49426c94c62b",
               "name": "Monitor",
               "children": {
                 "typeName": "ModelElement",

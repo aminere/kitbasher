@@ -57,6 +57,19 @@
               "value": ""
             }
           }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "StringPin",
+            "version": 2,
+            "properties": {
+              "id": "122681ca-8bd4-4b47-b33b-6771362f674b",
+              "name": "type",
+              "type": 2,
+              "value": ""
+            }
+          }
         }
       ]
     }
