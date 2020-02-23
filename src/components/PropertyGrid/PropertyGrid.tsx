@@ -10,6 +10,7 @@ interface IPropertyGridProps {
         [property: string]: {
             action?: JSX.Element;
             customEditor?: boolean;
+            showName?: boolean;
         }
     };
     // tslint:disable-next-line
@@ -74,9 +75,14 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                         })
                         .map(([name, value]) => {
                             const v = Private.tryGetValueWithGetter(target, name);
-                            const { action, customEditor } = (metadata && name in metadata) ? metadata[name] : {
+                            const {
+                                action,
+                                customEditor,
+                                showName
+                            } = (metadata && name in metadata) ? metadata[name] : {
                                 action: undefined,
-                                customEditor: undefined
+                                customEditor: undefined,
+                                showName: undefined
                             };
                             return (
                                 <div
@@ -86,12 +92,25 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                                         alignItems: "center"
                                     }}
                                 >
-                                    {action && <div style={{ marginLeft: "4px" }}>{action}</div>}
+                                    {
+                                        action
+                                        &&
+                                        (
+                                            <div
+                                                style={{
+                                                    margin: "0px 2px 0px 4px"
+                                                }}
+                                            >
+                                                {action}
+                                            </div>
+                                        )
+                                    }
                                     <Property
                                         name={Private.getDislayName(target, name)}
                                         initialValue={v}
                                         onChanged={newValue => this.props.onPropertyChanged(name, newValue)}
                                         customEditor={(customEditor === true) ? target[name] : undefined}
+                                        showName={showName}
                                     />
                                 </div>
                             );

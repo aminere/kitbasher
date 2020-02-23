@@ -107,11 +107,12 @@ namespace Private {
 
                 case "prop": {
                     return [
-                        Vector3.fromPool().set(
-                            Snapping.snap(rayCast.intersection.x, gridStep),
-                            Snapping.snap(rayCast.intersection.y, gridStep),
-                            Snapping.snap(rayCast.intersection.z, gridStep)
-                        ),
+                        rayCast.intersection,
+                        // Vector3.fromPool().set(
+                        //     Snapping.snap(rayCast.intersection.x, gridStep),
+                        //     Snapping.snap(rayCast.intersection.y, gridStep),
+                        //     Snapping.snap(rayCast.intersection.z, gridStep)
+                        // ),
                         (() => {
                             const { normal } = rayCast;
                             const propAxis = {

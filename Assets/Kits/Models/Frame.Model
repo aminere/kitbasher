@@ -14,8 +14,8 @@
             "typeName": "ModelMesh",
             "version": 2,
             "properties": {
-              "id": "8b1b5c3c-73fc-4da3-9450-49426c94c62b",
-              "name": "Monitor",
+              "id": "89cc2286-9553-4392-ba73-15e349bd224b",
+              "name": "Frame",
               "children": {
                 "typeName": "ModelElement",
                 "data": []
@@ -49,11 +49,11 @@
               },
               "mesh": {
                 "typeName": "StaticMeshAsset",
-                "id": "Assets/Kits/Models/Meshes/Monitor 1.StaticMeshAsset"
+                "id": "Assets/Kits/Models/Meshes/Frame.StaticMeshAsset"
               },
               "fbxNodeId": {
                 "typeName": "Number",
-                "data": 678229271
+                "data": 826243627
               }
             }
           }

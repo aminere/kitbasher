@@ -6,17 +6,16 @@
 
 .property-name {
     float: left;
-    width: 30%;
     text-overflow: ellipsis;
     white-space: pre;
     line-height: 30px;
     padding: 4px;
     padding-left: 8px;
+   
 }
 
 .property-editor-container {
-    float: left;
-    width: 70%;
+    float: left;    
     height: 100%; 
     display: flex;   
     position: relative;

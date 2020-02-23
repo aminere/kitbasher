@@ -253,7 +253,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                                 onFocus={e => e.currentTarget.blur()}
                                                             />
                                                         </Tooltip>
-                                                    )
+                                                    ),
+                                                    showName: false
                                                 },
                                                 _rotation: {
                                                     action: (
@@ -269,7 +270,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                                 onFocus={e => e.currentTarget.blur()}
                                                             />
                                                         </Tooltip>
-                                                    )
+                                                    ),
+                                                    showName: false
                                                 },
                                                 _scale: {
                                                     action: (
@@ -285,7 +287,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                                 onFocus={e => e.currentTarget.blur()}
                                                             />
                                                         </Tooltip>
-                                                    )
+                                                    ),
+                                                    showName: false
                                                 }
                                             }}
                                             onPropertyChanged={(name, newValue) => {
