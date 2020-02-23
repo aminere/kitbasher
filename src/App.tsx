@@ -366,13 +366,7 @@ export class App extends React.Component {
                 State.instance.clearSelection();
             }
         } else if (e.key === "Delete") {
-            if (State.instance.selection.length) {
-                for (const entity of State.instance.selection) {
-                    entity.destroy();
-                }
-                State.instance.clearSelection();
-                Commands.saveScene.post();
-            }            
+            Controller.deleteSelection();            
         } else if (e.key === "Alt") {
             State.instance.altPressed = false;
         } else if (e.key.toLowerCase() === "r") {

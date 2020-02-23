@@ -32,6 +32,10 @@ import { BoundingBoxes } from "./BoundingBoxes";
 import { Config } from "./Config";
 import { Utils } from "./Utils";
 
+interface IEntityData {
+    kit: IKitAsset;
+}
+
 namespace Private {
 
     let defaultMaterial: Material;
@@ -47,7 +51,21 @@ namespace Private {
     export const xPlane = new Plane(new Vector3().copy(Vector3.right));
     export const yPlane = new Plane(new Vector3().copy(Vector3.up));
     export const zPlane = new Plane(new Vector3().copy(Vector3.forward));
-    export function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
+
+    const entityData = new Map<Entity, IEntityData>();
+
+    export function removeEntityData(entity: Entity) {
+        entityData.delete(entity);
+    }
+
+    export function getEntityData(entity: Entity) {
+        const data = entityData.get(entity) as IEntityData;
+        // tslint:disable-next-line
+        console.assert(Boolean(data));
+        return data;
+    }   
+
+    function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
         return Model.instantiate(kit.model)
             .then(instance => {
                 if (position) {
@@ -56,15 +74,18 @@ namespace Private {
                 if (rotation) {
                     instance.updateComponent(Transform, { rotation });
                 }
+                entityData.set(instance, {
+                    kit
+                });
                 return instance;
             });
     }    
 
-    export let lastInstantiatedKitPos: Vector3 | null = null;
+    export let lastInstantiatedKit: Entity | null = null;
     export function instantiateKit(instance: Entity) {
-        lastInstantiatedKitPos = new Vector3().copy(instance.transform.position);
+        lastInstantiatedKit = instance;
         Utils.saveCurrentScene()
-            .then(() => Private.createKit(
+            .then(() => createKit(
                 State.instance.selectedKit as IKitAsset,
                 instance.transform.position,
                 instance.transform.rotation
@@ -260,7 +281,7 @@ namespace Private {
                     if (selectedKitInstance) {
                         selectedKitInstance.destroy();
                         State.instance.selectedKitInstance = null;
-                        Private.lastInstantiatedKitPos = null;
+                        Private.lastInstantiatedKit = null;
                     }
                     if (kit) {
                         createKit(kit).then(instance => {
@@ -312,6 +333,18 @@ export class Controller {
         Private.canvasHasFocus = hasFocus;
     }
 
+    public static deleteSelection() {
+        if (State.instance.selection.length < 1) {
+            return;
+        }
+        State.instance.selection.forEach(entity => {
+            entity.destroy();
+            Private.removeEntityData(entity);
+        });
+        State.instance.clearSelection();
+        Commands.saveScene.post();
+    }
+
     public static onResize() {
         EngineHandlersInternal.onWindowResized();
     }
@@ -344,13 +377,15 @@ export class Controller {
                 const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
                 if (potentialPos) {
                     const [position, rotation] = potentialPos;
-                    if (!Private.lastInstantiatedKitPos) {
+                    if (!Private.lastInstantiatedKit) {
                         selectedKitInstance.active = true;
                     } else {
-                        if (potentialPos) {
-                            const treshold = Vector3.distance(Private.lastInstantiatedKitPos, position);
-                            // TODO make this treshold dynamic / dependent on current kit bounds?
-                            if (treshold >= 2) {
+                        const oldBbox = BoundingBoxes.get(Private.lastInstantiatedKit);
+                        const newBBox = BoundingBoxes.get(selectedKitInstance);
+                        if (oldBbox && newBBox) {
+                            newBBox.min.add(position).substract(selectedKitInstance.transform.position);
+                            newBBox.max.add(position).substract(selectedKitInstance.transform.position);
+                            if (!oldBbox.collidesWith(newBBox)) {
                                 selectedKitInstance.active = true;
                             }
                         }
@@ -372,6 +407,8 @@ export class Controller {
             if (selectedKitInstance) {
                 if (!Private.paintBrushMode) {
                     const treshold = Vector2.distance(Private.touchStart, Vector2.fromPool().set(localX, localY));
+                    // This threshold has nothing todo with geometry bounds
+                    // Just instantiates the first block and goes into paintbrush mode
                     if (treshold > Config.paintBrushActivationPixelTreshold) {
                         if (selectedKitInstance.active) {
                             if (touchLeftButton && !State.instance.altPressed) {
@@ -385,12 +422,18 @@ export class Controller {
                     const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
                     if (potentialPos) {
                         const [position, rotation] = potentialPos;
-                        const treshold = Vector3.distance(Private.lastInstantiatedKitPos as Vector3, position);
-                        // TODO make this treshold dynamic / dependent on current kit bounds?
-                        if (treshold >= 2) {
-                            selectedKitInstance.active = true;
-                            selectedKitInstance.transform.position = position;
-                            Private.instantiateKit(selectedKitInstance);
+                        // tslint:disable-next-line
+                        console.assert(Private.lastInstantiatedKit);
+                        const oldBbox = BoundingBoxes.get(Private.lastInstantiatedKit as Entity);
+                        const newBBox = BoundingBoxes.get(selectedKitInstance);
+                        if (oldBbox && newBBox) {
+                            newBBox.min.add(position).substract(selectedKitInstance.transform.position);
+                            newBBox.max.add(position).substract(selectedKitInstance.transform.position);
+                            if (!oldBbox.collidesWith(newBBox)) {
+                                selectedKitInstance.active = true;
+                                selectedKitInstance.transform.position = position;
+                                Private.instantiateKit(selectedKitInstance);
+                            }
                         }
                     }
                     return;
