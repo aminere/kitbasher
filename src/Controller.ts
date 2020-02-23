@@ -101,7 +101,7 @@ namespace Private {
                             position.y * (1 - direction.y) + offset * direction.y,
                             position.z * (1 - direction.z) + offset * direction.z,
                         ),
-                        null
+                        rayCast.closest.transform.rotation
                     ];
                 }
 
@@ -122,7 +122,9 @@ namespace Private {
                             }[selectedKit.plane];
                             const angle = MathEx.toDegrees(Math.acos(normal.dot(propAxis)));
                             if (angle > .001) {
-                                return Quaternion.fromPool().setFromUnitVectors(propAxis, normal);
+                                return instance.transform.rotation.multiply(
+                                    Quaternion.fromPool().setFromUnitVectors(propAxis, normal)
+                                );
                             } else {
                                 return null;
                             }
@@ -356,7 +358,7 @@ export class Controller {
                     if (selectedKitInstance.active) {
                         selectedKitInstance.transform.position = position;
                         if (rotation) {
-                            selectedKitInstance.transform.rotation.multiply(rotation);
+                            selectedKitInstance.transform.rotation = rotation;
                         }
                     }
                 }                
