@@ -53,13 +53,13 @@ export class Assets extends React.Component {
 
     private async populate() {
         const kits: Array<[string, string]> = [
-            ["Primitives", "cube"],
-            ["Primitives", "sphere"],
-            ["Interior", "ground"],
-            ["Interior", "roof"],
-            ["Interior", "wall"],
-            ["Interior", "wall-door"],
-            ["Interior", "wall-window"],
+            ["Blocks", "cube"],
+            ["Blocks", "sphere"],
+            ["Blocks", "ground"],
+            ["Blocks", "roof"],
+            ["Blocks", "wall"],
+            ["Blocks", "wall-door"],
+            ["Blocks", "wall-window"],
             ["Props", "table"],
             ["Props", "monitor"],
             ["Props", "frame"]

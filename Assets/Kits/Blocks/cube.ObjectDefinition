@@ -2,8 +2,8 @@
   "typeName": "ObjectDefinition",
   "version": 1,
   "properties": {
-    "id": "a1a10057-5e4c-4e43-b608-2b5c3f162329",
-    "name": "wall2",
+    "id": "bff1e443-ae11-465f-8b8b-5bae3ff37c09",
+    "name": "cube",
     "_pins": {
       "typeName": "BasePin",
       "data": [
@@ -21,7 +21,7 @@
                 "typeName": "AssetReference",
                 "data": {
                   "typeName": "Texture2D",
-                  "id": "Assets/Kits/default.Texture2D"
+                  "id": "Assets/Kits/Blocks/cube.Texture2D"
                 }
               }
             }
@@ -41,7 +41,7 @@
                 "typeName": "AssetReference",
                 "data": {
                   "typeName": "Model",
-                  "id": "Assets/Kits/Models/Wall2.Model"
+                  "id": "Assets/Kits/Models/Cube.Model"
                 }
               }
             }
@@ -57,6 +57,19 @@
               "name": "plane",
               "type": 2,
               "value": "y"
+            }
+          }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "StringPin",
+            "version": 2,
+            "properties": {
+              "id": "122681ca-8bd4-4b47-b33b-6771362f674b",
+              "name": "type",
+              "type": 2,
+              "value": "block"
             }
           }
         }

@@ -21,7 +21,7 @@
                 "typeName": "AssetReference",
                 "data": {
                   "typeName": "Texture2D",
-                  "id": "Assets/Kits/Primitives/sphere.Texture2D"
+                  "id": "Assets/Kits/Blocks/sphere.Texture2D"
                 }
               }
             }

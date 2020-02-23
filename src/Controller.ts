@@ -10,7 +10,7 @@ import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Plane, Assets, Vector2 } from "../../spider-engine/src/spider-engine";
+import { Plane, Assets, Vector2, MathEx } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -75,10 +75,13 @@ namespace Private {
             });
     }
 
-    export function determinePotentialKitPosition(instance: Entity, localX: number, localY: number) {
+    export function determinePotentialKitTransform(instance: Entity, localX: number, localY: number): [
+        Vector3,
+        Quaternion | null
+    ] | null {
         const { gridStep, selectedKit } = State.instance;
         const ray = EditorCamera.getWorldRay(localX, localY);
-        const rayCast = (ray ? Private.tryPickEntity(ray, instance) : null);        
+        const rayCast = (ray ? Private.tryPickEntity(ray, instance) : null);
         if (rayCast) {
             switch (selectedKit?.type) {
                 case "block": {
@@ -92,19 +95,39 @@ namespace Private {
                     const [selector, direction] = selectors[selectedKit.plane];
                     const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
                     const { position } = rayCast.closest.transform;
-                    return Vector3.fromPool().set(
-                        position.x * (1 - direction.x) + offset * direction.x,
-                        position.y * (1 - direction.y) + offset * direction.y,
-                        position.z * (1 - direction.z) + offset * direction.z,
-                    );
+                    return [
+                        Vector3.fromPool().set(
+                            position.x * (1 - direction.x) + offset * direction.x,
+                            position.y * (1 - direction.y) + offset * direction.y,
+                            position.z * (1 - direction.z) + offset * direction.z,
+                        ),
+                        null
+                    ];
                 }
 
-                case "prop":
-                    return Vector3.fromPool().set(
-                        Snapping.snap(rayCast.intersection.x, gridStep),
-                        Snapping.snap(rayCast.intersection.y, gridStep),
-                        Snapping.snap(rayCast.intersection.z, gridStep)
-                    );
+                case "prop": {
+                    return [
+                        Vector3.fromPool().set(
+                            Snapping.snap(rayCast.intersection.x, gridStep),
+                            Snapping.snap(rayCast.intersection.y, gridStep),
+                            Snapping.snap(rayCast.intersection.z, gridStep)
+                        ),
+                        (() => {
+                            const { normal } = rayCast;
+                            const propAxis = {
+                                x: instance.transform.worldRight,
+                                y: instance.transform.worldUp,
+                                z: instance.transform.worldForward
+                            }[selectedKit.plane];
+                            const angle = MathEx.toDegrees(Math.acos(normal.dot(propAxis)));
+                            if (angle > .001) {
+                                return Quaternion.fromPool().setFromUnitVectors(propAxis, normal);
+                            } else {
+                                return null;
+                            }
+                        })()
+                    ];
+                }
                 default:
                     // tslint:disable-next-line
                     console.assert(false, `Invalid kit type ${selectedKit?.type}`);
@@ -112,11 +135,14 @@ namespace Private {
         } else {
             const intersect = ray?.castOnPlane([xPlane, yPlane, zPlane][State.instance.grid]);
             if (intersect && intersect.intersection) {
-                return Vector3.fromPool().set(
-                    Snapping.snap(intersect.intersection.x, gridStep),
-                    Snapping.snap(intersect.intersection.y, gridStep),                    
-                    Snapping.snap(intersect.intersection.z, gridStep)
-                );
+                return [
+                    Vector3.fromPool().set(
+                        Snapping.snap(intersect.intersection.x, gridStep),
+                        Snapping.snap(intersect.intersection.y, gridStep),
+                        Snapping.snap(intersect.intersection.z, gridStep)
+                    ),
+                    null
+                ];
             }
         }
         return null;
@@ -172,7 +198,7 @@ namespace Private {
                                     if (distance < distToClosest) {
                                         distToClosest = distance;
                                         closest = v.entity;
-                                        normal.copy(plane.normal);
+                                        normal.copy(plane.normal).transformDirection(world);
                                     }
                                 }
                             }
@@ -312,17 +338,14 @@ export class Controller {
         const { selectedKitInstance } = State.instance;
         if (!Private.touchPressed) {
             if (selectedKitInstance) {
-                const potentialPos = Private.determinePotentialKitPosition(
-                    selectedKitInstance,
-                    localX,
-                    localY
-                );
+                const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
                 if (potentialPos) {
+                    const [position, rotation] = potentialPos;
                     if (!Private.lastInstantiatedKitPos) {
                         selectedKitInstance.active = true;
                     } else {
                         if (potentialPos) {
-                            const treshold = Vector3.distance(Private.lastInstantiatedKitPos, potentialPos);
+                            const treshold = Vector3.distance(Private.lastInstantiatedKitPos, position);
                             // TODO make this treshold dynamic / dependent on current kit bounds?
                             if (treshold >= 2) {
                                 selectedKitInstance.active = true;
@@ -330,7 +353,10 @@ export class Controller {
                         }
                     }
                     if (selectedKitInstance.active) {
-                        selectedKitInstance.transform.position = potentialPos;
+                        selectedKitInstance.transform.position = position;
+                        if (rotation) {
+                            selectedKitInstance.transform.rotation.multiply(rotation);
+                        }
                     }
                 }                
             } else {
@@ -353,20 +379,14 @@ export class Controller {
                         }
                     }
                 } else {
-                    const potentialPos = Private.determinePotentialKitPosition(
-                        selectedKitInstance,
-                        localX,
-                        localY
-                    );
+                    const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
                     if (potentialPos) {
-                        const treshold = Vector3.distance(
-                            Private.lastInstantiatedKitPos as Vector3,
-                            potentialPos
-                        );
+                        const [position, rotation] = potentialPos;
+                        const treshold = Vector3.distance(Private.lastInstantiatedKitPos as Vector3, position);
                         // TODO make this treshold dynamic / dependent on current kit bounds?
                         if (treshold >= 2) {
                             selectedKitInstance.active = true;
-                            selectedKitInstance.transform.position = potentialPos;
+                            selectedKitInstance.transform.position = position;
                             Private.instantiateKit(selectedKitInstance);
                         }
                     }

@@ -377,20 +377,24 @@ export class App extends React.Component {
             State.instance.altPressed = false;
         } else if (e.key.toLowerCase() === "r") {
 
-            const rotate = (entity: Entity) => {
-                entity.transform.rotation.multiply(Quaternion.fromAxisAngle(Vector3.up, Math.PI / 2));
+            const rotate = (entity: Entity, axis: Vector3) => {
+                entity.transform.rotation.multiply(Quaternion.fromAxisAngle(axis, Math.PI / 2));
                 Events.transformChanged.post(entity);
             };
 
-            const selectedEntities = State.instance.selection;
-            if (selectedEntities.length > 0) {
+            const { selection, grid, selectedKit, selectedKitInstance } = State.instance;
+            if (selection.length > 0) {
                 // TODO multi selection
-                rotate(selectedEntities[0]);
+                rotate(selection[0], [Vector3.right, Vector3.up, Vector3.forward][grid]);
                 Commands.saveScene.post();
             } else {
-                const { selectedKitInstance } = State.instance;
-                if (selectedKitInstance) {
-                    rotate(selectedKitInstance);
+                if (selectedKitInstance && selectedKit) {
+                    const { transform } = selectedKitInstance;
+                    rotate(selectedKitInstance, {
+                        x: transform.worldRight,
+                        y: transform.worldUp,
+                        z: transform.worldForward
+                    }[selectedKit.plane]);
                 }
             }
         }

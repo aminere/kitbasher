@@ -2,8 +2,8 @@
   "typeName": "Model",
   "version": 2,
   "properties": {
-    "id": "40df4cf7-b28b-4136-b735-54fbc08b3a36",
-    "name": "Wall2",
+    "id": "f77d713d-2ab5-4535-8291-ee5ca7b98b69",
+    "name": "Cube",
     "fbxScaleFactor": 0.01,
     "elements": {
       "typeName": "ModelElement",
@@ -14,8 +14,8 @@
             "typeName": "ModelMesh",
             "version": 2,
             "properties": {
-              "id": "fdf48c0a-b408-4d64-9998-bb29ae6952c6",
-              "name": "Wall",
+              "id": "cf84060a-f006-4179-9e44-445dd06dca4e",
+              "name": "Cube",
               "children": {
                 "typeName": "ModelElement",
                 "data": []
@@ -49,11 +49,11 @@
               },
               "mesh": {
                 "typeName": "StaticMeshAsset",
-                "id": "Assets/Kits/Models/Meshes/Wall 1.StaticMeshAsset"
+                "id": "Assets/Kits/Models/Meshes/Cube.StaticMeshAsset"
               },
               "fbxNodeId": {
                 "typeName": "Number",
-                "data": 352717666
+                "data": 766696654
               }
             }
           }
