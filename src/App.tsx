@@ -373,6 +373,7 @@ export class App extends React.Component {
 
             const rotate = (entity: Entity, axis: Vector3) => {
                 entity.transform.rotation.multiply(Quaternion.fromAxisAngle(axis, Math.PI / 2));
+                entity.active = true;
                 Events.transformChanged.post(entity);
             };
 

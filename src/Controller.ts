@@ -45,7 +45,6 @@ namespace Private {
     export let touchPressed = false;
     export let touchLeftButton = false;
     export let touchStart = new Vector2();
-    export let paintBrushMode = false;
 
     // Snapping
     export const xPlane = new Plane(new Vector3().copy(Vector3.right));
@@ -98,7 +97,8 @@ namespace Private {
 
     export function determinePotentialKitTransform(instance: Entity, localX: number, localY: number): [
         Vector3,
-        Quaternion | null
+        Quaternion | null,
+        Entity | null
     ] | null {
         const { gridStep, selectedKit } = State.instance;
         const ray = EditorCamera.getWorldRay(localX, localY);
@@ -122,7 +122,8 @@ namespace Private {
                             position.y * (1 - direction.y) + offset * direction.y,
                             position.z * (1 - direction.z) + offset * direction.z,
                         ),
-                        rayCast.closest.transform.rotation
+                        rayCast.closest.transform.rotation,
+                        rayCast.closest
                     ];
                 }
 
@@ -149,7 +150,8 @@ namespace Private {
                             } else {
                                 return null;
                             }
-                        })()
+                        })(),
+                        rayCast.closest
                     ];
                 }
                 default:
@@ -165,6 +167,7 @@ namespace Private {
                         Snapping.snap(intersect.intersection.y, gridStep),
                         Snapping.snap(intersect.intersection.z, gridStep)
                     ),
+                    null,
                     null
                 ];
             }
@@ -376,19 +379,18 @@ export class Controller {
             if (selectedKitInstance) {
                 const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
                 if (potentialPos) {
-                    const [position, rotation] = potentialPos;
+                    const [position, rotation, pickedEntity] = potentialPos;
                     if (!Private.lastInstantiatedKit) {
                         selectedKitInstance.active = true;
                     } else {
-                        const oldBbox = BoundingBoxes.get(Private.lastInstantiatedKit);
-                        const newBBox = BoundingBoxes.get(selectedKitInstance);
-                        if (oldBbox && newBBox) {
-                            newBBox.min.add(position).substract(selectedKitInstance.transform.position);
-                            newBBox.max.add(position).substract(selectedKitInstance.transform.position);
-                            if (!oldBbox.collidesWith(newBBox)) {
-                                selectedKitInstance.active = true;
-                            }
-                        }
+                        const treshold = Vector3.distance(
+                            Private.lastInstantiatedKit.transform.position, 
+                            position
+                        );
+                        // TODO make this treshold dynamic / dependent on current kit bounds?
+                        if (treshold >= 2 || pickedEntity !== Private.lastInstantiatedKit) {
+                            selectedKitInstance.active = true;
+                        }                        
                     }
                     if (selectedKitInstance.active) {
                         selectedKitInstance.transform.position = position;
@@ -403,42 +405,6 @@ export class Controller {
                 }
             }
             return;
-        } else {
-            if (selectedKitInstance) {
-                if (!Private.paintBrushMode) {
-                    const treshold = Vector2.distance(Private.touchStart, Vector2.fromPool().set(localX, localY));
-                    // This threshold has nothing todo with geometry bounds
-                    // Just instantiates the first block and goes into paintbrush mode
-                    if (treshold > Config.paintBrushActivationPixelTreshold) {
-                        if (selectedKitInstance.active) {
-                            if (touchLeftButton && !State.instance.altPressed) {
-                                Private.paintBrushMode = true;
-                                Private.instantiateKit(selectedKitInstance);
-                                return;
-                            }
-                        }
-                    }
-                } else {
-                    const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
-                    if (potentialPos) {
-                        const [position, rotation] = potentialPos;
-                        // tslint:disable-next-line
-                        console.assert(Private.lastInstantiatedKit);
-                        const oldBbox = BoundingBoxes.get(Private.lastInstantiatedKit as Entity);
-                        const newBBox = BoundingBoxes.get(selectedKitInstance);
-                        if (oldBbox && newBBox) {
-                            newBBox.min.add(position).substract(selectedKitInstance.transform.position);
-                            newBBox.max.add(position).substract(selectedKitInstance.transform.position);
-                            if (!oldBbox.collidesWith(newBBox)) {
-                                selectedKitInstance.active = true;
-                                selectedKitInstance.transform.position = position;
-                                Private.instantiateKit(selectedKitInstance);
-                            }
-                        }
-                    }
-                    return;
-                }
-            }
         }
 
         const doEntityControl = EntityController.transformStarted || !EditorCamera.transformStarted;
@@ -486,18 +452,13 @@ export class Controller {
         Private.touchLeftButton = false;
 
         // Click
-        if (!Private.paintBrushMode) {
-            const { selectedKitInstance } = State.instance;
-            if (selectedKitInstance) {
-                if (selectedKitInstance.active) {
-                    Private.instantiateKit(selectedKitInstance);
-                }
-                return;
+        const { selectedKitInstance } = State.instance;
+        if (selectedKitInstance) {
+            if (selectedKitInstance.active) {
+                Private.instantiateKit(selectedKitInstance);
             }
-        } else {
-            Private.paintBrushMode = false;
             return;
-        }        
+        }
 
         // Pick entity
         const ray = EditorCamera.getWorldRay(localX, localY);
