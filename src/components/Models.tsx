@@ -5,6 +5,7 @@ import { ContentItem, IContentItemProps } from "./ContentItem";
 import { Events } from "../Events";
 import { IKitAsset } from "../Types";
 import { State } from "../State";
+import { ItemContainer } from "./ItemContainer";
 
 interface IModelsState {
     items: IContentItemProps[];
@@ -29,25 +30,18 @@ export class Models extends React.Component {
             }
         });
 
-        Events.selectedKitChanged.attach(kit => this.forceUpdate());
+        Events.selectedItemChanged.attach(() => this.forceUpdate());
     }
 
     public render() {
         return (
-            <div
-                className="fill-parent"
+            <ItemContainer
+                items={this._mockState.items}
                 onClick={() => {
                     State.instance.selectedKit = null;
                     this.forceUpdate();
                 }}
-            >
-                {this._mockState.items.map(i => (
-                    <ContentItem 
-                        key={i.id}                         
-                        {...i}
-                    />
-                ))}
-            </div>
+            />
         );
     }
 

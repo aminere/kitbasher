@@ -6,6 +6,7 @@ export interface IContentItemProps {
     id: string;
     name: string;
     image: HTMLImageElement;
+    rounded?: boolean;
     isSelected: () => boolean;
     onClicked: () => void;
 }
@@ -29,15 +30,19 @@ export class ContentItem extends React.Component<IContentItemProps, {}> {
                 style={{
                     float: "left",
                     textAlign: "center",
-                    width: "64px",
-                    height: "80px",
-                    position: "relative"
+                    width: "60px",
+                    height: "76px",
+                    position: "relative",
+                    margin: "4px"
                 }}
             >
                 <canvas
+                    style={{
+                        borderRadius: this.props.rounded === true ? "50%" : undefined
+                    }}
                     ref={e => this._canvas = e as HTMLCanvasElement}
-                    width={64}
-                    height={64}
+                    width={60}
+                    height={60}
                 />
                 <div
                     className="hoverable"

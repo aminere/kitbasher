@@ -280,14 +280,14 @@ namespace Private {
                 EditorCamera.cameraEntity = Entities.find("Camera") as Entity;
                 Commands.saveScene.attach(() => Utils.saveCurrentScene());
 
-                Events.selectedKitChanged.attach(kit => {
+                Events.selectedItemChanged.attach(item => {
                     if (selectedKitInstance) {
                         selectedKitInstance.destroy();
                         Private.selectedKitInstance = null;
                         Private.lastInstantiatedKit = null;
                     }
-                    if (kit) {
-                        createKit(kit).then(instance => {
+                    if (item && Utils.isModel(item)) {
+                        createKit(item as IKitAsset).then(instance => {
                             Private.selectedKitInstance = instance;
                             instance.active = false;
                         });

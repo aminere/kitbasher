@@ -2,6 +2,7 @@ import { Entities } from "../../spider-engine/src/core/Entities";
 import { ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Config } from "./Config";
+import { ContentItemType } from "./Types";
 
 export class Utils {
     public static capitalize(str: string) {
@@ -17,5 +18,9 @@ export class Utils {
         const scene = ScenesInternal.list()[0];
         const data = JSON.stringify(scene.serialize(), null, 2);
         return IndexedDb.write("files", Config.currentScenePath, data);
+    }
+
+    public static isModel(item: ContentItemType) {
+        return item.constructor.name === "ObjectDefinition";
     }
 }

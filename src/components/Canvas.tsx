@@ -47,7 +47,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
             }
         });
 
-        Events.selectedKitChanged.attach(() => this.forceUpdate());
+        Events.selectedItemChanged.attach(() => this.forceUpdate());
         Events.selectedEntityChanged.attach(selection => {
             Object.assign(this._mockState, { selection });
             this.forceUpdate();

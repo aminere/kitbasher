@@ -1,9 +1,11 @@
 
-import { IKitAsset, ControlMode, Plane, SelectedItemType } from "./Types";
+import { IKitAsset, ControlMode, Plane, ContentItemType } from "./Types";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
+import { Utils } from "./Utils";
+import { Material } from "../../spider-engine/src/graphics/Material";
 
 namespace Private {
     export const path = "kitbasher-state.json";
@@ -18,7 +20,7 @@ export class State {
         return Private.instance;
     }    
     
-    private _selectedItem: SelectedItemType | null = null;
+    private _selectedItem: ContentItemType | null = null;
 
     private _lastUsedKit: IKitAsset | null = null;
     private _selection: Entity[] = [];
@@ -30,25 +32,24 @@ export class State {
     private _snapping = true;
 
     public get selectedKit() {
-        if (this._selectedItem && this._selectedItem.constructor.name === "ObjectDefinition") {
+        if (this._selectedItem && Utils.isModel(this._selectedItem)) {
             return this._selectedItem as IKitAsset;
         }
         return null;
     }
-    public set selectedKit(kit: IKitAsset | null) {
-        if (kit === this._selectedItem) {
+    public set selectedKit(item: IKitAsset | null) {
+        if (item === this._selectedItem) {
             return;
         }
-        this._selectedItem = kit;
-        if (kit) {
-            this._lastUsedKit = kit;
+        this._selectedItem = item;
+        if (item) {
+            this._lastUsedKit = item;
         }
 
         if (this._selection.length) {
             this.clearSelection();
         }
-
-        Events.selectedKitChanged.post(kit);
+        Events.selectedItemChanged.post(item);
     }
 
     public get selectedTexture() {
@@ -57,11 +58,26 @@ export class State {
         }
         return null;
     }
-    public set selectedTexture(texture: Texture2D | null) {
-        if (texture === this._selectedItem) {
+    public set selectedTexture(item: Texture2D | null) {
+        if (item === this._selectedItem) {
             return;
         }
-        this._selectedItem = texture;
+        this._selectedItem = item;
+        Events.selectedItemChanged.post(item);
+    }
+
+    public get selectedMaterial() {
+        if (this._selectedItem && this._selectedItem.constructor.name === "Material") {
+            return this._selectedItem as Material;
+        }
+        return null;
+    }
+    public set selectedMaterial(item: Material | null) {
+        if (item === this._selectedItem) {
+            return;
+        }
+        this._selectedItem = item;
+        Events.selectedItemChanged.post(item);
     }
 
     public get lastUsedKit() { return this._lastUsedKit; }

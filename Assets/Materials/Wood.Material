@@ -3,7 +3,7 @@
   "version": 4,
   "properties": {
     "id": "e83da8f3-ae26-4b17-b3b6-c688324707ec",
-    "name": "Wood",
+    "name": "wood",
     "_blending": "None",
     "_renderPass": "Opaque",
     "_cullMode": "Back",

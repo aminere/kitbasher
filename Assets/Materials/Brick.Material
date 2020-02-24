@@ -3,7 +3,7 @@
   "version": 4,
   "properties": {
     "id": "43b26ed0-3be5-4c69-8958-83570fbd7592",
-    "name": "Brick",
+    "name": "brick",
     "_blending": "None",
     "_renderPass": "Opaque",
     "_cullMode": "Back",

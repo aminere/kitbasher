@@ -1,5 +1,6 @@
 import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Model } from "../../spider-engine/src/assets/model/Model";
+import { Material } from "../../spider-engine/src/graphics/Material";
 
 export enum Plane {
     X,
@@ -10,7 +11,7 @@ export enum Plane {
 type PlaneType = "x" | "y" | "z";
 type KitType = "block" | "prop";
 
-export type SelectedItemType = IKitAsset | Texture2D;
+export type ContentItemType = IKitAsset | Texture2D | Material;
 
 export interface IKitAsset {
     id: string;

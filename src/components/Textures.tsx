@@ -2,9 +2,10 @@
 import * as React from "react";
 import { Assets } from "../../../spider-engine/src/assets/Assets";
 import { Texture2D } from "../../../spider-engine/src/graphics/Texture2D";
-import { IContentItemProps, ContentItem } from "./ContentItem";
+import { IContentItemProps } from "./ContentItem";
 import { State } from "../State";
 import { Events } from "../Events";
+import { ItemContainer } from "./ItemContainer";
 
 interface ITexturesState {
     items: IContentItemProps[];
@@ -20,25 +21,18 @@ export class Textures extends React.Component<{}, ITexturesState> {
 
     public componentDidMount() {
         Events.engineReady.attach(() => this.populate());
-        // Events.selectedKitChanged.attach(kit => this.forceUpdate());
+        Events.selectedItemChanged.attach(() => this.forceUpdate());
     }
 
     public render() {
         return (
-            <div
-                className="fill-parent"
+            <ItemContainer
+                items={this._mockState.items}
                 onClick={() => {
                     State.instance.selectedTexture = null;
                     this.forceUpdate();
                 }}
-            >
-                {this._mockState.items.map(i => (
-                    <ContentItem
-                        key={i.id}
-                        {...i}
-                    />
-                ))}
-            </div>
+            />
         );
     }
 
