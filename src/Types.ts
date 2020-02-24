@@ -10,6 +10,8 @@ export enum Plane {
 type PlaneType = "x" | "y" | "z";
 type KitType = "block" | "prop";
 
+export type SelectedItemType = IKitAsset | Texture2D;
+
 export interface IKitAsset {
     id: string;
     thumbnail: Texture2D;

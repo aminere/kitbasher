@@ -3,7 +3,7 @@ import { Events } from "./Events";
 import { Engine, EngineHandlersInternal } from "../../spider-engine/src/core/Engine";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
-import { Scenes, ScenesInternal } from "../../spider-engine/src/core/Scenes";
+import { Scenes } from "../../spider-engine/src/core/Scenes";
 import { Entities } from "../../spider-engine/src/core/Entities";
 import { Transform } from "../../spider-engine/src/core/Transform";
 import { Visual } from "../../spider-engine/src/graphics/Visual";
@@ -40,6 +40,7 @@ namespace Private {
 
     let defaultMaterial: Material;
     export let sceneLoaded = false;
+    export let selectedKitInstance: Entity | null = null;
 
     // Touch input
     export let touchPressed = false;
@@ -90,7 +91,7 @@ namespace Private {
                 instance.transform.rotation
             ))
             .then(newInstance => {
-                State.instance.selectedKitInstance = newInstance;
+                Private.selectedKitInstance = newInstance;
                 newInstance.active = false;
             });
     }
@@ -280,15 +281,14 @@ namespace Private {
                 Commands.saveScene.attach(() => Utils.saveCurrentScene());
 
                 Events.selectedKitChanged.attach(kit => {
-                    const { selectedKitInstance } = State.instance;
                     if (selectedKitInstance) {
                         selectedKitInstance.destroy();
-                        State.instance.selectedKitInstance = null;
+                        Private.selectedKitInstance = null;
                         Private.lastInstantiatedKit = null;
                     }
                     if (kit) {
                         createKit(kit).then(instance => {
-                            State.instance.selectedKitInstance = instance;
+                            Private.selectedKitInstance = instance;
                             instance.active = false;
                         });
                     }
@@ -336,6 +336,8 @@ export class Controller {
         Private.canvasHasFocus = hasFocus;
     }
 
+    public static get selectedKitInstance() { return Private.selectedKitInstance; }
+
     public static deleteSelection() {
         if (State.instance.selection.length < 1) {
             return;
@@ -374,7 +376,7 @@ export class Controller {
             touchStart
         } = Private;
 
-        const { selectedKitInstance } = State.instance;
+        const { selectedKitInstance } = Private;
         if (!Private.touchPressed) {
             if (selectedKitInstance) {
                 const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
@@ -452,7 +454,7 @@ export class Controller {
         Private.touchLeftButton = false;
 
         // Click
-        const { selectedKitInstance } = State.instance;
+        const { selectedKitInstance } = Private;
         if (selectedKitInstance) {
             if (selectedKitInstance.active) {
                 Private.instantiateKit(selectedKitInstance);

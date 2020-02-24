@@ -1,8 +1,9 @@
 
-import { IKitAsset, ControlMode, Plane } from "./Types";
+import { IKitAsset, ControlMode, Plane, SelectedItemType } from "./Types";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
+import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 
 namespace Private {
     export const path = "kitbasher-state.json";
@@ -17,8 +18,8 @@ export class State {
         return Private.instance;
     }    
     
-    private _selectedKit: IKitAsset | null = null;
-    private _selectedKitInstance: Entity | null = null;
+    private _selectedItem: SelectedItemType | null = null;
+
     private _lastUsedKit: IKitAsset | null = null;
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Translate;
@@ -28,12 +29,17 @@ export class State {
     private _angleStep = 45;
     private _snapping = true;
 
-    public get selectedKit() { return this._selectedKit; }
+    public get selectedKit() {
+        if (this._selectedItem && this._selectedItem.constructor.name === "ObjectDefinition") {
+            return this._selectedItem as IKitAsset;
+        }
+        return null;
+    }
     public set selectedKit(kit: IKitAsset | null) {
-        if (kit === this._selectedKit) {
+        if (kit === this._selectedItem) {
             return;
         }
-        this._selectedKit = kit;
+        this._selectedItem = kit;
         if (kit) {
             this._lastUsedKit = kit;
         }
@@ -45,8 +51,18 @@ export class State {
         Events.selectedKitChanged.post(kit);
     }
 
-    public get selectedKitInstance() { return this._selectedKitInstance; }
-    public set selectedKitInstance(e: Entity | null) { this._selectedKitInstance = e; }
+    public get selectedTexture() {
+        if (this._selectedItem && this._selectedItem.constructor.name === "Texture2D") {
+            return this._selectedItem as Texture2D;
+        }
+        return null;
+    }
+    public set selectedTexture(texture: Texture2D | null) {
+        if (texture === this._selectedItem) {
+            return;
+        }
+        this._selectedItem = texture;
+    }
 
     public get lastUsedKit() { return this._lastUsedKit; }
 

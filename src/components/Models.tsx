@@ -1,20 +1,20 @@
 
 import * as React from "react";
-import { Assets as SpiderAssets } from "../../../spider-engine/src/assets/Assets";
-import { KitItem, IKitItemProps } from "./KitItem";
+import { Assets } from "../../../spider-engine/src/assets/Assets";
+import { ContentItem, IContentItemProps } from "./ContentItem";
 import { Events } from "../Events";
 import { IKitAsset } from "../Types";
 import { State } from "../State";
 
-interface IAssetsState {
-    items: IKitItemProps[];
+interface IModelsState {
+    items: IContentItemProps[];
 }
 
-export class Assets extends React.Component {
+export class Models extends React.Component {
 
     // This is done because goldenlayout saves the React state
     // and this is not wanted in this case (state has references to Image elements)
-    private _mockState: IAssetsState = {
+    private _mockState: IModelsState = {
         items: []
     };
 
@@ -42,7 +42,7 @@ export class Assets extends React.Component {
                 }}
             >
                 {this._mockState.items.map(i => (
-                    <KitItem 
+                    <ContentItem 
                         key={i.id}                         
                         {...i}
                     />
@@ -66,12 +66,12 @@ export class Assets extends React.Component {
         ];
 
         this._kits = (await Promise.all(kits.map(([section, name]) => {
-            return SpiderAssets.load(`Assets/Kits/${section}/${name}.ObjectDefinition`);
+            return Assets.load(`Assets/Kits/${section}/${name}.ObjectDefinition`);
         }))) as unknown[] as IKitAsset[];
-        const textures = await Promise.all(this._kits.map(a => a.thumbnail.loadTextureData()));
+        const thumbnails = await Promise.all(this._kits.map(a => a.thumbnail.loadTextureData()));
 
         Object.assign(this._mockState, {
-            items: textures.reduce(
+            items: thumbnails.reduce(
                 (prev, cur, index) => {
                     return prev.concat({
                         id: this._kits[index].id,
@@ -81,7 +81,7 @@ export class Assets extends React.Component {
                         onClicked: () => State.instance.selectedKit = this._kits[index]
                     });
                 },
-                [] as IKitItemProps[]
+                [] as IContentItemProps[]
             )
         });
         this.forceUpdate();

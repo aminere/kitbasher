@@ -13,9 +13,8 @@ import "./icomoon/style.css";
 import "../public/goldenlayout-base.css";
 import "../public/goldenlayout-dark-theme.css";
 import { Config } from "./Config";
-import { Properties } from "./components/Properties";
 import { Hierarchy } from "./components/Hierarchy";
-import { Assets } from "./components/Assets";
+import { Models } from "./components/Models";
 import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
 import { State } from "./State";
@@ -24,6 +23,8 @@ import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
+import { Textures } from "./components/Textures";
+import { Materials } from "./components/Materials";
 
 interface ILayoutConfig {
     type: string;
@@ -65,9 +66,8 @@ export class App extends React.Component {
     private _layoutContainer!: HTMLDivElement;
     private _layoutManager!: GoldenLayout;
     private _navBar!: NavBar;
-    private _properties?: Properties;
     private _hierarchy?: Hierarchy;
-    private _assets?: Assets;
+    private _models?: Models;
     private _canvas?: Canvas;
     // tslint:disable-next-line
     private _layoutSaveTimer: any;
@@ -79,25 +79,37 @@ export class App extends React.Component {
         FocusStyleManager.onlyShowFocusOnTabs();        
        
         const views: { [type: string]: ILayout } = {
-            Assets: {
+            Models: {
                 config: {
                     type: "react-component",
-                    component: "Assets",
+                    component: "Models",
                     title: "Models",
                     navBarTitle: "Models",
-                    id: "Assets",
+                    id: "Models",
                     isVisible: false,
                     isClosable: false
                 }
             },
-            Properties: {
+            Textures: {
                 config: {
                     type: "react-component",
-                    component: "Properties",
-                    title: "Properties",
-                    navBarTitle: "Properties",
-                    id: "Properties",
-                    isVisible: false
+                    component: "Textures",
+                    title: "Textures",
+                    navBarTitle: "Textures",
+                    id: "Textures",
+                    isVisible: false,
+                    isClosable: false
+                }
+            },
+            Materials: {
+                config: {
+                    type: "react-component",
+                    component: "Materials",
+                    title: "Materials",
+                    navBarTitle: "Materials",
+                    id: "Materials",
+                    isVisible: false,
+                    isClosable: false
                 }
             },
             Scene: {
@@ -143,8 +155,10 @@ export class App extends React.Component {
                         {
                             type: "stack",
                             content: [
-                                views.Assets.config,
-                                views.Scene.config                              
+                                views.Models.config,
+                                views.Scene.config,
+                                views.Materials.config,
+                                views.Textures.config
                             ],
                             width: 20
                         },
@@ -218,12 +232,18 @@ export class App extends React.Component {
 
         // BUILTIN VIEWS
         // tslint:disable-next-line
-        layout.registerComponent("Properties", (container: any, state: any) => {
-            const instance = new Properties({});
+        layout.registerComponent("Textures", (container: any, state: any) => {
+            const instance = new Textures({});
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
-            this._properties = instance;
-            // this.tryUpdateObjectEditorTitle(EditorState.getSelectedObjects());
+            return instance;
+        });
+
+        // tslint:disable-next-line
+        layout.registerComponent("Materials", (container: any, state: any) => {
+            const instance = new Materials({});
+            views[container.glContainer._config.id].instance = instance;
+            views[container.glContainer._config.id].container = container;
             return instance;
         });
 
@@ -237,11 +257,11 @@ export class App extends React.Component {
         });
 
         // tslint:disable-next-line
-        layout.registerComponent("Assets", (container: any, state: any) => {
-            const instance = new Assets({});
+        layout.registerComponent("Models", (container: any, state: any) => {
+            const instance = new Models({});
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
-            this._assets = instance;
+            this._models = instance;
             return instance;
         });
 
@@ -377,7 +397,8 @@ export class App extends React.Component {
                 Events.transformChanged.post(entity);
             };
 
-            const { selection, grid, selectedKit, selectedKitInstance } = State.instance;
+            const { selection, grid, selectedKit } = State.instance;
+            const { selectedKitInstance } = Controller;          
             if (selection.length > 0) {
                 // TODO multi selection
                 rotate(selection[0], [Vector3.right, Vector3.up, Vector3.forward][grid]);

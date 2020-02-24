@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Utils } from "../Utils";
 
-export interface IKitItemProps {
+export interface IContentItemProps {
     id: string;
     name: string;
     image: HTMLImageElement;
@@ -10,7 +10,7 @@ export interface IKitItemProps {
     onClicked: () => void;
 }
 
-export class KitItem extends React.Component<IKitItemProps, {}> {
+export class ContentItem extends React.Component<IContentItemProps, {}> {
 
     private _canvas!: HTMLCanvasElement;
 

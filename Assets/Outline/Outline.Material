@@ -1,0 +1,22 @@
+{
+  "typeName": "Material",
+  "version": 4,
+  "properties": {
+    "id": "c4f392ad-bdb0-4b4a-aad7-2af3756b9eb9",
+    "name": "Outline",
+    "_blending": "None",
+    "_renderPass": "Opaque",
+    "_cullMode": "Front",
+    "_depthTest": true,
+    "_priority": 0,
+    "_shaderParams": {
+      "typeName": "SerializableObject",
+      "version": 1,
+      "properties": {}
+    },
+    "_shader": {
+      "typeName": "Shader",
+      "id": "Assets/Outline/Outline.Shader"
+    }
+  }
+}

@@ -1,11 +1,11 @@
 
 import * as React from "react";
 
-export class Properties extends React.Component {
+export class Materials extends React.Component {
     public render() {
         return (
             <div>
-                Properties
+                Materials
             </div>
         );
     }
