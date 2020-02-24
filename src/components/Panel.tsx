@@ -4,6 +4,7 @@ import { Icon } from "@blueprintjs/core";
 interface IPanelProps {
     title: string;
     content: JSX.Element;
+    controls?: JSX.Element;
 }
 
 interface IPanelState {
@@ -40,7 +41,8 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                         fontWeight: "bold",
                         display: "flex",
                         alignItems: "center",
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        position: "relative"
                     }}
                     onClick={() => {
                         this.setState({ collapsed: !this.state.collapsed });
@@ -48,6 +50,15 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                 >
                     <Icon icon={this.state.collapsed ? "chevron-right" : "chevron-down"} />
                     <span>{this.props.title}</span>
+                    <div
+                        style={{
+                            position: "absolute",
+                            right: "0px",
+                            top: "10px"
+                        }}
+                    >
+                        {this.props.controls}
+                    </div>
                 </div>
                 <div
                     style={{

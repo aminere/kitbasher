@@ -26,6 +26,7 @@ export class State {
     private _grid = Plane.Y;
     private _gridStep = 1;
     private _angleStep = 45;
+    private _snapping = true;
 
     public get selectedKit() { return this._selectedKit; }
     public set selectedKit(kit: IKitAsset | null) {
@@ -77,6 +78,12 @@ export class State {
         this.save();
     }
 
+    public get snapping() { return this._snapping; }
+    public set snapping(snapping: boolean) { 
+        this._snapping = snapping;
+        this.save();
+    }
+
     public setSelection(entity: Entity) {
         this._selection = [entity];
         Events.selectedEntityChanged.post(this._selection);
@@ -121,7 +128,8 @@ export class State {
             [
                 "_grid",
                 "_gridStep",
-                "_angleStep"
+                "_angleStep",
+                "_snapping"
             ].reduce((prev, cur) => {
                 return { ...prev, ...{ [cur]: this[cur] } };
             }, {}),

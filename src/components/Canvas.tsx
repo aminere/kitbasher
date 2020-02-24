@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Events } from "../Events";
 import { Controller } from "../Controller";
-import { Tooltip, Position, Button, Intent } from "@blueprintjs/core";
+import { Tooltip, Position, Button, Intent, Checkbox } from "@blueprintjs/core";
 import { State } from "../State";
 import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
 import { Entity } from "../../../spider-engine/src/core/Entity";
@@ -199,6 +199,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     title="Snapping"
                                     content={(
                                         <PropertyGrid
+                                            enabled={State.instance.snapping}
                                             target={{
                                                 ...Object.entries(props).reduce((prev, cur) => {
                                                     return { ...prev, ...{ [cur[0]]: cur[1].get() } };
@@ -211,6 +212,15 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                 Object.entries(props)
                                                     .filter(p => p[0] === name)
                                                     .forEach(p => p[1].set(value));
+                                            }}
+                                        />
+                                    )}
+                                    controls={(
+                                        <Checkbox
+                                            checked={State.instance.snapping}
+                                            onChange={e => {
+                                                State.instance.snapping = !State.instance.snapping;
+                                                this.forceUpdate();
                                             }}
                                         />
                                     )}

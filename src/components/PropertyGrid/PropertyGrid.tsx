@@ -13,6 +13,7 @@ interface IPropertyGridProps {
             showName?: boolean;
         }
     };
+    enabled?: boolean;
     // tslint:disable-next-line
     onPropertyChanged: (name: string, newValue: any) => void;
 }
@@ -60,9 +61,11 @@ namespace Private {
 
 export class PropertyGrid extends React.Component<IPropertyGridProps> {
     public render() {
-        const { target, metadata } = this.props;
+        const { target, metadata, enabled } = this.props;
         return (
-            <div>
+            <div
+                className={enabled === false ? "disabled" : ""}
+            >
                 {
                     Object.entries(target)
                         .filter(([name, value]) => {
