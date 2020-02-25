@@ -4,7 +4,7 @@ interface INavBarProps {
     width: string;
 }
 
-export class NavBar extends React.Component<INavBarProps, {}> {
+export class NavBar extends React.Component<INavBarProps> {
 
     public render() {
         return (

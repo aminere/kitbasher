@@ -12,6 +12,10 @@ import { Commands } from "../Commands";
 import { Panel } from "./Panel";
 import { PlaneSelector } from "./PlaneSelector";
 import { ControlMode } from "../Types";
+import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
+import { MaterialEditor } from "./MaterialEditor";
+import { Material } from "../../../spider-engine/src/graphics/Material";
+import { Visual } from "../../../spider-engine/src/spider-engine";
 
 // tslint:disable:max-line-length
 
@@ -191,7 +195,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                             Object.assign(props, {
                                 grid: {
                                     get: () => <PlaneSelector />
-                                }                                
+                                }
                             });
 
                             return (
@@ -236,95 +240,114 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         top: "0",
                         width: "250px"
                     }}
-                >              
-                    {
-                        hasSelection
-                        &&
-                        (
-                            <div>
-                                <Panel
-                                    title="Transform"
-                                    content={(
-                                        <PropertyGrid
-                                            ref={e => this._transform = e as PropertyGrid}
-                                            target={this._mockState.selection[0].getComponent(Transform) as Transform}
-                                            metadata={{
-                                                _position: {
-                                                    action: (
-                                                        <Tooltip content="Translate" position={Position.LEFT}>
-                                                            <Button
-                                                                icon="move"
-                                                                active={controlMode === ControlMode.Translate}
-                                                                intent={controlMode === ControlMode.Translate ? Intent.PRIMARY : Intent.NONE}
-                                                                onClick={() => {
-                                                                    State.instance.controlMode = ControlMode.Translate;
-                                                                    this.forceUpdate();
-                                                                }}
-                                                                onFocus={e => e.currentTarget.blur()}
-                                                            />
-                                                        </Tooltip>
-                                                    ),
-                                                    showName: false
-                                                },
-                                                _rotation: {
-                                                    action: (
-                                                        <Tooltip content="Rotate" position={Position.LEFT}>
-                                                            <Button
-                                                                icon="refresh"
-                                                                active={controlMode === ControlMode.Rotate}
-                                                                intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
-                                                                onClick={() => {
-                                                                    State.instance.controlMode = ControlMode.Rotate;
-                                                                    this.forceUpdate();
-                                                                }}
-                                                                onFocus={e => e.currentTarget.blur()}
-                                                            />
-                                                        </Tooltip>
-                                                    ),
-                                                    showName: false
-                                                },
-                                                _scale: {
-                                                    action: (
-                                                        <Tooltip content="Scale" position={Position.LEFT}>
-                                                            <Button
-                                                                icon="maximize"
-                                                                active={controlMode === ControlMode.Scale}
-                                                                intent={controlMode === ControlMode.Scale ? Intent.PRIMARY : Intent.NONE}
-                                                                onClick={() => {
-                                                                    State.instance.controlMode = ControlMode.Scale;
-                                                                    this.forceUpdate();
-                                                                }}
-                                                                onFocus={e => e.currentTarget.blur()}
-                                                            />
-                                                        </Tooltip>
-                                                    ),
-                                                    showName: false
-                                                }
-                                            }}
-                                            onPropertyChanged={(name, newValue) => {
-                                                SerializerUtilsInternal.tryUsePropertySetter = true;
-                                                SerializerUtils.setProperty(
-                                                    this._mockState.selection[0].getComponent(Transform) as Transform,
-                                                    name,
-                                                    newValue
-                                                );
-                                                SerializerUtilsInternal.tryUsePropertySetter = false;
-                                                Commands.saveScene.post();
-                                            }}
-                                        />
-                                    )}
-                                />
+                >
+                    {(() => {
+                        if (hasSelection) {
+                            return (
+                                <div>
+                                    <Panel
+                                        title="Transform"
+                                        content={(
+                                            <PropertyGrid
+                                                ref={e => this._transform = e as PropertyGrid}
+                                                target={this._mockState.selection[0].getComponent(Transform) as Transform}
+                                                metadata={{
+                                                    _position: {
+                                                        action: (
+                                                            <Tooltip content="Translate" position={Position.LEFT}>
+                                                                <Button
+                                                                    icon="move"
+                                                                    active={controlMode === ControlMode.Translate}
+                                                                    intent={controlMode === ControlMode.Translate ? Intent.PRIMARY : Intent.NONE}
+                                                                    onClick={() => {
+                                                                        State.instance.controlMode = ControlMode.Translate;
+                                                                        this.forceUpdate();
+                                                                    }}
+                                                                    onFocus={e => e.currentTarget.blur()}
+                                                                />
+                                                            </Tooltip>
+                                                        ),
+                                                        showName: false
+                                                    },
+                                                    _rotation: {
+                                                        action: (
+                                                            <Tooltip content="Rotate" position={Position.LEFT}>
+                                                                <Button
+                                                                    icon="refresh"
+                                                                    active={controlMode === ControlMode.Rotate}
+                                                                    intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
+                                                                    onClick={() => {
+                                                                        State.instance.controlMode = ControlMode.Rotate;
+                                                                        this.forceUpdate();
+                                                                    }}
+                                                                    onFocus={e => e.currentTarget.blur()}
+                                                                />
+                                                            </Tooltip>
+                                                        ),
+                                                        showName: false
+                                                    },
+                                                    _scale: {
+                                                        action: (
+                                                            <Tooltip content="Scale" position={Position.LEFT}>
+                                                                <Button
+                                                                    icon="maximize"
+                                                                    active={controlMode === ControlMode.Scale}
+                                                                    intent={controlMode === ControlMode.Scale ? Intent.PRIMARY : Intent.NONE}
+                                                                    onClick={() => {
+                                                                        State.instance.controlMode = ControlMode.Scale;
+                                                                        this.forceUpdate();
+                                                                    }}
+                                                                    onFocus={e => e.currentTarget.blur()}
+                                                                />
+                                                            </Tooltip>
+                                                        ),
+                                                        showName: false
+                                                    }
+                                                }}
+                                                onPropertyChanged={(name, newValue) => {
+                                                    SerializerUtilsInternal.tryUsePropertySetter = true;
+                                                    SerializerUtils.setProperty(
+                                                        this._mockState.selection[0].getComponent(Transform) as Transform,
+                                                        name,
+                                                        newValue
+                                                    );
+                                                    SerializerUtilsInternal.tryUsePropertySetter = false;
+                                                    Commands.saveScene.post();
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                    <Panel
+                                        title="Material"
+                                        content={(
+                                            <MaterialEditor
+                                                material={(() => {
+                                                    const entity = this._mockState.selection[0].children[0];
+                                                    const visual = entity.getComponent(Visual) as Visual;
+                                                    return visual.material as Material;
+                                                })()}
+                                            />
+                                        )}
+                                    />
+                                </div>
+                            );
+                        } else if (insertionMode) {
+                            return (
                                 <Panel
                                     title="Material"
                                     content={(
-                                        <div>
-                                            Material things
-                                        </div>
+                                        <MaterialEditor
+                                            material={(() => {
+                                                const elem = State.instance.selectedKit?.model.elements.data[0].instance;
+                                                const material = (elem as ModelMesh).material.asset;
+                                                return material as Material;
+                                            })()}
+                                        />
                                     )}
                                 />
-                            </div>
-                        )
-                    }
+                            );
+                        }
+                    })()}
                 </div>
             </div>
         );

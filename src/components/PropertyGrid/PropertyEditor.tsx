@@ -57,6 +57,14 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
             );
         }
 
+        if (typeName === "Material") {
+            return <div>Material Picker</div>;
+        }
+
+        if (typeName === "Texture2D") {
+            return <div>Texture Picker</div>;
+        }
+
         return null;
     }
 }

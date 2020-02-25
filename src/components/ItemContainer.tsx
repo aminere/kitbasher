@@ -7,7 +7,7 @@ interface IItemContainerProps {
     onClick: () => void;
 }
 
-export class ItemContainer extends React.Component<IItemContainerProps, {}> {
+export class ItemContainer extends React.Component<IItemContainerProps> {
     public render() {
         return (
             <div

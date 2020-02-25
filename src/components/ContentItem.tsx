@@ -11,7 +11,7 @@ export interface IContentItemProps {
     onClicked: () => void;
 }
 
-export class ContentItem extends React.Component<IContentItemProps, {}> {
+export class ContentItem extends React.Component<IContentItemProps> {
 
     private _canvas!: HTMLCanvasElement;
 
