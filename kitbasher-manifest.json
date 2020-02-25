@@ -1,0 +1,22 @@
+{
+	"models": [
+	    ["Blocks", "cube"],
+        ["Blocks", "sphere"],
+        ["Blocks", "ground"],
+        ["Blocks", "roof"],
+        ["Blocks", "wall"],
+        ["Blocks", "wall-door"],
+        ["Blocks", "wall-window"],
+        ["Props", "table"],
+        ["Props", "monitor"],
+        ["Props", "frame"]
+	],
+	"materials": [
+	    "brick",
+        "wood"
+	],
+	"textures": [
+	    "brick",
+        "wood"
+	]
+}

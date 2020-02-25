@@ -7,6 +7,7 @@ import { ItemContainer } from "./ItemContainer";
 import { State } from "../State";
 import { Assets } from "../../../spider-engine/src/assets/Assets";
 import { Texture2D } from "../../../spider-engine/src/graphics/Texture2D";
+import { Manifest } from "../Manifest";
 
 interface IMaterialsState {
     items: IContentItemProps[];
@@ -37,11 +38,7 @@ export class Materials extends React.Component {
     }
 
     private async populate() {
-        const items = [
-            "brick",
-            "wood"
-        ];
-
+        const items = Manifest.getData().materials;
         this._items = (await Promise.all(items.map(name => {
             return Assets.load(`Assets/Materials/${name}.Material`);
         }))) as Material[];

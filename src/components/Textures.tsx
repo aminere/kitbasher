@@ -6,6 +6,7 @@ import { IContentItemProps } from "./ContentItem";
 import { State } from "../State";
 import { Events } from "../Events";
 import { ItemContainer } from "./ItemContainer";
+import { Manifest } from "../Manifest";
 
 interface ITexturesState {
     items: IContentItemProps[];
@@ -37,11 +38,7 @@ export class Textures extends React.Component<{}, ITexturesState> {
     }
 
     private async populate() {
-        const textures = [
-            "brick",
-            "wood"
-        ];
-
+        const textures = Manifest.getData().textures;
         this._textures = (await Promise.all(textures.map(name => {
             return Assets.load(`Assets/Textures/${name}.Texture2D`);
         }))) as Texture2D[];

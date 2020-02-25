@@ -6,6 +6,7 @@ import { Events } from "../Events";
 import { IKitAsset } from "../Types";
 import { State } from "../State";
 import { ItemContainer } from "./ItemContainer";
+import { Manifest } from "../Manifest";
 
 interface IModelsState {
     items: IContentItemProps[];
@@ -46,19 +47,7 @@ export class Models extends React.Component {
     }
 
     private async populate() {
-        const kits: Array<[string, string]> = [
-            ["Blocks", "cube"],
-            ["Blocks", "sphere"],
-            ["Blocks", "ground"],
-            ["Blocks", "roof"],
-            ["Blocks", "wall"],
-            ["Blocks", "wall-door"],
-            ["Blocks", "wall-window"],
-            ["Props", "table"],
-            ["Props", "monitor"],
-            ["Props", "frame"]
-        ];
-
+        const kits = Manifest.getData().models;
         this._kits = (await Promise.all(kits.map(([section, name]) => {
             return Assets.load(`Assets/Kits/${section}/${name}.ObjectDefinition`);
         }))) as unknown[] as IKitAsset[];

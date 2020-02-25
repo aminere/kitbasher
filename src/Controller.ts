@@ -31,6 +31,7 @@ import { Model } from "./Model";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { Config } from "./Config";
 import { Utils } from "./Utils";
+import { Manifest } from "./Manifest";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -318,6 +319,7 @@ namespace Private {
                 return IndexedDb.initialize(dbName, dbVersion);
             })
             .then(() => State.instance.load())
+            .then(() => Manifest.load())
             .then(() => {
                 // For debugging
                 Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });

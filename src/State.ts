@@ -2,10 +2,17 @@
 import { IKitAsset, ControlMode, Plane, ContentItemType } from "./Types";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
-import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Utils } from "./Utils";
 import { Material } from "../../spider-engine/src/graphics/Material";
+import { Persistence } from "./Persistence";
+
+interface IPersistentState {
+    grid: Plane;
+    gridStep: number;
+    angleStep: number;
+    snapping: boolean;
+}
 
 namespace Private {
     export const path = "kitbasher-state.json";
@@ -26,10 +33,13 @@ export class State {
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Translate;
     private _altPressed = false;
-    private _grid = Plane.Y;
-    private _gridStep = 1;
-    private _angleStep = 45;
-    private _snapping = true;
+
+    private _data: IPersistentState = {
+        grid: Plane.Y,
+        gridStep: 1,
+        angleStep: 45,
+        snapping: true
+    };
 
     public get selectedKit() {
         if (this._selectedItem && Utils.isModel(this._selectedItem)) {
@@ -90,29 +100,29 @@ export class State {
     public get altPressed() { return this._altPressed; }
     public set altPressed(pressed: boolean) { this._altPressed = pressed; }
 
-    public get grid() { return this._grid; }
+    public get grid() { return this._data.grid; }
     public set grid(grid: Plane) {
-        this._grid = grid;
+        this._data.grid = grid;
         this.save();
         Events.gridChanged.post();
     }
 
-    public get gridStep() { return this._gridStep; }
+    public get gridStep() { return this._data.gridStep; }
     public set gridStep(step: number) {
-        this._gridStep = step;
+        this._data.gridStep = step;
         this.save();
         Events.gridChanged.post();        
     }
 
-    public get angleStep() { return this._angleStep; }
+    public get angleStep() { return this._data.angleStep; }
     public set angleStep(step: number) {
-        this._angleStep = step;
+        this._data.angleStep = step;
         this.save();
     }
 
-    public get snapping() { return this._snapping; }
+    public get snapping() { return this._data.snapping; }
     public set snapping(snapping: boolean) { 
-        this._snapping = snapping;
+        this._data.snapping = snapping;
         this.save();
     }
 
@@ -143,32 +153,15 @@ export class State {
     }
 
     public load() {
-        return new Promise(resolve => {
-            IndexedDb.read("files", Private.path)
+        return Persistence.read(Private.path)
             .then(data => {
-                Object.entries(JSON.parse(data)).forEach(([name, value]) => {
-                    Object.assign(this, { [name]: value });
-                });
-                resolve();
+                this._data = JSON.parse(data);
             })
-            .catch(resolve);
-        });
+            .catch(() => this.save());
     }
-    
+
     public save() {
-        const data = JSON.stringify(
-            [
-                "_grid",
-                "_gridStep",
-                "_angleStep",
-                "_snapping"
-            ].reduce((prev, cur) => {
-                return { ...prev, ...{ [cur]: this[cur] } };
-            }, {}),
-            null,
-            2
-        );
-        return IndexedDb.write("files", Private.path, data);
+        return Persistence.write(Private.path, JSON.stringify(this._data));
     }
 }
 
