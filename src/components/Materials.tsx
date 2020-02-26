@@ -42,6 +42,7 @@ export class Materials extends React.Component {
         this._items = (await Promise.all(items.map(name => {
             return Assets.load(`Assets/Materials/${name}.Material`);
         }))) as Material[];
+        
         const thumbnails = await Promise.all(this._items.map(m => {
             // tslint:disable-next-line
             const diffuse = m["diffuseMap"] as Texture2D;

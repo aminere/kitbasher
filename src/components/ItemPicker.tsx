@@ -1,40 +1,33 @@
 
 import * as React from "react";
-import { LoadingIndicator } from "./LoadingIndicator";
+import { Menu, MenuItem } from "@blueprintjs/core";
 
-interface IItemPickerProps {
-    name: string;
+interface IItemPickerProps<T> {
+    selectionId: string;
+    items: T[];
+    getItemId: (item: T) => string;
+    getItemName: (item: T) => string;
+    onSelectionChanged: (item: T) => void;
 }
 
-export class ItemPicker extends React.Component<IItemPickerProps> {
+export class ItemPicker<T> extends React.Component<IItemPickerProps<T>> {
     public render() {
-        const {
-            name
-        } = this.props;
-
         return (
             <div>
-                <div>
-                    <button
-                        type="button"
-                        className={`pt-button pt-fill pt-minimal fr-popover-target`}
-                        style={{
-                            textOverflow: "ellipsis",
-                            overflow: "hidden",
-                            whiteSpace: "nowrap",
-                            textAlign: "left",
-                            display: "inline"
-                        }}
-                        onClick={e => this.onPick(e)}
-                    >
-                        {name}
-                    </button>
-                </div>
+                <Menu>
+                    {this.props.items.map(i => {
+                        return (
+                            <MenuItem
+                                key={this.props.getItemId(i)}
+                                text={this.props.getItemName(i)}
+                                onClick={(e: React.MouseEvent<HTMLElement>) => {
+                                    
+                                }}
+                            />
+                        )
+                    })}
+                </Menu>
             </div>
         );
-    }
-
-    private onPick(e: React.MouseEvent<HTMLElement>) {
-        
     }
 }

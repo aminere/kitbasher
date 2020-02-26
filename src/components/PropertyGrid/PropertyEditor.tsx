@@ -4,6 +4,8 @@ import { NumberEditor } from "./NumberEditor";
 import { Vector3 } from "../../../../spider-engine/src/math/Vector3";
 import { QuaternionEditor } from "./QuaternionEditor";
 import { Quaternion } from "../../../../spider-engine/src/math/Quaternion";
+import { Manifest } from "../../Manifest";
+import { ItemSelector } from "../ItemSelector";
 
 interface IPropertyEditorProps {
     // tslint:disable-next-line
@@ -58,7 +60,14 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
         }
 
         if (typeName === "Material") {
-            return <div>Material Picker</div>;
+            return (
+                <div />
+                // <ItemSelector
+                //     selected={initialValue}
+                //     items={Manifest.getData().materials}
+                //     getItemId={i => i.id}
+                // />                
+            );
         }
 
         if (typeName === "Texture2D") {

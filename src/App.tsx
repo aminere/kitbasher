@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import * as GoldenLayout from "golden-layout";
-import { Button, FocusStyleManager } from "@blueprintjs/core";
+import { Button, FocusStyleManager, Popover, PopoverPosition } from "@blueprintjs/core";
 import { NavBar } from "./NavBar";
 
 import "./common.css";
@@ -18,7 +18,7 @@ import { Models } from "./components/Models";
 import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
 import { State } from "./State";
-import { Commands } from "./Commands";
+import { Commands, IPopoverConfig } from "./Commands";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Entity } from "../../spider-engine/src/core/Entity";
@@ -45,6 +45,15 @@ interface ILayout {
     container?: any;
 }
 
+interface IAppState {
+    // Popover
+    isPopoverOpen: boolean;
+    popoverContent: JSX.Element;
+    popoverLeft: number;
+    popoverTop: number;
+    popoverPlacement: PopoverPosition;
+}
+
 namespace Private {
     // tslint:disable-next-line
     export function makeFocusGetter(id: string, container: any) {
@@ -63,6 +72,16 @@ namespace Private {
 
 export class App extends React.Component {
 
+    private _mockState: IAppState = {
+        // popover
+        isPopoverOpen: false,
+        popoverContent: <div />,
+        popoverLeft: 0,
+        popoverTop: 0,
+        popoverPlacement: "auto"
+    };
+
+    private _root!: HTMLDivElement;
     private _layoutContainer!: HTMLDivElement;
     private _layoutManager!: GoldenLayout;
     private _navBar!: NavBar;
@@ -76,8 +95,12 @@ export class App extends React.Component {
     private _saveLayoutImmediately = false;
 
     public componentDidMount() {
-        FocusStyleManager.onlyShowFocusOnTabs();        
-       
+
+        Commands.showPopover.attach(info => this.showPopover(info));
+        Commands.closePopover.attach(() => this.closePopover());
+
+        FocusStyleManager.onlyShowFocusOnTabs();
+
         const views: { [type: string]: ILayout } = {
             Models: {
                 config: {
@@ -165,10 +188,10 @@ export class App extends React.Component {
                         {
                             type: "stack",
                             content: [
-                                views.Canvas.config                                
+                                views.Canvas.config
                             ],
                             width: 80
-                        }                       
+                        }
                     ]
                 }
             ]
@@ -275,7 +298,7 @@ export class App extends React.Component {
             views[container.glContainer._config.id].container = container;
             this._canvas = instance;
             return instance;
-        });       
+        });
 
         this._layoutManager = layout;
 
@@ -288,7 +311,7 @@ export class App extends React.Component {
             window.addEventListener("resize", this.onWindowResized);
             window.addEventListener("keyup", this.onKeyUp);
             window.addEventListener("keydown", this.onKeyDown);
-    
+
         } catch (e) {
             // Failed initializing the layout.
             setTimeout(
@@ -312,6 +335,7 @@ export class App extends React.Component {
         const navbarWidth = "46px";
         return (
             <div
+                ref={e => this._root = e as HTMLDivElement}
                 className="fill-parent bp3-dark"
                 style={{
                     backgroundColor: "black"
@@ -330,8 +354,111 @@ export class App extends React.Component {
                         zIndex: 0
                     }}
                 />
+                <div
+                    style={{
+                        position: "absolute",
+                        left: `${this._mockState.popoverLeft}px`,
+                        top: `${this._mockState.popoverTop}px`
+                    }}
+                >
+                    <Popover
+                        isOpen={this._mockState.isPopoverOpen}
+                        content={this._mockState.popoverContent}
+                        onInteraction={open => {
+                            this.updateState({ isPopoverOpen: open });
+                        }}
+                        position={this._mockState.popoverPlacement}
+                    >
+                        <span />
+                    </Popover>
+                </div>
             </div>
         );
+    }
+
+    private updateState(state: object) {
+        Object.assign(this._mockState, state);
+        this.forceUpdate();
+    }
+
+    private closePopover() {
+        this.updateState({ isPopoverOpen: false });
+    }
+
+    private showPopover(info: IPopoverConfig) {
+        let placement: PopoverPosition = "auto";
+        let positionX = info.targetRect ? info.targetRect.left : info.clientX;
+        let positionY = info.targetRect ? info.targetRect.top : info.clientY;
+        const targetRect = info.targetRect;
+        const nearBottom = positionY > this._root.clientHeight / 3.2;
+        const placeTop = () => {
+            placement = "top";
+            if (targetRect) {
+                positionY = targetRect.top;
+                positionX = targetRect.left + targetRect.width / 2;
+            }
+        };
+        const placeBottom = () => {
+            placement = "bottom";
+            if (targetRect) {
+                positionY = targetRect.bottom;
+                positionX = targetRect.left + targetRect.width / 2;
+            }
+        };
+        const placeRight = () => {
+            placement = "right";
+            if (targetRect) {
+                positionY = targetRect.top + targetRect.height / 2;
+                positionX = targetRect.right;
+            }
+        };
+        const placeLeft = () => {
+            placement = "left";
+            if (targetRect) {
+                positionY = targetRect.top + targetRect.height / 2;
+                positionX = targetRect.left;
+            }
+        };
+        const autoPlace = () => {
+            const nearLeft = positionX < this._root.clientWidth / 3.2;
+            if (nearLeft) {
+                if (nearBottom) {
+                    placeTop();
+                } else {
+                    placeRight();
+                }
+            } else {
+                if (nearBottom) {
+                    placeTop();
+                } else {
+                    placeLeft();
+                }
+            }
+        };
+        if (info.placement) {
+            if (info.placement === "bottom") {
+                placeBottom();
+            } else if (info.placement === "top") {
+                placeTop();
+            } else if (info.placement === "vertical") {
+                if (nearBottom) {
+                    placeTop();
+                } else {
+                    placeBottom();
+                }
+            } else {
+                autoPlace();
+            }
+        } else {
+            autoPlace();
+        }
+        this.updateState({
+            isPopoverOpen: true,
+            popoverContent: info.content,
+            popoverLeft: positionX,
+            popoverTop: positionY,
+            popoverPlacement: placement
+        });
     }
 
     private saveLayout() {
@@ -369,7 +496,7 @@ export class App extends React.Component {
 
         }
     }
-    
+
     private onKeyDown(e: KeyboardEvent) {
         if (e.key === "Alt") {
             State.instance.altPressed = true;
@@ -386,7 +513,7 @@ export class App extends React.Component {
                 State.instance.clearSelection();
             }
         } else if (e.key === "Delete") {
-            Controller.deleteSelection();            
+            Controller.deleteSelection();
         } else if (e.key === "Alt") {
             State.instance.altPressed = false;
         } else if (e.key.toLowerCase() === "r") {
@@ -398,7 +525,7 @@ export class App extends React.Component {
             };
 
             const { selection, grid, selectedKit } = State.instance;
-            const { selectedKitInstance } = Controller;          
+            const { selectedKitInstance } = Controller;
             if (selection.length > 0) {
                 // TODO multi selection
                 rotate(selection[0], [Vector3.right, Vector3.up, Vector3.forward][grid]);
