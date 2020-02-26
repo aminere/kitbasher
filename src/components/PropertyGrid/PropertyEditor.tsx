@@ -6,6 +6,10 @@ import { QuaternionEditor } from "./QuaternionEditor";
 import { Quaternion } from "../../../../spider-engine/src/math/Quaternion";
 import { Manifest } from "../../Manifest";
 import { ItemSelector } from "../ItemSelector";
+import { Button } from "@blueprintjs/core";
+import { Material } from "../../../../spider-engine/src/graphics/Material";
+import { Commands } from "../../Commands";
+import { ItemPicker } from "../ItemPicker";
 
 interface IPropertyEditorProps {
     // tslint:disable-next-line
@@ -61,12 +65,24 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
 
         if (typeName === "Material") {
             return (
-                <div />
-                // <ItemSelector
-                //     selected={initialValue}
-                //     items={Manifest.getData().materials}
-                //     getItemId={i => i.id}
-                // />                
+                <div>
+                    <Button
+                        onClick={(e: React.MouseEvent<HTMLElement>) => {
+                            Commands.showPopover.post({
+                                clientX: e.clientX,
+                                clientY: e.clientY,
+                                content: (
+                                    <div />
+                                    // <ItemPicker
+
+                                    // />
+                                )
+                            });
+                        }}
+                    >
+                        {(initialValue as Material).name}
+                    </Button>
+                </div>
             );
         }
 

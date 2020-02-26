@@ -17,7 +17,7 @@ export class MaterialEditor extends React.Component<IMaterialEditorProps> {
                         material
                     }}
                     onPropertyChanged={(name, value) => {
-
+                        
                     }}
                 />
                 <PropertyGrid
