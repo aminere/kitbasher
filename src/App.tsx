@@ -365,7 +365,11 @@ export class App extends React.Component {
                         isOpen={this._mockState.isPopoverOpen}
                         content={this._mockState.popoverContent}
                         onInteraction={open => {
-                            this.updateState({ isPopoverOpen: open });
+                            const state = { isPopoverOpen: open };
+                            if (!open) {
+                                Object.assign(state, { popoverContent: <div /> });
+                            }
+                            this.updateState(state);
                         }}
                         position={this._mockState.popoverPlacement}
                     >

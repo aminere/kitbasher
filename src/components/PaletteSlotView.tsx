@@ -5,8 +5,9 @@ import { Select } from "@blueprintjs/select";
 import { RTTI } from "../../../spider-engine/src/core/RTTI";
 import { ColorSlotView } from "./ColorSlotView";
 import { MaterialSlotView } from "./MaterialSlotView";
-import { MenuItem, Button, Classes } from "@blueprintjs/core";
+import { MenuItem, Button } from "@blueprintjs/core";
 import { Interfaces } from "../../../spider-engine/src/core/Interfaces";
+import { ColorSlot } from "../ColorSlot";
 import "./paletteslotview.css";
 
 interface IPaletteSlotViewProps {
@@ -47,11 +48,16 @@ export class PaletteSlotView extends React.Component<IPaletteSlotViewProps, IPal
         const { index, onDelete } = this.props;
         const { slot } = this.state;
 
-        const makeEditor = (type: string) => {
+        const makeEditor = (s: PaletteSlot) => {
             return {
-                ColorSlot: <ColorSlotView />,
+                ColorSlot: (
+                    <ColorSlotView
+                        slot={s as ColorSlot}
+                        onChanged={() => this.props.onChange(s)}
+                    />
+                ),
                 MaterialSlot: <MaterialSlotView />,
-            }[type];
+            }[s.constructor.name];
         };
 
         return (
@@ -59,14 +65,15 @@ export class PaletteSlotView extends React.Component<IPaletteSlotViewProps, IPal
                 <div
                     style={{
                         display: "flex",
-                        justifyContent: "space-between"
+                        justifyContent: "space-between",
+                        padding: "4px"
                     }}
                 >
                     <div
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            padding: "4px"
+                            padding: "0px 8px"
                         }}
                     >
                         {index}
@@ -129,7 +136,13 @@ export class PaletteSlotView extends React.Component<IPaletteSlotViewProps, IPal
                         </div>
                     }
                 </div>
-                {makeEditor(slot.constructor.name)}
+                <div
+                    style={{
+                        padding: "0px 4px 4px 4px"
+                    }}
+                >
+                    {makeEditor(slot)}
+                </div>
             </div>
         );
     }

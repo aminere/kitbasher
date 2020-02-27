@@ -76,25 +76,37 @@ export class Palette extends React.Component {
                 >
                     {Private.slots.map((s, i) => {
                         return (
-                            <PaletteSlotView
-                                key={i}
-                                index={i}
-                                initialSlot={s}
-                                onChange={newSlot => {
-                                    Private.slots[i] = newSlot;
-                                    Private.savePalette();
-                                }}
-                                onDelete={(() => {
-                                    if (Private.slots.length === 1 && i === 0) {
-                                        return undefined;
-                                    }
-                                    return () => {
-                                        Private.slots.splice(i, 1);
+                            <div key={i}>
+                                <PaletteSlotView
+                                    index={i}
+                                    initialSlot={s}
+                                    onChange={newSlot => {
+                                        Private.slots[i] = newSlot;
                                         Private.savePalette();
-                                        this.forceUpdate();
-                                    };
-                                })()}
-                            />
+                                    }}
+                                    onDelete={(() => {
+                                        if (Private.slots.length === 1 && i === 0) {
+                                            return undefined;
+                                        }
+                                        return () => {
+                                            Private.slots.splice(i, 1);
+                                            Private.savePalette();
+                                            this.forceUpdate();
+                                        };
+                                    })()}
+                                />
+                                {
+                                    (i !== Private.slots.length)
+                                    &&
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            height: "1px",
+                                            backgroundColor: "rgba(84, 99, 111, 0.5)"
+                                        }}
+                                    />
+                                }
+                            </div>
                         );
                     })}
                 </div>
