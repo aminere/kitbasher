@@ -11,10 +11,6 @@
         ["Props", "monitor"],
         ["Props", "frame"]
 	],
-	"materials": [
-	    "brick",
-        "wood"
-	],
 	"textures": [
 	    "brick",
         "wood"

@@ -4,8 +4,6 @@ import { NumberEditor } from "./NumberEditor";
 import { Vector3 } from "../../../../spider-engine/src/math/Vector3";
 import { QuaternionEditor } from "./QuaternionEditor";
 import { Quaternion } from "../../../../spider-engine/src/math/Quaternion";
-import { Manifest } from "../../Manifest";
-import { ItemSelector } from "../ItemSelector";
 import { Button } from "@blueprintjs/core";
 import { Material } from "../../../../spider-engine/src/graphics/Material";
 import { Commands } from "../../Commands";

@@ -24,7 +24,7 @@ import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
 import { Textures } from "./components/Textures";
-import { Materials } from "./components/Materials";
+import { Palette } from "./components/Palette";
 
 interface ILayoutConfig {
     type: string;
@@ -124,17 +124,17 @@ export class App extends React.Component {
                     isClosable: false
                 }
             },
-            Materials: {
+            Palette: {
                 config: {
                     type: "react-component",
-                    component: "Materials",
-                    title: "Materials",
-                    navBarTitle: "Materials",
-                    id: "Materials",
+                    component: "Palette",
+                    title: "Palette",
+                    navBarTitle: "Palette",
+                    id: "Palette",
                     isVisible: false,
                     isClosable: false
                 }
-            },
+            },            
             Scene: {
                 config: {
                     type: "react-component",
@@ -180,7 +180,7 @@ export class App extends React.Component {
                             content: [
                                 views.Models.config,
                                 views.Scene.config,
-                                views.Materials.config,
+                                views.Palette.config,
                                 views.Textures.config
                             ],
                             width: 20
@@ -263,8 +263,8 @@ export class App extends React.Component {
         });
 
         // tslint:disable-next-line
-        layout.registerComponent("Materials", (container: any, state: any) => {
-            const instance = new Materials({});
+        layout.registerComponent("Palette", (container: any, state: any) => {
+            const instance = new Palette({});
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
             return instance;

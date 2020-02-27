@@ -3,7 +3,6 @@ import { Interfaces } from "../../spider-engine/src/spider-engine";
 
 interface IManifest {
     models: Array<[string, string]>;
-    materials: string[];
     textures: string[];
 }
 
