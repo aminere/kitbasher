@@ -318,7 +318,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         )}
                                     />
                                     <Panel
-                                        title="Material"
+                                        title="Materials"
                                         content={(
                                             <MaterialEditor
                                                 material={(() => {

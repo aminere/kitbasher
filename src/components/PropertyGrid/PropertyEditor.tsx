@@ -71,9 +71,7 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
                                 clientY: e.clientY,
                                 content: (
                                     <div />
-                                    // <ItemPicker
-
-                                    // />
+                                    // <ItemPicker />
                                 )
                             });
                         }}

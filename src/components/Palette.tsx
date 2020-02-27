@@ -2,27 +2,28 @@
 import * as React from "react";
 import { Button } from "@blueprintjs/core";
 import { PaletteSlotView } from "./PaletteSlotView";
-import { ColorSlot } from "../ColorSlot";
-import { MaterialSlot } from "../MaterialSlot";
 import { Events } from "../Events";
 import { PaletteSlot } from "../PaletteSlot";
 import { Persistence } from "../Persistence";
 import { Interfaces } from "../../../spider-engine/src/core/Interfaces";
 import { SerializedObject } from "../../../spider-engine/src/spider-engine";
+import { ColorSlot } from "../ColorSlot";
 
 namespace Private {
     export const path = "kitbasher-palette.json";
+    export let slots: PaletteSlot[] = [];
+    export function savePalette() {
+        Persistence.write(path, JSON.stringify(slots.map(s => s.serialize())));
+    }
 }
 
 export class Palette extends React.Component {
-
-    private _slots: PaletteSlot[] = [];
 
     public componentDidMount() {
         Events.engineReady.attach(() => {
 
             const loadSlots = (data: string) => {
-                this._slots = (JSON.parse(data) as SerializedObject[]).map(json => {
+                Private.slots = (JSON.parse(data) as SerializedObject[]).map(json => {
                     const o = Interfaces.factory.createObject(json.typeName as string);
                     o?.deserialize(json);
                     return o as PaletteSlot;
@@ -55,14 +56,37 @@ export class Palette extends React.Component {
                     fill={true}
                     minimal={true}
                     intent="primary"
+                    onClick={() => {
+                        Private.slots.push(new ColorSlot());
+                        Private.savePalette();
+                        this.forceUpdate();
+                    }}
                 >
                     Add Slot
                 </Button>
-                {
-                    this._slots.map((s, i) => {
-                        return <PaletteSlotView key={i} index={i} slot={s} />;
-                    })
-                }
+                {Private.slots.map((s, i) => {
+                    return (
+                        <PaletteSlotView
+                            key={i}
+                            index={i}
+                            initialSlot={s}
+                            onChange={newSlot => {                                
+                                Private.slots[i] = newSlot;
+                                Private.savePalette();
+                            }}
+                            onDelete={(() => {
+                                if (Private.slots.length === 1 && i === 0) {
+                                    return undefined;
+                                }
+                                return () => {
+                                    Private.slots.splice(i, 1);
+                                    Private.savePalette();
+                                    this.forceUpdate();
+                                };
+                            })()}
+                        />
+                    );
+                })}
             </div>
         );
     }
