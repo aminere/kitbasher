@@ -334,7 +334,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         } else if (insertionMode) {
                             return (
                                 <Panel
-                                    title="Material"
+                                    title="Materials"
                                     content={(
                                         <MaterialEditor
                                             material={(() => {

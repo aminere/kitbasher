@@ -50,7 +50,11 @@ export class Palette extends React.Component {
 
     public render() {
         return (
-            <div>
+            <div
+                style={{
+                    height: "100%"
+                }}
+            >
                 <Button
                     icon="plus"
                     fill={true}
@@ -64,29 +68,36 @@ export class Palette extends React.Component {
                 >
                     Add Slot
                 </Button>
-                {Private.slots.map((s, i) => {
-                    return (
-                        <PaletteSlotView
-                            key={i}
-                            index={i}
-                            initialSlot={s}
-                            onChange={newSlot => {                                
-                                Private.slots[i] = newSlot;
-                                Private.savePalette();
-                            }}
-                            onDelete={(() => {
-                                if (Private.slots.length === 1 && i === 0) {
-                                    return undefined;
-                                }
-                                return () => {
-                                    Private.slots.splice(i, 1);
+                <div
+                    style={{
+                        height: "calc(100% - 30px)",
+                        overflow: "auto"
+                    }}
+                >
+                    {Private.slots.map((s, i) => {
+                        return (
+                            <PaletteSlotView
+                                key={i}
+                                index={i}
+                                initialSlot={s}
+                                onChange={newSlot => {
+                                    Private.slots[i] = newSlot;
                                     Private.savePalette();
-                                    this.forceUpdate();
-                                };
-                            })()}
-                        />
-                    );
-                })}
+                                }}
+                                onDelete={(() => {
+                                    if (Private.slots.length === 1 && i === 0) {
+                                        return undefined;
+                                    }
+                                    return () => {
+                                        Private.slots.splice(i, 1);
+                                        Private.savePalette();
+                                        this.forceUpdate();
+                                    };
+                                })()}
+                            />
+                        );
+                    })}
+                </div>
             </div>
         );
     }
