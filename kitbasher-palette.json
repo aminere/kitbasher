@@ -1,0 +1,29 @@
+[
+    {
+        "typeName": "ColorSlot",
+        "version": 1,
+        "properties": {
+            "color": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 1
+            }
+        }
+    },
+    {
+        "typeName": "MaterialSlot",
+        "version": 1,
+        "properties": {
+            "ambient": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 1
+            },
+            "diffuse": {
+                "typeName": "Texture2D"
+            }
+        }
+    }
+]

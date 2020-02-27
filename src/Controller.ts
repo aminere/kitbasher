@@ -10,7 +10,7 @@ import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Plane, Assets, Vector2, MathEx } from "../../spider-engine/src/spider-engine";
+import { Plane, Assets, Vector2, MathEx, SerializableObject } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -32,6 +32,9 @@ import { BoundingBoxes } from "./BoundingBoxes";
 import { Config } from "./Config";
 import { Utils } from "./Utils";
 import { Manifest } from "./Manifest";
+import { PaletteSlot } from "./PaletteSlot";
+import { ColorSlot } from "./ColorSlot";
+import { MaterialSlot } from "./MaterialSlot";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -303,6 +306,9 @@ namespace Private {
         Engine.create({
             container: canvas,
             customTypes: [
+                [PaletteSlot, SerializableObject],
+                [ColorSlot, PaletteSlot],
+                [MaterialSlot, PaletteSlot]
             ],
             preRender: Renderer.preRender,
             postRender: Renderer.postRender
