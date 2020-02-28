@@ -12,18 +12,6 @@ export interface IContentItemProps {
 }
 
 export class ContentItem extends React.Component<IContentItemProps> {
-
-    private _canvas!: HTMLCanvasElement;
-
-    public componentDidMount() {
-        const { image } = this.props;
-        const scale = this._canvas.width / image.width;
-        const context = this._canvas.getContext("2d") as CanvasRenderingContext2D;
-        context.clearRect(0, 0, this._canvas.width, this._canvas.height);
-        const yPos = Math.max((this._canvas.height - (image.height * scale)) / 2, 0);
-        context.drawImage(image, 0, yPos, image.width * scale, image.height * scale);
-    }
-
     public render() {
         return (
             <div
@@ -36,13 +24,12 @@ export class ContentItem extends React.Component<IContentItemProps> {
                     margin: "4px"
                 }}
             >
-                <canvas
+                <img 
                     style={{
-                        borderRadius: this.props.rounded === true ? "50%" : undefined
+                        width: "60px",
+                        height: "60px"
                     }}
-                    ref={e => this._canvas = e as HTMLCanvasElement}
-                    width={60}
-                    height={60}
+                    src={this.props.image.src} 
                 />
                 <div
                     className="hoverable"

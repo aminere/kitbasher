@@ -1,8 +1,7 @@
 
-import * as React from "react";
-
 import "./propertygrid.css";
 import { Property } from "./Property";
+import React = require("react");
 
 interface IPropertyGridProps {
     target: object;

@@ -7,3 +7,7 @@
 .select-fill > span > span {
     width: 100%;
 }
+
+.slot-editor {
+    padding: 0px 4px 4px 4px;
+}

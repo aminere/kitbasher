@@ -1,13 +1,11 @@
 
 import * as React from "react";
-import { PaletteSlot } from "../PaletteSlot";
+import { PaletteSlot } from "../../palette/PaletteSlot";
 import { Select } from "@blueprintjs/select";
-import { RTTI } from "../../../spider-engine/src/core/RTTI";
-import { ColorSlotView } from "./ColorSlotView";
-import { MaterialSlotView } from "./MaterialSlotView";
+import { RTTI } from "../../../../spider-engine/src/core/RTTI";
 import { MenuItem, Button } from "@blueprintjs/core";
-import { Interfaces } from "../../../spider-engine/src/core/Interfaces";
-import { ColorSlot } from "../ColorSlot";
+import { Interfaces } from "../../../../spider-engine/src/core/Interfaces";
+import { PaletteSlotViewFactory } from "./PaletteSlotViewFactory";
 import "./paletteslotview.css";
 
 interface IPaletteSlotViewProps {
@@ -47,19 +45,6 @@ export class PaletteSlotView extends React.Component<IPaletteSlotViewProps, IPal
     public render() {
         const { index, onDelete } = this.props;
         const { slot } = this.state;
-
-        const makeEditor = (s: PaletteSlot) => {
-            return {
-                ColorSlot: (
-                    <ColorSlotView
-                        slot={s as ColorSlot}
-                        onChanged={() => this.props.onChange(s)}
-                    />
-                ),
-                MaterialSlot: <MaterialSlotView />,
-            }[s.constructor.name];
-        };
-
         return (
             <div>
                 <div
@@ -136,13 +121,7 @@ export class PaletteSlotView extends React.Component<IPaletteSlotViewProps, IPal
                         </div>
                     }
                 </div>
-                <div
-                    style={{
-                        padding: "0px 4px 4px 4px"
-                    }}
-                >
-                    {makeEditor(slot)}
-                </div>
+                {PaletteSlotViewFactory.create(slot, () => this.props.onChange(slot))}
             </div>
         );
     }

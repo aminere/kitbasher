@@ -23,8 +23,8 @@ import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
-import { Textures } from "./components/Textures";
-import { Palette } from "./components/Palette";
+import { TexturesView } from "./components/TexturesView";
+import { PaletteView } from "./components/palette/PaletteView";
 
 interface ILayoutConfig {
     type: string;
@@ -256,7 +256,7 @@ export class App extends React.Component {
         // BUILTIN VIEWS
         // tslint:disable-next-line
         layout.registerComponent("Textures", (container: any, state: any) => {
-            const instance = new Textures({});
+            const instance = new TexturesView({});
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
             return instance;
@@ -264,7 +264,7 @@ export class App extends React.Component {
 
         // tslint:disable-next-line
         layout.registerComponent("Palette", (container: any, state: any) => {
-            const instance = new Palette({});
+            const instance = new PaletteView({});
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
             return instance;

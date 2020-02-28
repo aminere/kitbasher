@@ -32,9 +32,11 @@ import { BoundingBoxes } from "./BoundingBoxes";
 import { Config } from "./Config";
 import { Utils } from "./Utils";
 import { Manifest } from "./Manifest";
-import { PaletteSlot } from "./PaletteSlot";
-import { ColorSlot } from "./ColorSlot";
-import { MaterialSlot } from "./MaterialSlot";
+import { PaletteSlot } from "./palette/PaletteSlot";
+import { ColorSlot } from "./palette/ColorSlot";
+import { MaterialSlot } from "./palette/MaterialSlot";
+import { Palette } from "./palette/Palette";
+import { Textures } from "./Textures";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -326,6 +328,8 @@ namespace Private {
             })
             .then(() => State.instance.load())
             .then(() => Manifest.load())
+            .then(() => Textures.load())
+            .then(() => Palette.load())            
             .then(() => {
                 // For debugging
                 Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });

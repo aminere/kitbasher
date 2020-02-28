@@ -1,5 +1,4 @@
-
-import * as React from "react";
+import React = require("react");
 import { InputGroup } from "@blueprintjs/core";
 
 interface INumberEditorProps {
