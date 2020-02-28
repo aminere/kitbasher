@@ -38,7 +38,7 @@ export class ColorPicker extends React.Component<IColorPickerProps, IColorPicker
                         backgroundColor: `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})`,
                         borderRadius: 4,
                         cursor: "pointer",
-                        boxShadow: "0px 0px 0px 1px rgba(0, 0, 0, 1)",
+                        boxShadow: "0px 0px 0px 1px rgba(0, 0, 0, .70)",
                         margin: "0 auto"
                     }}
                     onClick={e => {

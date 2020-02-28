@@ -35,13 +35,19 @@ export class TexturePicker extends React.Component<ITexturePickerProps, IColorPi
                     src={texture.image.src}
                     width="30px"
                     height="30px"
+                    style={{
+                        borderRadius: 4
+                    }}
                 />
             );
         };
 
         return (
             <div
-                style={{ padding: "0px 8px" }}
+                style={{ 
+                    padding: "0px 8px",
+                    textAlign: "center"
+                }}
             >
                 <Select
                     items={[null, ...Textures.textures]}
@@ -71,14 +77,14 @@ export class TexturePicker extends React.Component<ITexturePickerProps, IColorPi
                             height: "30px",
                             borderRadius: 4,
                             cursor: "pointer",
-                            boxShadow: "0px 0px 0px 1px rgba(0, 0, 0, 1)",
+                            boxShadow: "0px 0px 0px 1px rgba(0, 0, 0, .70)",
                             margin: "0 auto"
                         }}
                     >
                         {makeImage(this.state.texture)}
                     </div>
                 </Select>
-                <div style={{ marginTop: "4px" }}>{name}</div>
+                <div style={{ marginTop: "4px" }}>{this.props.name}</div>
             </div>
         );
     }
