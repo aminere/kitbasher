@@ -38,14 +38,14 @@ import { MaterialSlot } from "./palette/MaterialSlot";
 import { Palette } from "./palette/Palette";
 import { Textures } from "./Textures";
 import { FileInterface } from "./FileInterface";
+import { Models } from "./Models";
 
 interface IEntityData {
     kit: IKitAsset;
 }
 
 namespace Private {
-
-    let defaultMaterial: Material;
+    
     export let sceneLoaded = false;
     export let selectedKitInstance: Entity | null = null;
 
@@ -325,16 +325,12 @@ namespace Private {
                 preRender: Renderer.preRender,
                 postRender: Renderer.postRender
             }))
-            .then(() => Renderer.load())
-            .then(() => new Promise(resolve => {
-                Assets.load("Assets/Editor/Default.Material")
-                    .then(asset => defaultMaterial = asset as Material)
-                    .then(resolve);
-            }))
+            .then(() => Renderer.load())            
             .then(() => State.instance.load())
             .then(() => Manifest.load())
             .then(() => Textures.load())
             .then(() => Palette.load())
+            .then(() => Models.load())
             .then(() => {
                 // For debugging
                 Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });

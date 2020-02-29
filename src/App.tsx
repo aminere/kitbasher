@@ -14,7 +14,7 @@ import "../public/goldenlayout-base.css";
 import "../public/goldenlayout-dark-theme.css";
 import { Config } from "./Config";
 import { Hierarchy } from "./components/Hierarchy";
-import { Models } from "./components/Models";
+import { ModelsView } from "./components/ModelsView";
 import { Canvas } from "./components/Canvas";
 import { Controller } from "./Controller";
 import { State } from "./State";
@@ -86,7 +86,7 @@ export class App extends React.Component {
     private _layoutManager!: GoldenLayout;
     private _navBar!: NavBar;
     private _hierarchy?: Hierarchy;
-    private _models?: Models;
+    private _models?: ModelsView;
     private _canvas?: Canvas;
     // tslint:disable-next-line
     private _layoutSaveTimer: any;
@@ -281,7 +281,7 @@ export class App extends React.Component {
 
         // tslint:disable-next-line
         layout.registerComponent("Models", (container: any, state: any) => {
-            const instance = new Models({});
+            const instance = new ModelsView({});
             views[container.glContainer._config.id].instance = instance;
             views[container.glContainer._config.id].container = container;
             this._models = instance;
