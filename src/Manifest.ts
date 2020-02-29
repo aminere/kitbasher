@@ -1,4 +1,4 @@
-import { Persistence } from "./Persistence";
+
 import { Interfaces } from "../../spider-engine/src/spider-engine";
 
 interface IManifest {
@@ -13,26 +13,17 @@ namespace Private {
 
 export class Manifest {
     public static load() {
-        return Persistence.read(Private.path)
+        return Interfaces.file.read(Private.path)
             .then(data => {
                 Private.data = JSON.parse(data);
-            })
-            .catch(() => {
                 if (process.env.PLATFORM === "web") {
-                    return Interfaces.file.read(Private.path)
-                        .then(data => {
-                            Private.data = JSON.parse(data);
-                            return data;
-                        })
-                        .then(data => Persistence.write(Private.path, data));
-                } else {
-                    return Promise.reject(`Could not load '${Private.path}'`);
+                    Manifest.save();
                 }
             });
     }
 
     public static save() {
-        Persistence.write(Private.path, Private.data);
+        Interfaces.file.write(Private.path, JSON.stringify(Private.data));
     }
 
     public static getData() {

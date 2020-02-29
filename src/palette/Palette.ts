@@ -1,7 +1,6 @@
 import { PaletteSlot } from "./PaletteSlot";
 import { SerializedObject, SerializableObject } from "../../../spider-engine/src/core/SerializableObject";
 import { Interfaces } from "../../../spider-engine/src/core/Interfaces";
-import { Persistence } from "../Persistence";
 import { Material } from "../../../spider-engine/src/graphics/Material";
 
 namespace Private {
@@ -20,7 +19,7 @@ namespace Private {
     }
 
     export function savePalette() {
-        Persistence.write(path, JSON.stringify(slots.map(s => s.serialize())));
+        Interfaces.file.write(path, JSON.stringify(slots.map(s => s.serialize())));
     }
 }
 
@@ -37,18 +36,12 @@ export class Palette {
             });
             Private.materials = Private.slots.map(Private.makeMaterial);
         };
-        return Persistence.read(Private.path)
-            .then(data => loadSlots(data))
-            .catch(() => {
+
+        return Interfaces.file.read(Private.path)
+            .then(data => {
+                loadSlots(data);
                 if (process.env.PLATFORM === "web") {
-                    return Interfaces.file.read(Private.path)
-                        .then(data => {
-                            loadSlots(data);
-                            return data;
-                        })
-                        .then(data => Persistence.write(Private.path, data));
-                } else {
-                    return Promise.reject(`Could not load '${Private.path}'`);
+                    Interfaces.file.write(Private.path, data);
                 }
             });
     }

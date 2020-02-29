@@ -37,6 +37,7 @@ import { ColorSlot } from "./palette/ColorSlot";
 import { MaterialSlot } from "./palette/MaterialSlot";
 import { Palette } from "./palette/Palette";
 import { Textures } from "./Textures";
+import { FileInterface } from "./FileInterface";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -305,31 +306,35 @@ namespace Private {
     }
 
     Events.canvasMounted.attach(canvas => {
-        Engine.create({
-            container: canvas,
-            customTypes: [
-                [PaletteSlot, SerializableObject],
-                [ColorSlot, PaletteSlot],
-                [MaterialSlot, PaletteSlot]
-            ],
-            preRender: Renderer.preRender,
-            postRender: Renderer.postRender
-        })
+        Promise.resolve()
+            .then(() => {
+                if (process.env.PLATFORM === "web") {
+                    const dbName = `kitbasher-${process.env.CONFIG}`;
+                    const dbVersion = 1;
+                    return IndexedDb.initialize(dbName, dbVersion);
+                }
+            })
+            .then(() => Engine.create({
+                container: canvas,
+                customTypes: [
+                    [PaletteSlot, SerializableObject],
+                    [ColorSlot, PaletteSlot],
+                    [MaterialSlot, PaletteSlot]
+                ],
+                customFileIO: new FileInterface(),
+                preRender: Renderer.preRender,
+                postRender: Renderer.postRender
+            }))
             .then(() => Renderer.load())
             .then(() => new Promise(resolve => {
                 Assets.load("Assets/Editor/Default.Material")
                     .then(asset => defaultMaterial = asset as Material)
                     .then(resolve);
             }))
-            .then(() => {
-                const dbName = `kitbasher-${process.env.CONFIG}`;
-                const dbVersion = 1;
-                return IndexedDb.initialize(dbName, dbVersion);
-            })
             .then(() => State.instance.load())
             .then(() => Manifest.load())
             .then(() => Textures.load())
-            .then(() => Palette.load())            
+            .then(() => Palette.load())
             .then(() => {
                 // For debugging
                 Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });

@@ -5,7 +5,7 @@ import { Events } from "./Events";
 import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Utils } from "./Utils";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Persistence } from "./Persistence";
+import { Interfaces } from "../../spider-engine/src/spider-engine";
 
 interface IPersistentState {
     grid: Plane;
@@ -153,15 +153,18 @@ export class State {
     }
 
     public load() {
-        return Persistence.read(Private.path)
+        return Interfaces.file.read(Private.path)
             .then(data => {
                 this._data = JSON.parse(data);
+                if (process.env.PLATFORM === "web") {
+                    this.save();
+                }
             })
             .catch(() => this.save());
     }
 
     public save() {
-        return Persistence.write(Private.path, JSON.stringify(this._data));
+        return Interfaces.file.write(Private.path, JSON.stringify(this._data));
     }
 }
 
