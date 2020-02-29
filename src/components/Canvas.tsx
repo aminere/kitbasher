@@ -321,6 +321,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         title="Materials"
                                         content={(
                                             <MaterialEditor
+                                                // targetCount={this._mockState.selection[0].children.length}
+                                                // getTarget={index => this._mockState.selection[0].children[index]}
                                                 material={(() => {
                                                     const entity = this._mockState.selection[0].children[0];
                                                     const visual = entity.getComponent(Visual) as Visual;

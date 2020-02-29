@@ -1,7 +1,6 @@
 
 import * as React from "react";
 import { Material } from "../../../spider-engine/src/graphics/Material";
-import { PropertyGrid } from "./propertygrid/PropertyGrid";
 
 interface IMaterialEditorProps {
     material: Material;
