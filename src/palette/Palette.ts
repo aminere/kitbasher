@@ -12,20 +12,23 @@ namespace Private {
     export let materials: Material[] = [];
 
     export function updateMaterial(m: Material, slot: PaletteSlot) {
-        const params = Object.entries(slot).reduce((prev, cur) => {
-            const [key, value] = cur;
-            if (value.constructor.name === "AssetReference") {
-                if (value.asset) {
-                    return { ...prev, ...{ [key]: value.asset } };
+        const makeParams = (params: object) => {
+            return Object.entries(params).reduce((prev, cur) => {
+                const [key, value] = cur;
+                if (value.constructor.name === "AssetReference") {
+                    if (value.asset) {
+                        return { ...prev, ...{ [key]: value.asset } };
+                    } else {
+                        return prev;
+                    }                
                 } else {
-                    return prev;
+                    return { ...prev, ...{ [key]: value } };
                 }
-                
-            } else {
-                return { ...prev, ...{ [key]: value } };
-            }
-        }, {});
-        m.shaderParams = params as unknown as SerializableObject;
+            }, {});
+        };
+        const newParams = makeParams(slot);
+        const existingParams = makeParams(m.shaderParams);
+        m.shaderParams = { ...existingParams, ...newParams } as unknown as SerializableObject;
     }
 
     export function makeMaterial(slot: PaletteSlot) {

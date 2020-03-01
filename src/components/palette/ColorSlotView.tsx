@@ -13,9 +13,9 @@ export class ColorSlotView extends React.Component<IColorSlotViewProps> {
         return (
             <div className="slot-editor">
                 <ColorPicker
-                    initialColor={this.props.slot.color}
+                    initialColor={this.props.slot.ambient}
                     onChange={newColor => {
-                        this.props.slot.color.copy(newColor);
+                        this.props.slot.ambient.copy(newColor);
                         this.props.onChanged();
                     }}
                 />
