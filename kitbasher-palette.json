@@ -3,7 +3,7 @@
         "typeName": "ColorSlot",
         "version": 1,
         "properties": {
-            "ambient": {
+            "diffuse": {
                 "r": 0.1450980392156863,
 				"g": 0.1803921568627451,
 				"b": 0.2627450980392157,

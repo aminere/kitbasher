@@ -13,7 +13,8 @@ namespace Private {
     export let materials: Material[] = [];
 
     export function updateMaterial(m: Material, slot: PaletteSlot) {
-        const makeParams = (params: object) => {
+        // tslint:disable-next-line
+        const makeParams = (params: {[name: string]: any}) => {
             return Object.entries(params).reduce((prev, cur) => {
                 const [key, value] = cur;
                 if (value.constructor.name === "AssetReference") {
@@ -25,10 +26,15 @@ namespace Private {
                 } else {
                     return { ...prev, ...{ [key]: value } };
                 }
-            }, {});
+            // tslint:disable-next-line
+            }, {} as any);
         };
         const newParams = makeParams(slot);
         const existingParams = makeParams(m.shaderParams);
+        // hackish - clear existing texture slot if any
+        if (!newParams.diffuseMap && existingParams.diffuseMap) {
+            delete existingParams.diffuseMap;
+        }
         m.shaderParams = { ...existingParams, ...newParams } as unknown as SerializableObject;
     }
 
@@ -113,13 +119,8 @@ export class Palette {
     }
 
     public static setSlot(index: number, slot: PaletteSlot) {
-        const oldSlot = Private.slots[index];
-        if (oldSlot !== slot) {
-            Private.slots[index] = slot;
-            Private.materials[index] = Private.makeMaterial(index, slot);
-        } else {
-            Private.updateMaterial(Private.materials[index], slot);
-        }
+        Private.slots[index] = slot;
+        Private.updateMaterial(Private.materials[index], slot);
         Private.saveMaterial(index)
             .then(() => Private.savePalette());
     }
