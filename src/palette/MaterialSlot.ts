@@ -5,7 +5,7 @@ import { Texture2D } from "../../../spider-engine/src/graphics/Texture2D";
 
 export class MaterialSlot extends PaletteSlot {
     public diffuse = new Color().copy(Color.white);
-    public ambient = new Color().copy(Color.white);
-    public emissive = new Color().copy(Color.white);
+    public ambient = new Color().copy(Color.black);
+    public emissive = new Color().copy(Color.black);
     public diffuseMap = new AssetReference(Texture2D);
 }
