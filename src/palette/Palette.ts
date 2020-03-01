@@ -4,6 +4,7 @@ import { Interfaces } from "../../../spider-engine/src/core/Interfaces";
 import { Material } from "../../../spider-engine/src/graphics/Material";
 import { Assets } from "../../../spider-engine/src/assets/Assets";
 import { SerializerUtilsInternal } from "../../../spider-engine/src/serialization/SerializerUtils";
+import { IObjectManagerInternal } from "../../../spider-engine/src/core/IObjectManager";
 
 namespace Private {
     export const path = "kitbasher-palette.json";
@@ -31,8 +32,11 @@ namespace Private {
         m.shaderParams = { ...existingParams, ...newParams } as unknown as SerializableObject;
     }
 
-    export function makeMaterial(slot: PaletteSlot) {
+    export function makeMaterial(index: number, slot: PaletteSlot) {
         const material = defaultMaterial.copy() as Material;
+        material.isPersistent = true;
+        material.templatePath = `Assets/Materials/${index}.Material`;
+        IObjectManagerInternal.instance.addToCache(material);
         updateMaterial(material, slot);
         return material;
     }
@@ -91,25 +95,20 @@ export class Palette {
                             });
                     })
                     .catch(() => {
-                        // Create materials from slots and save them                        
-                        Private.materials = Private.slots.map(s => {
-                            return Private.makeMaterial(s);
-                        });
+                        // Create materials from slots and save them
+                        Private.materials = Private.slots.map((s, index) => Private.makeMaterial(index, s));
                         return Promise.all(Private.materials.map((m, index) => {
-                            return Interfaces.file.write(
-                                        `Assets/Materials/${index}.Material`,
-                                        JSON.stringify(m.serialize())
-                                    );
-                                }));                  
+                            return Private.saveMaterial(index);
+                        }));                  
                     });
             });
     }
 
     public static addSlot(slot: PaletteSlot) {
         Private.slots.push(slot);
-        const material = Private.makeMaterial(slot);
-        Private.materials.push(material);
-        Private.saveMaterial(Private.materials.length - 1)
+        const index = Private.slots.length - 1;
+        Private.materials.push(Private.makeMaterial(index, slot));
+        Private.saveMaterial(index)
             .then(() => Private.savePalette());
     }
 
@@ -117,7 +116,7 @@ export class Palette {
         const oldSlot = Private.slots[index];
         if (oldSlot !== slot) {
             Private.slots[index] = slot;
-            Private.materials[index] = Private.makeMaterial(slot);
+            Private.materials[index] = Private.makeMaterial(index, slot);
         } else {
             Private.updateMaterial(Private.materials[index], slot);
         }
