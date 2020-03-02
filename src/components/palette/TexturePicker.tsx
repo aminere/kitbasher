@@ -27,14 +27,15 @@ export class TexturePicker extends React.Component<ITexturePickerProps, IColorPi
     public render() {
 
         const makeImage = (texture: Texture2D | null) => {
+            const size = "30px";
             if (!texture) {
-                return undefined;
+                return <div style={{ width: size, height: size }} />;
             }
             return (
                 <img
                     src={texture.image.src}
-                    width="30px"
-                    height="30px"
+                    width={size}
+                    height={size}
                     style={{
                         borderRadius: 4
                     }}
@@ -68,6 +69,14 @@ export class TexturePicker extends React.Component<ITexturePickerProps, IColorPi
                     onItemSelect={newTexture => {
                         this.setState({ texture: newTexture });
                         this.props.onChange(newTexture);
+                    }}
+                    itemPredicate={(query, item, index, exactMatch) => {
+                        const lower = query.toLowerCase();
+                        if (lower.length === 0) {
+                            return true;
+                        }
+                        const name = item?.name.toLowerCase();
+                        return Boolean(name) && (name as string).indexOf(lower) >= 0;
                     }}
                     activeItem={this.state.texture}
                 >
