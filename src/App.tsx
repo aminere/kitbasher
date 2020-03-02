@@ -336,7 +336,7 @@ export class App extends React.Component {
         return (
             <div
                 ref={e => this._root = e as HTMLDivElement}
-                className="fill-parent bp3-dark"
+                className="fill-parent bp3-dark unselectable"
                 style={{
                     backgroundColor: "black"
                 }}

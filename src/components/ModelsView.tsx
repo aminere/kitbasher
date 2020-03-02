@@ -5,6 +5,7 @@ import { Events } from "../Events";
 import { State } from "../State";
 import { ItemContainer } from "./ItemContainer";
 import { Models } from "../Models";
+import { IKitAsset } from "../Types";
 
 interface IModelsState {
     items: IContentItemProps[];
@@ -18,6 +19,8 @@ export class ModelsView extends React.Component {
         items: []
     };
 
+    private _lastUsedKit: IKitAsset | null = null;
+
     public componentDidMount() {
         Events.engineReady.attach(() => {
             Object.assign(this._mockState, {
@@ -28,7 +31,11 @@ export class ModelsView extends React.Component {
                             name: Models.models[index].model.name,
                             image: cur.thumbnail.image,
                             isSelected: () => State.instance.selectedKit === Models.models[index],
-                            onClicked: () => State.instance.selectedKit = Models.models[index]
+                            onClicked: () => {
+                                const selected = Models.models[index];
+                                State.instance.selectedKit = selected;
+                                this._lastUsedKit = selected;
+                            }
                         });
                     },
                     [] as IContentItemProps[]
@@ -40,7 +47,7 @@ export class ModelsView extends React.Component {
 
         Events.insertClicked.attach(() => {
             if (!State.instance.selectedKit) {
-                State.instance.selectedKit = State.instance.lastUsedKit || Models.models[0];
+                State.instance.selectedKit = this._lastUsedKit ?? Models.models[0];
             }
         });
 

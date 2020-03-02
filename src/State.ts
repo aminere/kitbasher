@@ -29,7 +29,6 @@ export class State {
     
     private _selectedItem: ContentItemType | null = null;
 
-    private _lastUsedKit: IKitAsset | null = null;
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Translate;
     private _altPressed = false;
@@ -52,10 +51,6 @@ export class State {
             return;
         }
         this._selectedItem = item;
-        if (item) {
-            this._lastUsedKit = item;
-        }
-
         if (this._selection.length) {
             this.clearSelection();
         }
@@ -89,8 +84,6 @@ export class State {
         this._selectedItem = item;
         Events.selectedItemChanged.post(item);
     }
-
-    public get lastUsedKit() { return this._lastUsedKit; }
 
     public get selection() { return this._selection; }
 

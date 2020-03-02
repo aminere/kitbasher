@@ -15,7 +15,7 @@ import { ControlMode, IKitAsset } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
-import { Visual } from "../../../spider-engine/src/spider-engine";
+import { Visual, Interfaces } from "../../../spider-engine/src/spider-engine";
 import { Palette } from "../palette/Palette";
 
 // tslint:disable:max-line-length
@@ -354,6 +354,12 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                 const kit = State.instance.selectedKit as IKitAsset;
                                                 const target = kit.model.elements.data[material].instance as ModelMesh;
                                                 target.material.asset = Palette.materials[slot];
+                                                SerializerUtilsInternal.serializeIdsAsPaths = true;
+                                                Interfaces.file.write(
+                                                    kit.model.templatePath as string,
+                                                    JSON.stringify(kit.model.serialize())
+                                                );
+                                                SerializerUtilsInternal.serializeIdsAsPaths = false;
                                                 Events.selectKitMaterialChanged.post(kit);
                                             }}
                                         />

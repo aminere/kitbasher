@@ -2,8 +2,8 @@
   "typeName": "Material",
   "version": 4,
   "properties": {
-    "id": "56d89d1d-99b9-41a6-852f-9a28cc98fac3",
-    "name": "default",
+    "id": "e83da8f3-ae26-4b17-b3b6-c688324707ec",
+    "name": "wood",
     "_blending": "None",
     "_renderPass": "Opaque",
     "_cullMode": "Back",
@@ -26,7 +26,7 @@
           "typeName": "AssetReference",
           "data": {
             "typeName": "Texture",
-            "id": "Assets/DefaultAssets/Textures/WhiteSquare.Texture2D"
+            "id": "Assets/Textures/wood.Texture2D"
           }
         },
         "specularMap": {
@@ -47,9 +47,9 @@
         "ambient": {
           "typeName": "Color",
           "data": {
-            "r": 0.1450980392156863,
-            "g": 0.1803921568627451,
-            "b": 0.2627450980392157,
+            "r": 0.0392156862745098,
+            "g": 0.0392156862745098,
+            "b": 0.06274509803921569,
             "a": 1
           }
         },

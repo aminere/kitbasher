@@ -38,7 +38,7 @@ namespace Private {
         m.shaderParams = { ...existingParams, ...newParams } as unknown as SerializableObject;
     }
 
-    export function makeMaterial(index: number, slot: PaletteSlot) {
+    export function makeMaterial(slot: PaletteSlot, index: number, ) {
         const material = defaultMaterial.copy() as Material;
         material.isPersistent = true;
         material.templatePath = `Assets/Materials/${index}.Material`;
@@ -64,8 +64,9 @@ namespace Private {
 export class Palette {
     public static get slots() { return Private.slots; }
     public static get materials() { return Private.materials; }
+    public static get defaultMaterial() { return Private.defaultMaterial; }
 
-    public static load() {
+    public static async load() {
         const loadSlots = (data: string) => {
             Private.slots = (JSON.parse(data) as SerializedObject[]).map(json => {
                 const o = Interfaces.factory.createObject(json.typeName as string);
@@ -75,45 +76,43 @@ export class Palette {
         };
 
         return Interfaces.file.read(Private.path)
-            .then(data => {
+            .then(async data => {
                 loadSlots(data);
                 if (process.env.PLATFORM === "web") {
-                    return Interfaces.file.write(Private.path, data);
-                }               
+                    await Interfaces.file.write(Private.path, data);
+                }
             })
-            .then(() => {
-                return Promise.resolve()
-                    .then(() => Assets.load("Assets/Materials/Default.Material"))
-                    .then(defaultMaterial => {
-                        Private.defaultMaterial = defaultMaterial as Material;
-                    })
-                    .then(() => Assets.load("Assets/Materials/0.Material"))
-                    .then(material0 => {
-                        // Load all materials from storage
-                        Promise.all(Array.from(new Array(Private.slots.length - 1)).map((a, i) => {
-                            return Assets.load(`Assets/Materials/${i + 1}.Material`);
-                        }))
-                            .then(materials => {
-                                Private.materials = [
-                                    material0 as Material,
-                                    ...(materials as Material[])
-                                ];
-                            });
-                    })
-                    .catch(() => {
-                        // Create materials from slots and save them
-                        Private.materials = Private.slots.map((s, index) => Private.makeMaterial(index, s));
-                        return Promise.all(Private.materials.map((m, index) => {
-                            return Private.saveMaterial(index);
-                        }));                  
-                    });
+            .then(() => Assets.load("Assets/Materials/default.Material"))
+            .then(defaultMaterial => {
+                Private.defaultMaterial = defaultMaterial as Material;
+            })
+            .then(() => Assets.load("Assets/Materials/0.Material"))
+            .then(async material0 => {
+                // Load all materials from storage
+                const indexes = Array.from(new Array(Private.slots.length - 1));
+                const materials = await Promise.all(indexes.map((a, i) => {
+                    return Assets.load(`Assets/Materials/${i + 1}.Material`);
+                }));
+                Private.materials = [
+                    material0 as Material,
+                    ...(materials as Material[])
+                ];
+                return false;
+            })
+            .catch(async () => {
+                // Create materials from slots and save them
+                Private.materials = Private.slots.map(Private.makeMaterial);
+                await Promise.all(Private.materials.map((m, index) => {
+                    return Private.saveMaterial(index);
+                }));
+                return true;
             });
     }
 
     public static addSlot(slot: PaletteSlot) {
         Private.slots.push(slot);
         const index = Private.slots.length - 1;
-        Private.materials.push(Private.makeMaterial(index, slot));
+        Private.materials.push(Private.makeMaterial(slot, index));
         Private.saveMaterial(index)
             .then(() => Private.savePalette());
     }

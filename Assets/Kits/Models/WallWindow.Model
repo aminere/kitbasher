@@ -45,7 +45,7 @@
               },
               "material": {
                 "typeName": "Material",
-                "id": "Assets/Materials/Default.Material"
+                "id": "Assets/Materials/default.Material"
               },
               "mesh": {
                 "typeName": "StaticMeshAsset",

@@ -339,12 +339,12 @@ namespace Private {
                 preRender: Renderer.preRender,
                 postRender: Renderer.postRender
             }))
-            .then(() => Renderer.load())            
+            .then(Renderer.load)
             .then(() => State.instance.load())
-            .then(() => Manifest.load())
-            .then(() => Textures.load())
-            .then(() => Palette.load())
-            .then(() => Models.load())
+            .then(Manifest.load)
+            .then(Textures.load)
+            .then(Palette.load)
+            .then(Models.load)
             .then(() => {
                 // For debugging
                 Object.assign(window, { spiderObjectCache: () => ObjectManagerInternal.objectCache() });
