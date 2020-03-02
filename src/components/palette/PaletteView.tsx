@@ -26,6 +26,7 @@ export class PaletteView extends React.Component {
                     intent="primary"
                     onClick={() => {
                         Palette.addSlot(new ColorSlot());
+                        Events.paletteChanged.post();
                         this.forceUpdate();
                     }}
                 >
@@ -45,6 +46,7 @@ export class PaletteView extends React.Component {
                                     initialSlot={s}
                                     onChange={newSlot => {
                                         Palette.setSlot(i, newSlot);
+                                        Events.paletteChanged.post();
                                     }}
                                     onDelete={(() => {
                                         if (Palette.slots.length === 1 && i === 0) {
@@ -52,6 +54,7 @@ export class PaletteView extends React.Component {
                                         }
                                         return () => {
                                             Palette.removeSlot(i);
+                                            Events.paletteChanged.post();
                                             this.forceUpdate();
                                         };
                                     })()}

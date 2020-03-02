@@ -39,6 +39,7 @@ import { Palette } from "./palette/Palette";
 import { Textures } from "./Textures";
 import { FileInterface } from "./FileInterface";
 import { Models } from "./Models";
+import { ModelMesh } from "../../spider-engine/src/assets/model/ModelMesh";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -299,6 +300,19 @@ namespace Private {
                             instance.active = false;
                         });
                     }
+                });
+
+                Events.selectKitMaterialChanged.attach(kit => {                    
+                    if (!Private.selectedKitInstance) {
+                        // tslint:disable-next-line
+                        console.assert(false);
+                        return;
+                    }                    
+                    kit.model.elements.data.forEach((r, i) => {
+                        const instance = Private.selectedKitInstance as Entity;
+                        const target = instance.children[i].getComponent(Visual) as Visual;
+                        target.material = (r.instance as ModelMesh).material.asset as Material;
+                    });
                 });
 
                 sceneLoaded = true;

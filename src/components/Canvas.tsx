@@ -11,11 +11,12 @@ import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine
 import { Commands } from "../Commands";
 import { Panel } from "./Panel";
 import { PlaneSelector } from "./PlaneSelector";
-import { ControlMode } from "../Types";
+import { ControlMode, IKitAsset } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
 import { Visual } from "../../../spider-engine/src/spider-engine";
+import { Palette } from "../palette/Palette";
 
 // tslint:disable:max-line-length
 
@@ -320,14 +321,17 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     <Panel
                                         title="Materials"
                                         content={(
-                                            <MaterialEditor
-                                                // targetCount={this._mockState.selection[0].children.length}
-                                                // getTarget={index => this._mockState.selection[0].children[index]}
-                                                material={(() => {
-                                                    const entity = this._mockState.selection[0].children[0];
-                                                    const visual = entity.getComponent(Visual) as Visual;
-                                                    return visual.material as Material;
-                                                })()}
+                                            <MaterialEditor                                                
+                                                materials={this._mockState.selection[0].children.map(c => {
+                                                    const v = c.getComponent(Visual) as Visual;
+                                                    return v.material as Material;
+                                                })}
+                                                onChanged={(material, slot) => {
+                                                    const target = this._mockState.selection[0].children[material];
+                                                    const v = target.getComponent(Visual) as Visual;
+                                                    v.material = Palette.materials[slot];
+                                                    Commands.saveScene.post();
+                                                }}
                                             />
                                         )}
                                     />
@@ -339,11 +343,19 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     title="Materials"
                                     content={(
                                         <MaterialEditor
-                                            material={(() => {
-                                                const elem = State.instance.selectedKit?.model.elements.data[0].instance;
-                                                const material = (elem as ModelMesh).material.asset;
-                                                return material as Material;
+                                            materials={(() => {
+                                                const kit = State.instance.selectedKit as IKitAsset;
+                                                return kit.model.elements.data.map(r => {
+                                                    const e = r.instance as ModelMesh;
+                                                    return e.material.asset as Material;
+                                                });
                                             })()}
+                                            onChanged={(material, slot) => {
+                                                const kit = State.instance.selectedKit as IKitAsset;
+                                                const target = kit.model.elements.data[material].instance as ModelMesh;
+                                                target.material.asset = Palette.materials[slot];
+                                                Events.selectKitMaterialChanged.post(kit);
+                                            }}
                                         />
                                     )}
                                 />

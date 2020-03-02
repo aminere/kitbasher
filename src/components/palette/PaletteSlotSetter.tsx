@@ -2,11 +2,12 @@
 import * as React from "react";
 import { Select } from "@blueprintjs/select";
 import { MenuItem, Button } from "@blueprintjs/core";
+import { Palette } from "../../palette/Palette";
 
 interface IPaletteSlotSetterProps {
     materialIndex: number;
     initialPaletteSlot: number;
-    onChange: (newSlot: number) => void;
+    onChange: (newSlotIndex: number) => void;
 }
 
 interface IPaletteSlotSetterState {
@@ -58,7 +59,7 @@ export class PaletteSlotSetter extends React.Component<IPaletteSlotSetterProps, 
                         }}
                     >
                         <Select
-                            items={Array.from(new Array(3)).map((a, i) => i)}
+                            items={Palette.materials.map((a, i) => i)}
                             itemRenderer={(item, { handleClick, modifiers }) => {
                                 if (!modifiers.matchesPredicate) {
                                     return null;
@@ -73,9 +74,8 @@ export class PaletteSlotSetter extends React.Component<IPaletteSlotSetterProps, 
                                 );
                             }}
                             onItemSelect={newSlotIndex => {
-                                /*const newSlot = Interfaces.factory.createObject(newType) as PaletteSlot;
-                                this.setState({ slot: newSlot });
-                                this.props.onChange(newSlot);*/
+                                this.setState({ paletteSlot: newSlotIndex });
+                                this.props.onChange(newSlotIndex);
                             }}
                             filterable={false}
                             activeItem={paletteSlot}

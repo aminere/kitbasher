@@ -1,25 +1,46 @@
 
 import * as React from "react";
 import { Material } from "../../../spider-engine/src/graphics/Material";
+import { PaletteSlotSetter } from "./palette/PaletteSlotSetter";
+import { Palette } from "../palette/Palette";
+import { Events } from "../Events";
 
 interface IMaterialEditorProps {
-    material: Material;
+    materials: Material[];
+    onChanged: (materialIndex: number, slotIndex: number) => void;
 }
 
 export class MaterialEditor extends React.Component<IMaterialEditorProps> {
+
+    public componentDidMount() {
+        this.onPaletteChanged = this.onPaletteChanged.bind(this);
+        Events.paletteChanged.attach(this.onPaletteChanged);
+    }
+
+    public componentWillUnmount() {
+        Events.paletteChanged.detach(this.onPaletteChanged);
+    }
+
     public render() {
-        const { material } = this.props;
         return (
             <div>
-                 {/* const entity = this._mockState.selection[0].children[0];
-                                                    const visual = entity.getComponent(Visual) as Visual;
-                                                    return visual.material as Material;
-													
-													
-													const elem = State.instance.selectedKit?.model.elements.data[0].instance;
-                                                const material = (elem as ModelMesh).material.asset;
-                                                return material as Material; */}
+                {this.props.materials.map((m, index) => {
+                    return (
+                        <PaletteSlotSetter
+                            key={index}
+                            materialIndex={index}
+                            initialPaletteSlot={Palette.materials.indexOf(m)}
+                            onChange={newSlot => {
+                                this.props.onChanged(index, newSlot);
+                            }}
+                        />
+                    );
+                })}
             </div>
         );
+    }
+
+    private onPaletteChanged() {
+        this.forceUpdate();
     }
 }
