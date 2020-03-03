@@ -92,7 +92,7 @@ namespace Private {
     export let lastInstantiatedKit: Entity | null = null;
     export function instantiateKit(instance: Entity) {
         lastInstantiatedKit = instance;
-        Utils.saveCurrentScene()
+        return Utils.saveCurrentScene()
             .then(() => createKit(
                 State.instance.selectedKit as IKitAsset,
                 instance.transform.position,
@@ -484,7 +484,11 @@ export class Controller {
         const { selectedKitInstance } = Private;
         if (selectedKitInstance) {
             if (selectedKitInstance.active) {
-                Private.instantiateKit(selectedKitInstance);
+                Private.instantiateKit(selectedKitInstance)
+                    .then(() => {
+                        State.instance.selectedKit = null;
+                        State.instance.setSelection(selectedKitInstance);
+                    });
             }
             return;
         }
