@@ -36,6 +36,7 @@ namespace Private {
 
     export let transformStarted = false;
     export let axisLength = 0;
+    export let boxExtentFactor = 0;
 
     export const localPickingRay = new Ray();
     export const initialIntersection = new Vector3();
@@ -45,15 +46,18 @@ namespace Private {
     export const controlPlane = new Plane();
 
     // translation
-    export const xAxisAABB = new AABB();
-    export const yAxisAABB = new AABB();
-    export const zAxisAABB = new AABB();
+    export const xPosAxisAABB = new AABB();
+    export const xNegAxisAABB = new AABB();
+    export const yPosAxisAABB = new AABB();
+    export const yNegAxisAABB = new AABB();
+    export const zPosAxisAABB = new AABB();
+    export const zNegAxisAABB = new AABB();
     export const xyAABB = new AABB();
     export const xzAABB = new AABB();
     export const zyAABB = new AABB();
-    export const xyControllerColor = new Color().copy(Color.blue).setAlpha(0.6);
-    export const xzControllerColor = new Color().copy(Color.green).setAlpha(0.6);
-    export const zyControllerColor = new Color().copy(Color.red).setAlpha(0.6);
+    export const xyControllerColor = new Color().copy(Color.red).add(Color.green).setAlpha(0.6);
+    export const xzControllerColor = new Color().copy(Color.red).add(Color.blue).setAlpha(0.6);
+    export const zyControllerColor = new Color().copy(Color.blue).add(Color.green).setAlpha(0.6);
     export const xyzPoint1 = new Vector3();
     export const xyzPoint2 = new Vector3();
     export const xyzPoint3 = new Vector3();
@@ -137,9 +141,8 @@ export class EntityController {
                     const toCamera = Vector3.fromPool().copy(camera.entity.transform.worldPosition)
                         .substract(transform.worldPosition).normalize();
                     const toObject = Vector3.fromPool().copy(toCamera).flip();
-                    if (controlMode === ControlMode.Translate
-                        || controlMode === ControlMode.Scale) {
-                        if (selectedAxis === Axis.X) {
+                    if (controlMode === ControlMode.Hybrid) {
+                        /*if (selectedAxis === Axis.X) {
                             const dotZ = Math.abs(toObject.dot(transform.worldForward));
                             const dotY = Math.abs(toObject.dot(transform.worldUp));
                             if (dotZ > dotY) {
@@ -163,21 +166,48 @@ export class EntityController {
                             } else {
                                 controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
                             }
-                        } else if (selectedAxis === Axis.XY) {
+                        } else */
+                        if (selectedAxis === Axis.XY) {
                             controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
                         } else if (selectedAxis === Axis.XZ) {
                             controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
                         } else if (selectedAxis === Axis.ZY) {
                             controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                        } else if (selectedAxis === Axis.XPos || selectedAxis === Axis.XNeg) {
+                            const dotZ = Math.abs(toObject.dot(transform.worldForward));
+                            const dotY = Math.abs(toObject.dot(transform.worldUp));
+                            if (dotZ > dotY) {
+                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
+                            } else {
+                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
+                            }
+
+                        } else if (selectedAxis === Axis.YPos || selectedAxis === Axis.YNeg) {
+                            const dotX = Math.abs(toObject.dot(transform.worldRight));
+                            const dotZ = Math.abs(toObject.dot(transform.worldForward));
+                            if (dotX > dotZ) {
+                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                            } else {
+                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
+                            }
+                        } else if (selectedAxis === Axis.ZPos || selectedAxis === Axis.ZNeg) {
+                            const dotX = Math.abs(toObject.dot(transform.worldRight));
+                            const dotY = Math.abs(toObject.dot(transform.worldUp));
+                            if (dotX > dotY) {
+                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                            } else {
+                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
+                            }
                         }
+
                         const pickingRay = camera.getWorldRay(clickStart.x, clickStart.y);
                         if (pickingRay) {
                             initialIntersection.copy(pickingRay.castOnPlane(controlPlane).intersection as Vector3);
-                            if (controlMode === ControlMode.Translate) {
-                                initialPosition.copy(transform.position);
-                            } else {
-                                initialScale.copy(transform.scale);
-                            }
+                            // if (controlMode === ControlMode.Translate) {
+                            initialPosition.copy(transform.position);
+                            // } else {
+                            initialScale.copy(transform.scale);
+                            // }
                         } else {
                             return false;
                         }
@@ -235,21 +265,32 @@ export class EntityController {
                     return false;
                 }
                 // Translation
-                if (controlMode === ControlMode.Translate) {
+                if (controlMode === ControlMode.Hybrid) {
                     translation.substractVectors(currentIntersection, initialIntersection);
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
-
                     const snap = (a: Vector3, b: Vector3) => {
                         const { gridStep } = State.instance;
                         transform.position.x = Snapping.snap(a.x + b.x, gridStep);
                         transform.position.y = Snapping.snap(a.y + b.y, gridStep);
-                        transform.position.z = Snapping.snap(a.z + b.z, gridStep);                
+                        transform.position.z = Snapping.snap(a.z + b.z, gridStep);
                     };
 
-                    if (selectedAxis === Axis.X) {
+                    const scaleSnap = (
+                        prop: "x" | "y" | "z",
+                        offset: Vector3,
+                        axis: Vector3,
+                        factor?: number
+                    ) => {
+                        const dir = Math.sign(offset.dot(axis));
+                        transform.scale[prop] = Snapping.snap(
+                            initialScale[prop] + offset.length * (factor ?? 1) * dir, 
+                            State.instance.gridStep
+                        );
+                    };
 
+                    /*if (selectedAxis === Axis.X) {
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldRight));
@@ -273,6 +314,56 @@ export class EntityController {
 
                         translation.copy(transform.forward).multiply(length * dir);
                         snap(initialPosition, translation);
+                    } else */
+
+                    if (selectedAxis === Axis.XPos) {
+                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
+                        const length = translation.length;
+                        const dir = Math.sign(translation.dot(transform.worldRight));
+                        translation.copy(transform.right).multiply(length * dir);
+                        snap(initialPosition, translation);
+                        scaleSnap("x", translation, transform.worldRight);
+
+                    } else if (selectedAxis === Axis.XNeg) {
+                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
+                        const length = translation.length;
+                        const dir = Math.sign(translation.dot(transform.worldRight));
+                        translation.copy(transform.right).multiply(length * dir);
+                        snap(initialPosition, translation);
+                        scaleSnap("x", translation.flip(), transform.worldRight);
+
+                    } else if (selectedAxis === Axis.YPos) {
+                        translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
+                        const length = translation.length;
+                        const dir = Math.sign(translation.dot(transform.worldUp));
+                        translation.copy(transform.up).multiply(length * dir);
+                        snap(initialPosition, translation);
+                        scaleSnap("y", translation, transform.worldUp);
+
+                    } else if (selectedAxis === Axis.YNeg) {
+                        translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
+                        const length = translation.length;
+                        const dir = Math.sign(translation.dot(transform.worldUp));
+                        translation.copy(transform.up).multiply(length * dir);
+                        snap(initialPosition, translation);
+                        scaleSnap("y", translation.flip(), transform.worldUp);
+
+                    } else if (selectedAxis === Axis.ZPos) {
+                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
+                        const length = translation.length;
+                        const dir = Math.sign(translation.dot(transform.worldForward));
+                        translation.copy(transform.forward).multiply(length * dir);
+                        snap(initialPosition, translation);
+                        scaleSnap("z", translation, transform.worldForward);
+
+                    } else if (selectedAxis === Axis.ZNeg) {
+                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
+                        const length = translation.length;
+                        const dir = Math.sign(translation.dot(transform.worldForward));
+                        translation.copy(transform.forward).multiply(length * dir);
+                        snap(initialPosition, translation);
+                        scaleSnap("z", translation.flip(), transform.worldForward);  
+
                     } else if (selectedAxis === Axis.XY) {
 
                         translation2.copy(translation);
@@ -345,10 +436,10 @@ export class EntityController {
                         // skip entityTransformChanged event
                         return true;
                     }
-                } else {
-
+                }
+                /* } else {
                     // Scale
-                    translation.substractVectors(currentIntersection, initialIntersection);
+                    /*translation.substractVectors(currentIntersection, initialIntersection);
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
@@ -408,7 +499,7 @@ export class EntityController {
                         translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
                         snap("y", translation2, transform.worldUp, Private.yPlaneDir);
                     }
-                }
+                }*/
 
                 Events.transformChanged.post(selectedEntity);
                 return true;
@@ -436,16 +527,30 @@ export class EntityController {
             invWorldNoScale.getInverse(worldNoScale);
             localPickingRay.copy(pickingRay).transform(invWorldNoScale);
 
-            if (controlMode === ControlMode.Translate
-                || controlMode === ControlMode.Scale) {
+            if (controlMode === ControlMode.Hybrid) {
                 // update the axis bounding boxes          
-                let t = axisLength * Private.axisThicknessFactor;
-                Private.xAxisAABB.min.set(0, -t, -t);
-                Private.xAxisAABB.max.set(axisLength, t, t);
-                Private.yAxisAABB.min.set(-t, 0, -t);
-                Private.yAxisAABB.max.set(t, axisLength, t);
-                Private.zAxisAABB.min.set(-t, -t, 0);
-                Private.zAxisAABB.max.set(t, t, axisLength);
+                // let t = axisLength * Private.axisThicknessFactor;
+                let t = Private.boxExtentFactor;
+                // Private.xAxisAABB.min.set(0, -t, -t);
+                // Private.xAxisAABB.max.set(axisLength, t, t);                
+                // Private.yAxisAABB.min.set(-t, 0, -t);
+                // Private.yAxisAABB.max.set(t, axisLength, t);
+                // Private.zAxisAABB.min.set(-t, -t, 0);
+                // Private.zAxisAABB.max.set(t, t, axisLength);
+                Private.xPosAxisAABB.min.set(Private.axisLength - t, -t, -t);
+                Private.xPosAxisAABB.max.set(Private.axisLength + t, t, t);
+                Private.xNegAxisAABB.min.set(-Private.axisLength - t, -t, -t);
+                Private.xNegAxisAABB.max.set(-Private.axisLength + t, t, t);
+
+                Private.yPosAxisAABB.min.set(-t, Private.axisLength - t, -t);
+                Private.yPosAxisAABB.max.set(t, Private.axisLength + t, t);
+                Private.yNegAxisAABB.min.set(-t, -Private.axisLength - t, -t);
+                Private.yNegAxisAABB.max.set(t, -Private.axisLength + t, t);
+
+                Private.zPosAxisAABB.min.set(-t, -t, Private.axisLength - t);
+                Private.zPosAxisAABB.max.set(t, t, Private.axisLength + t);                
+                Private.zNegAxisAABB.min.set(-t, -t, -Private.axisLength - t);
+                Private.zNegAxisAABB.max.set(t, t, -Private.axisLength + t);                
                 t = axisLength * Private.xyzLengthFactor;
                 const localCameraPos = transform.worldToLocal(
                     camera.entity.transform.worldPosition,
@@ -474,12 +579,18 @@ export class EntityController {
                     Private.selectedAxis = Axis.XZ;
                 } else if (localPickingRay.castOnAABB(Private.zyAABB)) {
                     Private.selectedAxis = Axis.ZY;
-                } else if (localPickingRay.castOnAABB(Private.xAxisAABB)) {
-                    Private.selectedAxis = Axis.X;
-                } else if (localPickingRay.castOnAABB(Private.yAxisAABB)) {
-                    Private.selectedAxis = Axis.Y;
-                } else if (localPickingRay.castOnAABB(Private.zAxisAABB)) {
-                    Private.selectedAxis = Axis.Z;
+                } else if (localPickingRay.castOnAABB(Private.xPosAxisAABB)) {
+                    Private.selectedAxis = Axis.XPos;                    
+                } else if (localPickingRay.castOnAABB(Private.yPosAxisAABB)) {
+                    Private.selectedAxis = Axis.YPos;
+                } else if (localPickingRay.castOnAABB(Private.zPosAxisAABB)) {
+                    Private.selectedAxis = Axis.ZPos;
+                } else if (localPickingRay.castOnAABB(Private.xNegAxisAABB)) {
+                    Private.selectedAxis = Axis.XNeg;                    
+                } else if (localPickingRay.castOnAABB(Private.yNegAxisAABB)) {
+                    Private.selectedAxis = Axis.YNeg;
+                } else if (localPickingRay.castOnAABB(Private.zNegAxisAABB)) {
+                    Private.selectedAxis = Axis.ZNeg;
                 } else {
                     Private.selectedAxis = Axis.None;
                 }
@@ -578,7 +689,7 @@ export class EntityController {
                 //     initialRotation, 
                 //     transform.rotation
                 // );
-            } else if (controlMode === ControlMode.Translate) {
+            } else if (controlMode === ControlMode.Hybrid) {
                 // GlobalUndoRedo.recordPropertyChange(
                 //     transform, 
                 //     TransformInternal.positionKey, 
@@ -633,15 +744,68 @@ export class EntityController {
         const distFromCamera = position.distFrom(camera.entity.transform.worldPosition);
         const axisLength = distFromCamera * axisLengthFactor;
         Private.axisLength = axisLength;
+        Private.boxExtentFactor = distFromCamera * .01;
         const worldMatrix = Matrix44.fromPool()
             .compose(position, rotation, scale.copy(Vector3.one)
                 .multiply(axisLength));
         const localCameraPos = transform.worldToLocal(camera.entity.transform.worldPosition, Vector3.fromPool());
-        if (
-            controlMode === ControlMode.Translate
-            || controlMode === ControlMode.Scale
-        ) {
-            const xColor = selectedAxis === Axis.X ? Color.yellow : Color.red;
+        if (controlMode === ControlMode.Hybrid) {
+
+            const xyzMatrix = Matrix44.fromPool();
+            xyzMatrix.compose(
+                position,
+                rotation,
+                scale.copy(Vector3.one).multiply(axisLength * xyzLengthFactor)
+            );
+            Private.xPlaneDir = Math.sign(localCameraPos.x) || 1;
+            Private.yPlaneDir = Math.sign(localCameraPos.y) || 1;
+            Private.zPlaneDir = Math.sign(localCameraPos.z) || 1;
+            GeometryRenderer.drawQuad(
+                xyzPoint1.set(0, Private.yPlaneDir, 0),
+                xyzPoint2.set(Private.xPlaneDir, Private.yPlaneDir, 0),
+                xyzPoint3.set(0, 0, 0),
+                xyzPoint4.set(Private.xPlaneDir, 0, 0),
+                selectedAxis === Axis.XY ? Color.yellow : xyControllerColor,
+                xyzMatrix
+            );
+
+            GeometryRenderer.drawQuad(
+                xyzPoint1.set(0, Private.yPlaneDir, 0),
+                xyzPoint2.set(0, Private.yPlaneDir, Private.zPlaneDir),
+                xyzPoint3.set(0, 0, 0),
+                xyzPoint4.set(0, 0, Private.zPlaneDir),
+                selectedAxis === Axis.ZY ? Color.yellow : zyControllerColor,
+                xyzMatrix
+            );
+
+            GeometryRenderer.drawQuad(
+                xyzPoint1.set(0, 0, Private.zPlaneDir),
+                xyzPoint2.set(Private.xPlaneDir, 0, Private.zPlaneDir),
+                xyzPoint3.set(0, 0, 0),
+                xyzPoint4.set(Private.xPlaneDir, 0, 0),
+                selectedAxis === Axis.XZ ? Color.yellow : xzControllerColor,
+                xyzMatrix
+            );
+
+            const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.red;
+            const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.red;
+            const yPosColor = selectedAxis === Axis.YPos ? Color.yellow : Color.green;
+            const yNegColor = selectedAxis === Axis.YNeg ? Color.yellow : Color.green;
+            const zPosColor = selectedAxis === Axis.ZPos ? Color.yellow : Color.blue;
+            const zNegColor = selectedAxis === Axis.ZNeg ? Color.yellow : Color.blue;
+            const extent = Vector3.fromPool().copy(Vector3.one).multiply(Private.boxExtentFactor);
+            const xPos = Vector3.fromPool().copy(Vector3.right).multiply(axisLength);
+            const yPos = Vector3.fromPool().copy(Vector3.up).multiply(axisLength);
+            const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
+            const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
+            GeometryRenderer.drawBox(xPos, extent, xPosColor, matrixNoScale);
+            GeometryRenderer.drawBox(xPos.flip(), extent, xNegColor, matrixNoScale);            
+            GeometryRenderer.drawBox(yPos, extent, yPosColor, matrixNoScale);
+            GeometryRenderer.drawBox(yPos.flip(), extent, yNegColor, matrixNoScale);
+            GeometryRenderer.drawBox(zPos, extent, zPosColor, matrixNoScale);
+            GeometryRenderer.drawBox(zPos.flip(), extent, zNegColor, matrixNoScale);
+
+            /*const xColor = selectedAxis === Axis.X ? Color.yellow : Color.red;
             const yColor = selectedAxis === Axis.Y ? Color.yellow : Color.green;
             const zColor = selectedAxis === Axis.Z ? Color.yellow : Color.blue;
             GeometryRenderer.drawLine(Vector3.zero, Vector3.right, xColor, worldMatrix);
@@ -724,7 +888,8 @@ export class EntityController {
                 xyzPoint4.set(Private.xPlaneDir, 0, 0),
                 selectedAxis === Axis.XZ ? Color.yellow : xzControllerColor,
                 xyzMatrix
-            );
+            );*/
+
         } else if (controlMode === ControlMode.Rotate) {
             const _scale = Vector3.fromPool().copy(Vector3.one).multiply(axisLength);
             const lookAt = Matrix44.fromPool();

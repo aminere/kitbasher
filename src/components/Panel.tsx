@@ -33,8 +33,7 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                 <div
                     className="unselectable"
                     style={{
-                        height: "30px",
-                        padding: "4px",
+                        height: "38px",
                         backgroundColor: "rgba(84, 99, 111, 0.5)",
                         borderRadius,
                         textShadow: "black 1px 1px",
@@ -48,13 +47,15 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                         this.setState({ collapsed: !this.state.collapsed });
                     }}
                 >
-                    <Icon icon={this.state.collapsed ? "chevron-right" : "chevron-down"} />
-                    <span>{this.props.title}</span>
+                    <div style={{ padding: "4px" }}>
+                        <Icon icon={this.state.collapsed ? "chevron-right" : "chevron-down"} />
+                        <span>{this.props.title}</span>
+                    </div>                    
                     <div
                         style={{
                             position: "absolute",
                             right: "0px",
-                            top: "10px"
+                            top: "0px"
                         }}
                     >
                         {this.props.controls}

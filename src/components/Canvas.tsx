@@ -221,13 +221,15 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         />
                                     )}
                                     controls={(
-                                        <Checkbox
-                                            checked={State.instance.snapping}
-                                            onChange={e => {
-                                                State.instance.snapping = !State.instance.snapping;
-                                                this.forceUpdate();
-                                            }}
-                                        />
+                                        <div style={{ marginTop: "14px" }}>
+                                            <Checkbox
+                                                checked={State.instance.snapping}
+                                                onChange={e => {
+                                                    State.instance.snapping = !State.instance.snapping;
+                                                    this.forceUpdate();
+                                                }}
+                                            />
+                                        </div>
                                     )}
                                 />
                             );
@@ -251,60 +253,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         content={(
                                             <PropertyGrid
                                                 ref={e => this._transform = e as PropertyGrid}
-                                                target={this._mockState.selection[0].getComponent(Transform) as Transform}
-                                                metadata={{
-                                                    _position: {
-                                                        action: (
-                                                            <Tooltip content="Translate" position={Position.LEFT}>
-                                                                <Button
-                                                                    icon="move"
-                                                                    active={controlMode === ControlMode.Translate}
-                                                                    intent={controlMode === ControlMode.Translate ? Intent.PRIMARY : Intent.NONE}
-                                                                    onClick={() => {
-                                                                        State.instance.controlMode = ControlMode.Translate;
-                                                                        this.forceUpdate();
-                                                                    }}
-                                                                    onFocus={e => e.currentTarget.blur()}
-                                                                />
-                                                            </Tooltip>
-                                                        ),
-                                                        showName: false
-                                                    },
-                                                    _rotation: {
-                                                        action: (
-                                                            <Tooltip content="Rotate" position={Position.LEFT}>
-                                                                <Button
-                                                                    icon="refresh"
-                                                                    active={controlMode === ControlMode.Rotate}
-                                                                    intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
-                                                                    onClick={() => {
-                                                                        State.instance.controlMode = ControlMode.Rotate;
-                                                                        this.forceUpdate();
-                                                                    }}
-                                                                    onFocus={e => e.currentTarget.blur()}
-                                                                />
-                                                            </Tooltip>
-                                                        ),
-                                                        showName: false
-                                                    },
-                                                    _scale: {
-                                                        action: (
-                                                            <Tooltip content="Scale" position={Position.LEFT}>
-                                                                <Button
-                                                                    icon="maximize"
-                                                                    active={controlMode === ControlMode.Scale}
-                                                                    intent={controlMode === ControlMode.Scale ? Intent.PRIMARY : Intent.NONE}
-                                                                    onClick={() => {
-                                                                        State.instance.controlMode = ControlMode.Scale;
-                                                                        this.forceUpdate();
-                                                                    }}
-                                                                    onFocus={e => e.currentTarget.blur()}
-                                                                />
-                                                            </Tooltip>
-                                                        ),
-                                                        showName: false
-                                                    }
-                                                }}
+                                                target={this._mockState.selection[0].getComponent(Transform) as Transform}                                                
                                                 onPropertyChanged={(name, newValue) => {
                                                     SerializerUtilsInternal.tryUsePropertySetter = true;
                                                     SerializerUtils.setProperty(
@@ -316,6 +265,40 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                     Commands.saveScene.post();
                                                 }}
                                             />
+                                        )}
+                                        controls={(
+                                            <div style={{ padding: "4px" }}>
+                                                <Tooltip content="Move / Scale" position={Position.BOTTOM}>
+                                                    <span style={{ padding: "2px 4px" }}>
+                                                        <Button
+                                                            icon="move"
+                                                            active={controlMode === ControlMode.Hybrid}
+                                                            intent={controlMode === ControlMode.Hybrid ? Intent.PRIMARY : Intent.NONE}
+                                                            onClick={(e: React.MouseEvent<HTMLElement>) => {
+                                                                State.instance.controlMode = ControlMode.Hybrid;
+                                                                e.stopPropagation();
+                                                                this.forceUpdate();
+                                                            }}
+                                                            onFocus={e => e.currentTarget.blur()}
+                                                        />
+                                                    </span>
+                                                </Tooltip>
+                                                <Tooltip content="Rotate" position={Position.BOTTOM}>
+                                                    <span style={{ padding: "2px" }}>
+                                                        <Button
+                                                            icon="refresh"
+                                                            active={controlMode === ControlMode.Rotate}
+                                                            intent={controlMode === ControlMode.Rotate ? Intent.PRIMARY : Intent.NONE}
+                                                            onClick={(e: React.MouseEvent<HTMLElement>) => {
+                                                                State.instance.controlMode = ControlMode.Rotate;
+                                                                e.stopPropagation();
+                                                                this.forceUpdate();
+                                                            }}
+                                                            onFocus={e => e.currentTarget.blur()}
+                                                        />
+                                                    </span>
+                                                </Tooltip>
+                                            </div>
                                         )}
                                     />
                                     <Panel

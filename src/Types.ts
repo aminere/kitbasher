@@ -22,9 +22,8 @@ export interface IKitAsset {
 }
 
 export enum ControlMode {
-    Translate,
-    Rotate,
-    Scale
+    Hybrid,
+    Rotate    
 }
 
 export enum Axis {
@@ -34,5 +33,11 @@ export enum Axis {
     Z,
     XY,
     XZ,
-    ZY
+    ZY,
+    XNeg,
+    XPos,
+    YNeg,
+    YPos,
+    ZNeg,
+    ZPos
 }

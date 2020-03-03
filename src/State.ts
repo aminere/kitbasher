@@ -30,7 +30,7 @@ export class State {
     private _selectedItem: ContentItemType | null = null;
 
     private _selection: Entity[] = [];
-    private _controlMode = ControlMode.Translate;
+    private _controlMode = ControlMode.Hybrid;
     private _altPressed = false;
 
     private _data: IPersistentState = {
