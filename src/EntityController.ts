@@ -141,32 +141,7 @@ export class EntityController {
                     const toCamera = Vector3.fromPool().copy(camera.entity.transform.worldPosition)
                         .substract(transform.worldPosition).normalize();
                     const toObject = Vector3.fromPool().copy(toCamera).flip();
-                    if (controlMode === ControlMode.Hybrid) {
-                        /*if (selectedAxis === Axis.X) {
-                            const dotZ = Math.abs(toObject.dot(transform.worldForward));
-                            const dotY = Math.abs(toObject.dot(transform.worldUp));
-                            if (dotZ > dotY) {
-                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
-                            } else {
-                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
-                            }
-                        } else if (selectedAxis === Axis.Y) {
-                            const dotX = Math.abs(toObject.dot(transform.worldRight));
-                            const dotZ = Math.abs(toObject.dot(transform.worldForward));
-                            if (dotX > dotZ) {
-                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
-                            } else {
-                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
-                            }
-                        } else if (selectedAxis === Axis.Z) {
-                            const dotX = Math.abs(toObject.dot(transform.worldRight));
-                            const dotY = Math.abs(toObject.dot(transform.worldUp));
-                            if (dotX > dotY) {
-                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
-                            } else {
-                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
-                            }
-                        } else */
+                    if (controlMode === ControlMode.Hybrid) {                        
                         if (selectedAxis === Axis.XY) {
                             controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
                         } else if (selectedAxis === Axis.XZ) {
@@ -203,11 +178,8 @@ export class EntityController {
                         const pickingRay = camera.getWorldRay(clickStart.x, clickStart.y);
                         if (pickingRay) {
                             initialIntersection.copy(pickingRay.castOnPlane(controlPlane).intersection as Vector3);
-                            // if (controlMode === ControlMode.Translate) {
                             initialPosition.copy(transform.position);
-                            // } else {
                             initialScale.copy(transform.scale);
-                            // }
                         } else {
                             return false;
                         }
@@ -270,57 +242,32 @@ export class EntityController {
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
+
+                    const step = State.instance.gridStep;
                     const snap = (a: Vector3, b: Vector3) => {
-                        const { gridStep } = State.instance;
-                        transform.position.x = Snapping.snap(a.x + b.x, gridStep);
-                        transform.position.y = Snapping.snap(a.y + b.y, gridStep);
-                        transform.position.z = Snapping.snap(a.z + b.z, gridStep);
+                        transform.position.x = a.x + Snapping.snap(b.x, step) * .5;
+                        transform.position.y = a.y + Snapping.snap(b.y, step) * .5;
+                        transform.position.z = a.z + Snapping.snap(b.z, step) * .5;
                     };
 
                     const scaleSnap = (
                         prop: "x" | "y" | "z",
                         offset: Vector3,
-                        axis: Vector3,
-                        factor?: number
+                        axis: Vector3
                     ) => {
-                        const dir = Math.sign(offset.dot(axis));
-                        transform.scale[prop] = Snapping.snap(
-                            initialScale[prop] + offset.length * (factor ?? 1) * dir, 
-                            State.instance.gridStep
-                        );
+                        // const dir = Math.sign(offset.dot(axis));
+                        transform.scale[prop] = initialScale[prop] + Snapping.snap(
+                            offset[prop], 
+                            step
+                        ) * .5;
                     };
-
-                    /*if (selectedAxis === Axis.X) {
-                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        const length = translation.length;
-                        const dir = Math.sign(translation.dot(transform.worldRight));
-
-                        translation.copy(transform.right).multiply(length * dir);
-                        snap(initialPosition, translation);
-
-                    } else if (selectedAxis === Axis.Y) {
-
-                        translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
-                        const length = translation.length;
-                        const dir = Math.sign(translation.dot(transform.worldUp));
-
-                        translation.copy(transform.up).multiply(length * dir);
-                        snap(initialPosition, translation);
-                    } else if (selectedAxis === Axis.Z) {
-
-                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
-                        const length = translation.length;
-                        const dir = Math.sign(translation.dot(transform.worldForward));
-
-                        translation.copy(transform.forward).multiply(length * dir);
-                        snap(initialPosition, translation);
-                    } else */
 
                     if (selectedAxis === Axis.XPos) {
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldRight));
                         translation.copy(transform.right).multiply(length * dir);
+                        console.log(translation);
                         snap(initialPosition, translation);
                         scaleSnap("x", translation, transform.worldRight);
 
@@ -436,70 +383,7 @@ export class EntityController {
                         // skip entityTransformChanged event
                         return true;
                     }
-                }
-                /* } else {
-                    // Scale
-                    /*translation.substractVectors(currentIntersection, initialIntersection);
-                    const parentScale = (transform.parent && transform.parent.transform)
-                        ? transform.parent.transform.worldScale
-                        : Vector3.one;
-
-                    const snap = (
-                        prop: "x" | "y" | "z",
-                        offset: Vector3,
-                        axis: Vector3,
-                        factor?: number
-                    ) => {
-                        const dir = Math.sign(offset.dot(axis));
-                        transform.scale[prop] = Snapping.snap(
-                            initialScale[prop] + offset.length * (factor ?? 1) * dir, 
-                            State.instance.gridStep
-                        );
-                    };
-
-                    if (selectedAxis === Axis.X) {
-
-                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        snap("x", translation, transform.worldRight);
-
-                    } else if (selectedAxis === Axis.Y) {
-
-                        translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        snap("y", translation, transform.worldUp);
-
-                    } else if (selectedAxis === Axis.Z) {
-
-                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        snap("z", translation, transform.worldForward);
-
-                    } else if (selectedAxis === Axis.XY) {
-
-                        translation2.copy(translation);
-                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        snap("x", translation, transform.worldRight, Private.xPlaneDir);
-
-                        translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        snap("y", translation2, transform.worldUp, Private.yPlaneDir);
-
-                    } else if (selectedAxis === Axis.XZ) {
-
-                        translation2.copy(translation);
-                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        snap("x", translation, transform.worldRight, Private.xPlaneDir);
-
-                        translation2.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        snap("z", translation2, transform.worldForward, Private.zPlaneDir);
-
-                    } else if (selectedAxis === Axis.ZY) {
-
-                        translation2.copy(translation);
-                        translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.x);
-                        snap("z", translation, transform.worldForward, Private.zPlaneDir);
-
-                        translation2.projectOnVector(transform.worldUp).multiply(1 / parentScale.x);
-                        snap("y", translation2, transform.worldUp, Private.yPlaneDir);
-                    }
-                }*/
+                }                
 
                 Events.transformChanged.post(selectedEntity);
                 return true;
@@ -528,15 +412,8 @@ export class EntityController {
             localPickingRay.copy(pickingRay).transform(invWorldNoScale);
 
             if (controlMode === ControlMode.Hybrid) {
-                // update the axis bounding boxes          
-                // let t = axisLength * Private.axisThicknessFactor;
-                let t = Private.boxExtentFactor;
-                // Private.xAxisAABB.min.set(0, -t, -t);
-                // Private.xAxisAABB.max.set(axisLength, t, t);                
-                // Private.yAxisAABB.min.set(-t, 0, -t);
-                // Private.yAxisAABB.max.set(t, axisLength, t);
-                // Private.zAxisAABB.min.set(-t, -t, 0);
-                // Private.zAxisAABB.max.set(t, t, axisLength);
+                // update the axis bounding boxes                
+                let t = Private.boxExtentFactor;                
                 Private.xPosAxisAABB.min.set(Private.axisLength - t, -t, -t);
                 Private.xPosAxisAABB.max.set(Private.axisLength + t, t, t);
                 Private.xNegAxisAABB.min.set(-Private.axisLength - t, -t, -t);
@@ -804,91 +681,6 @@ export class EntityController {
             GeometryRenderer.drawBox(yPos.flip(), extent, yNegColor, matrixNoScale);
             GeometryRenderer.drawBox(zPos, extent, zPosColor, matrixNoScale);
             GeometryRenderer.drawBox(zPos.flip(), extent, zNegColor, matrixNoScale);
-
-            /*const xColor = selectedAxis === Axis.X ? Color.yellow : Color.red;
-            const yColor = selectedAxis === Axis.Y ? Color.yellow : Color.green;
-            const zColor = selectedAxis === Axis.Z ? Color.yellow : Color.blue;
-            GeometryRenderer.drawLine(Vector3.zero, Vector3.right, xColor, worldMatrix);
-            GeometryRenderer.drawLine(Vector3.zero, Vector3.up, yColor, worldMatrix);
-            GeometryRenderer.drawLine(Vector3.zero, Vector3.forward, zColor, worldMatrix);
-
-            if (controlMode === ControlMode.Translate) {
-                const coneRadius = distFromCamera * coneRadiusFactor;
-                const coneLength = distFromCamera * coneLengthFactor;
-                GeometryRenderer.drawCone(
-                    coneRadius,
-                    coneLength,
-                    axisLength,
-                    transform.worldRight,
-                    transform.worldUp,
-                    xColor,
-                    position
-                );
-                GeometryRenderer.drawCone(
-                    coneRadius,
-                    coneLength,
-                    axisLength,
-                    transform.worldUp,
-                    transform.worldRight,
-                    yColor,
-                    position
-                );
-                GeometryRenderer.drawCone(
-                    coneRadius,
-                    coneLength,
-                    axisLength,
-                    transform.worldForward,
-                    transform.worldUp,
-                    zColor,
-                    position
-                );
-            } else {
-                const extentFactor = distFromCamera * .01;
-                const extent = Vector3.fromPool().copy(Vector3.one).multiply(extentFactor);
-                const xPos = Vector3.fromPool().copy(Vector3.right).multiply(axisLength);
-                const yPos = Vector3.fromPool().copy(Vector3.up).multiply(axisLength);
-                const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
-                const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
-                GeometryRenderer.drawBox(xPos, extent, xColor, matrixNoScale);
-                GeometryRenderer.drawBox(yPos, extent, yColor, matrixNoScale);
-                GeometryRenderer.drawBox(zPos, extent, zColor, matrixNoScale);
-            }
-
-            const xyzMatrix = Matrix44.fromPool();
-            xyzMatrix.compose(
-                position,
-                rotation,
-                scale.copy(Vector3.one).multiply(axisLength * xyzLengthFactor)
-            );
-            Private.xPlaneDir = Math.sign(localCameraPos.x) || 1;
-            Private.yPlaneDir = Math.sign(localCameraPos.y) || 1;
-            Private.zPlaneDir = Math.sign(localCameraPos.z) || 1;
-            GeometryRenderer.drawQuad(
-                xyzPoint1.set(0, Private.yPlaneDir, 0),
-                xyzPoint2.set(Private.xPlaneDir, Private.yPlaneDir, 0),
-                xyzPoint3.set(0, 0, 0),
-                xyzPoint4.set(Private.xPlaneDir, 0, 0),
-                selectedAxis === Axis.XY ? Color.yellow : xyControllerColor,
-                xyzMatrix
-            );
-
-            GeometryRenderer.drawQuad(
-                xyzPoint1.set(0, Private.yPlaneDir, 0),
-                xyzPoint2.set(0, Private.yPlaneDir, Private.zPlaneDir),
-                xyzPoint3.set(0, 0, 0),
-                xyzPoint4.set(0, 0, Private.zPlaneDir),
-                selectedAxis === Axis.ZY ? Color.yellow : zyControllerColor,
-                xyzMatrix
-            );
-
-            GeometryRenderer.drawQuad(
-                xyzPoint1.set(0, 0, Private.zPlaneDir),
-                xyzPoint2.set(Private.xPlaneDir, 0, Private.zPlaneDir),
-                xyzPoint3.set(0, 0, 0),
-                xyzPoint4.set(Private.xPlaneDir, 0, 0),
-                selectedAxis === Axis.XZ ? Color.yellow : xzControllerColor,
-                xyzMatrix
-            );*/
 
         } else if (controlMode === ControlMode.Rotate) {
             const _scale = Vector3.fromPool().copy(Vector3.one).multiply(axisLength);
