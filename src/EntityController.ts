@@ -243,21 +243,46 @@ export class EntityController {
                         ? transform.parent.transform.worldScale
                         : Vector3.one;
 
-                    const step = State.instance.gridStep;
-                    const snap = (a: Vector3, b: Vector3) => {
-                        transform.position.x = a.x + Snapping.snap(b.x, step) * .5;
-                        transform.position.y = a.y + Snapping.snap(b.y, step) * .5;
-                        transform.position.z = a.z + Snapping.snap(b.z, step) * .5;
+                    const localAxis = (prop: "x" | "y" | "z") => {
+                        return {
+                            x: transform.worldRight,
+                            y: transform.worldUp,
+                            z: transform.worldForward
+                        }[prop];
                     };
 
-                    const scaleSnap = (
-                        prop: "x" | "y" | "z",
-                        offset: Vector3,
-                        axis: Vector3
-                    ) => {
-                        // const dir = Math.sign(offset.dot(axis));
+                    const globalAxis = (prop: "x" | "y" | "z") => {
+                        return {
+                            x: Vector3.right,
+                            y: Vector3.up,
+                            z: Vector3.forward
+                        }[prop];
+                    };
+
+                    const step = State.instance.gridStep;
+
+                    const snap = (a: Vector3, b: Vector3) => {
+                        transform.position.x = a.x + Snapping.snap(b.x, step);
+                        transform.position.y = a.y + Snapping.snap(b.y, step);
+                        transform.position.z = a.z + Snapping.snap(b.z, step);
+                    };
+
+                    const hybridSnap = (prop: "x" | "y" | "z", a: Vector3, b: Vector3) => {
+                        // The step is lowered because scaleSnap() uses the length of the offset
+                        // therefore, because the components of a non-basis offset are lower than its length,
+                        // we need a lower snap step to ensure scale and position snap at the same time
+                        // this basically cosine-interpolates the step depending on the angle of the offset.
+                        const _step = step * Math.abs(localAxis(prop).dot(globalAxis(prop)));
+                        transform.position.x = a.x + Snapping.snap(b.x, _step) * .5;
+                        transform.position.y = a.y + Snapping.snap(b.y, _step) * .5;
+                        transform.position.z = a.z + Snapping.snap(b.z, _step) * .5;
+                    };
+
+                    const scaleSnap = (prop: "x" | "y" | "z", offset: Vector3, axis: Vector3) => {
+                        const dir = Math.sign(offset.dot(axis));
+                        console.log("offset.length " + offset.length);
                         transform.scale[prop] = initialScale[prop] + Snapping.snap(
-                            offset[prop], 
+                            offset.length * dir, 
                             step
                         ) * .5;
                     };
@@ -268,7 +293,7 @@ export class EntityController {
                         const dir = Math.sign(translation.dot(transform.worldRight));
                         translation.copy(transform.right).multiply(length * dir);
                         console.log(translation);
-                        snap(initialPosition, translation);
+                        hybridSnap("x", initialPosition, translation);
                         scaleSnap("x", translation, transform.worldRight);
 
                     } else if (selectedAxis === Axis.XNeg) {
@@ -276,7 +301,7 @@ export class EntityController {
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldRight));
                         translation.copy(transform.right).multiply(length * dir);
-                        snap(initialPosition, translation);
+                        hybridSnap("x", initialPosition, translation);
                         scaleSnap("x", translation.flip(), transform.worldRight);
 
                     } else if (selectedAxis === Axis.YPos) {
@@ -284,7 +309,7 @@ export class EntityController {
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldUp));
                         translation.copy(transform.up).multiply(length * dir);
-                        snap(initialPosition, translation);
+                        hybridSnap("y", initialPosition, translation);
                         scaleSnap("y", translation, transform.worldUp);
 
                     } else if (selectedAxis === Axis.YNeg) {
@@ -292,7 +317,7 @@ export class EntityController {
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldUp));
                         translation.copy(transform.up).multiply(length * dir);
-                        snap(initialPosition, translation);
+                        hybridSnap("y", initialPosition, translation);
                         scaleSnap("y", translation.flip(), transform.worldUp);
 
                     } else if (selectedAxis === Axis.ZPos) {
@@ -300,7 +325,7 @@ export class EntityController {
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldForward));
                         translation.copy(transform.forward).multiply(length * dir);
-                        snap(initialPosition, translation);
+                        hybridSnap("z", initialPosition, translation);
                         scaleSnap("z", translation, transform.worldForward);
 
                     } else if (selectedAxis === Axis.ZNeg) {
@@ -308,7 +333,7 @@ export class EntityController {
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldForward));
                         translation.copy(transform.forward).multiply(length * dir);
-                        snap(initialPosition, translation);
+                        hybridSnap("z", initialPosition, translation);
                         scaleSnap("z", translation.flip(), transform.worldForward);  
 
                     } else if (selectedAxis === Axis.XY) {
