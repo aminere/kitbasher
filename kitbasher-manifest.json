@@ -1,6 +1,7 @@
 {
 	"models": [
-	    ["Blocks", "cube"],
+        ["Blocks", "cube"],
+        ["Blocks", "cube2"],
         ["Blocks", "sphere"],
         ["Blocks", "ground"],
         ["Blocks", "roof"],

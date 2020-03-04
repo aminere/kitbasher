@@ -1,0 +1,68 @@
+{
+  "typeName": "Model",
+  "version": 2,
+  "properties": {
+    "id": "c1f654eb-1e57-48c1-97ce-25f9272a75e9",
+    "name": "Cube2",
+    "fbxScaleFactor": 0.01,
+    "elements": {
+      "typeName": "ModelElement",
+      "data": [
+        {
+          "baseTypeName": "ModelElement",
+          "data": {
+            "typeName": "ModelMesh",
+            "version": 2,
+            "properties": {
+              "id": "0a29b554-c41e-478f-8c6b-d7314f54308f",
+              "name": "Cube",
+              "children": {
+                "typeName": "ModelElement",
+                "data": []
+              },
+              "transform": {
+                "typeName": "Transform",
+                "version": 2,
+                "properties": {
+                  "_active": true,
+                  "_position": {
+                    "_x": 0,
+                    "_y": 0,
+                    "_z": 0
+                  },
+                  "_rotation": {
+                    "_x": -0.7071066949639712,
+                    "_y": 0,
+                    "_z": 0,
+                    "_w": 0.7071068674091134
+                  },
+                  "_scale": {
+                    "_x": 100,
+                    "_y": 100,
+                    "_z": 100
+                  }
+                }
+              },
+              "material": {
+                "typeName": "Material",
+                "id": "Assets/Kits/Models/Materials/Default.Material"
+              },
+              "mesh": {
+                "typeName": "StaticMeshAsset",
+                "id": "Assets/Kits/Models/Meshes/Cube 1.StaticMeshAsset"
+              },
+              "fbxNodeId": {
+                "typeName": "Number",
+                "data": 801966698
+              }
+            }
+          }
+        }
+      ]
+    },
+    "_animations": {
+      "typeName": "Animation",
+      "data": []
+    }
+  }
+}

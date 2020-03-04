@@ -11,4 +11,13 @@ export class BoundingBoxes {
         }
         return null;
     }
+
+    public static getLocal(entity: Entity) {
+        const geometry = entity.children[0];
+        const bbox = geometry.getComponent(Visual)?.geometry?.getBoundingBox();
+        if (bbox) {
+            return AABB.fromPool().copy(bbox).transform(geometry.transform.localMatrix);
+        }
+        return null;
+    }
 }
