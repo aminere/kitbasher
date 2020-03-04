@@ -241,23 +241,7 @@ export class EntityController {
                     translation.substractVectors(currentIntersection, initialIntersection);
                     const parentScale = (transform.parent && transform.parent.transform)
                         ? transform.parent.transform.worldScale
-                        : Vector3.one;
-
-                    const localAxis = (prop: "x" | "y" | "z") => {
-                        return {
-                            x: transform.worldRight,
-                            y: transform.worldUp,
-                            z: transform.worldForward
-                        }[prop];
-                    };
-
-                    const globalAxis = (prop: "x" | "y" | "z") => {
-                        return {
-                            x: Vector3.right,
-                            y: Vector3.up,
-                            z: Vector3.forward
-                        }[prop];
-                    };
+                        : Vector3.one;                    
 
                     const step = State.instance.gridStep;
 
@@ -275,6 +259,8 @@ export class EntityController {
                     };
 
                     if (selectedAxis === Axis.XPos) {
+                        // console.log(BoundingBoxes.get(transform.entity));
+
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldRight));
