@@ -267,74 +267,60 @@ export class EntityController {
                         transform.position.z = a.z + Snapping.snap(b.z, step);
                     };
 
-                    const hybridSnap = (prop: "x" | "y" | "z", a: Vector3, b: Vector3) => {
-                        // The step is lowered because scaleSnap() uses the length of the offset
-                        // therefore, because the components of a non-basis offset are lower than its length,
-                        // we need a lower snap step to ensure scale and position snap at the same time
-                        // this basically cosine-interpolates the step depending on the angle of the offset.
-                        const _step = step * Math.abs(localAxis(prop).dot(globalAxis(prop)));
-                        transform.position.x = a.x + Snapping.snap(b.x, _step) * .5;
-                        transform.position.y = a.y + Snapping.snap(b.y, _step) * .5;
-                        transform.position.z = a.z + Snapping.snap(b.z, _step) * .5;
-                    };
-
                     const scaleSnap = (prop: "x" | "y" | "z", offset: Vector3, axis: Vector3) => {
                         const dir = Math.sign(offset.dot(axis));
-                        console.log("offset.length " + offset.length);
-                        transform.scale[prop] = initialScale[prop] + Snapping.snap(
-                            offset.length * dir, 
-                            step
-                        ) * .5;
+                        const amount = Snapping.snap(offset.length * dir, step) * .5;
+                        transform.scale[prop] = initialScale[prop] + amount;
+                        return amount;
                     };
 
                     if (selectedAxis === Axis.XPos) {
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        const length = translation.length;
+                        const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldRight));
-                        translation.copy(transform.right).multiply(length * dir);
-                        console.log(translation);
-                        hybridSnap("x", initialPosition, translation);
-                        scaleSnap("x", translation, transform.worldRight);
+                        translation.copy(transform.right).multiply(length * dir);                        
+                        const amount = scaleSnap("x", translation, transform.worldRight);
+                        transform.position.copy(transform.right).multiply(amount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.XNeg) {
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        const length = translation.length;
+                        const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldRight));
                         translation.copy(transform.right).multiply(length * dir);
-                        hybridSnap("x", initialPosition, translation);
-                        scaleSnap("x", translation.flip(), transform.worldRight);
+                        const amount = scaleSnap("x", translation.flip(), transform.worldRight);
+                        transform.position.copy(transform.right).multiply(-amount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.YPos) {
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
-                        const length = translation.length;
+                        const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldUp));
                         translation.copy(transform.up).multiply(length * dir);
-                        hybridSnap("y", initialPosition, translation);
-                        scaleSnap("y", translation, transform.worldUp);
+                        const amount = scaleSnap("y", translation, transform.worldUp);
+                        transform.position.copy(transform.up).multiply(amount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.YNeg) {
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldUp));
                         translation.copy(transform.up).multiply(length * dir);
-                        hybridSnap("y", initialPosition, translation);
-                        scaleSnap("y", translation.flip(), transform.worldUp);
+                        const amount = scaleSnap("y", translation.flip(), transform.worldUp);
+                        transform.position.copy(transform.up).multiply(-amount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.ZPos) {
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldForward));
                         translation.copy(transform.forward).multiply(length * dir);
-                        hybridSnap("z", initialPosition, translation);
-                        scaleSnap("z", translation, transform.worldForward);
+                        const amount = scaleSnap("z", translation, transform.worldForward);
+                        transform.position.copy(transform.forward).multiply(amount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.ZNeg) {
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
                         const length = translation.length;
                         const dir = Math.sign(translation.dot(transform.worldForward));
                         translation.copy(transform.forward).multiply(length * dir);
-                        hybridSnap("z", initialPosition, translation);
-                        scaleSnap("z", translation.flip(), transform.worldForward);  
+                        const amount = scaleSnap("z", translation.flip(), transform.worldForward);
+                        transform.position.copy(transform.forward).multiply(-amount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.XY) {
 
