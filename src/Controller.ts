@@ -112,6 +112,16 @@ namespace Private {
         const { gridStep, selectedKit } = State.instance;
         const ray = EditorCamera.getWorldRay(localX, localY);
         const rayCast = (ray ? Private.tryPickEntity(ray, instance) : null);
+        const intersect = ray?.castOnPlane([xPlane, yPlane, zPlane][State.instance.grid]);
+
+        const snapped = (pos: Vector3) => {
+            return Vector3.fromPool().set(
+                Snapping.snap(pos.x, gridStep),
+                Snapping.snap(pos.y, gridStep),
+                Snapping.snap(pos.z, gridStep)
+            );
+        };
+
         if (rayCast) {
             switch (selectedKit?.type) {
                 case "block": {
@@ -125,11 +135,12 @@ namespace Private {
                     const [selector, direction] = selectors[selectedKit.plane];
                     const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
                     const { position } = rayCast.closest.transform;
+                    const pos = snapped(/*intersect?.intersection ??*/ position);
                     return [
                         Vector3.fromPool().set(
-                            position.x * (1 - direction.x) + offset * direction.x,
-                            position.y * (1 - direction.y) + offset * direction.y,
-                            position.z * (1 - direction.z) + offset * direction.z,
+                            pos.x * (1 - direction.x) + offset * direction.x,
+                            pos.y * (1 - direction.y) + offset * direction.y,
+                            pos.z * (1 - direction.z) + offset * direction.z,
                         ),
                         rayCast.closest.transform.rotation,
                         rayCast.closest
@@ -167,18 +178,9 @@ namespace Private {
                     // tslint:disable-next-line
                     console.assert(false, `Invalid kit type ${selectedKit?.type}`);
             }
-        } else {
-            const intersect = ray?.castOnPlane([xPlane, yPlane, zPlane][State.instance.grid]);
+        } else {            
             if (intersect && intersect.intersection) {
-                return [
-                    Vector3.fromPool().set(
-                        Snapping.snap(intersect.intersection.x, gridStep),
-                        Snapping.snap(intersect.intersection.y, gridStep),
-                        Snapping.snap(intersect.intersection.z, gridStep)
-                    ),
-                    null,
-                    null
-                ];
+                return [snapped(intersect.intersection), null, null];
             }
         }
         return null;
