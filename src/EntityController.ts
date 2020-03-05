@@ -55,9 +55,9 @@ namespace Private {
     export const xyAABB = new AABB();
     export const xzAABB = new AABB();
     export const zyAABB = new AABB();
-    export const xyControllerColor = new Color().copy(Color.red).add(Color.green).setAlpha(0.6);
-    export const xzControllerColor = new Color().copy(Color.red).add(Color.blue).setAlpha(0.6);
-    export const zyControllerColor = new Color().copy(Color.blue).add(Color.green).setAlpha(0.6);
+    export const xyControllerColor = new Color().copy(Color.blue).setAlpha(0.6);
+    export const xzControllerColor = new Color().copy(Color.green).setAlpha(0.6);
+    export const zyControllerColor = new Color().copy(Color.red).setAlpha(0.6);
     export const xyzPoint1 = new Vector3();
     export const xyzPoint2 = new Vector3();
     export const xyzPoint3 = new Vector3();
@@ -638,10 +638,37 @@ export class EntityController {
                 position,
                 rotation,
                 scale.copy(Vector3.one).multiply(axisLength * xyzLengthFactor)
-            );
-            Private.xPlaneDir = Math.sign(localCameraPos.x) || 1;
-            Private.yPlaneDir = Math.sign(localCameraPos.y) || 1;
-            Private.zPlaneDir = Math.sign(localCameraPos.z) || 1;
+            );                      
+
+            const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.white;
+            const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.white;
+            const yPosColor = selectedAxis === Axis.YPos ? Color.yellow : Color.white;
+            const yNegColor = selectedAxis === Axis.YNeg ? Color.yellow : Color.white;
+            const zPosColor = selectedAxis === Axis.ZPos ? Color.yellow : Color.white;
+            const zNegColor = selectedAxis === Axis.ZNeg ? Color.yellow : Color.white;
+            const extent = Vector3.fromPool().copy(Vector3.one).multiply(Private.boxExtentFactor);
+            const xPos = Vector3.fromPool().copy(Vector3.right).multiply(axisLength);
+            const xPos2 = Vector3.fromPool().copy(xPos).flip();
+            const yPos = Vector3.fromPool().copy(Vector3.up).multiply(axisLength);
+            const yPos2 = Vector3.fromPool().copy(yPos).flip();
+            const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
+            const zPos2 = Vector3.fromPool().copy(zPos).flip();
+            const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
+            GeometryRenderer.drawSphere(xPos, extent, xPosColor, matrixNoScale);
+            GeometryRenderer.drawSphere(xPos2, extent, xNegColor, matrixNoScale);
+            GeometryRenderer.drawLine(xPos, xPos2, Color.white, matrixNoScale);
+
+            GeometryRenderer.drawSphere(yPos, extent, yPosColor, matrixNoScale);
+            GeometryRenderer.drawSphere(yPos2, extent, yNegColor, matrixNoScale);
+            GeometryRenderer.drawLine(yPos, yPos2, Color.white, matrixNoScale);
+
+            GeometryRenderer.drawSphere(zPos, extent, zPosColor, matrixNoScale);
+            GeometryRenderer.drawSphere(zPos2, extent, zNegColor, matrixNoScale);
+            GeometryRenderer.drawLine(zPos, zPos2, Color.white, matrixNoScale);
+
+            Private.xPlaneDir = Math.sign(localCameraPos.x) ?? 1;
+            Private.yPlaneDir = Math.sign(localCameraPos.y) ?? 1;
+            Private.zPlaneDir = Math.sign(localCameraPos.z) ?? 1;
             GeometryRenderer.drawQuad(
                 xyzPoint1.set(0, Private.yPlaneDir, 0),
                 xyzPoint2.set(Private.xPlaneDir, Private.yPlaneDir, 0),
@@ -669,23 +696,23 @@ export class EntityController {
                 xyzMatrix
             );
 
-            const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.red;
-            const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.red;
-            const yPosColor = selectedAxis === Axis.YPos ? Color.yellow : Color.green;
-            const yNegColor = selectedAxis === Axis.YNeg ? Color.yellow : Color.green;
-            const zPosColor = selectedAxis === Axis.ZPos ? Color.yellow : Color.blue;
-            const zNegColor = selectedAxis === Axis.ZNeg ? Color.yellow : Color.blue;
-            const extent = Vector3.fromPool().copy(Vector3.one).multiply(Private.boxExtentFactor);
-            const xPos = Vector3.fromPool().copy(Vector3.right).multiply(axisLength);
-            const yPos = Vector3.fromPool().copy(Vector3.up).multiply(axisLength);
-            const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
-            const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
-            GeometryRenderer.drawBox(xPos, extent, xPosColor, matrixNoScale);
-            GeometryRenderer.drawBox(xPos.flip(), extent, xNegColor, matrixNoScale);            
-            GeometryRenderer.drawBox(yPos, extent, yPosColor, matrixNoScale);
-            GeometryRenderer.drawBox(yPos.flip(), extent, yNegColor, matrixNoScale);
-            GeometryRenderer.drawBox(zPos, extent, zPosColor, matrixNoScale);
-            GeometryRenderer.drawBox(zPos.flip(), extent, zNegColor, matrixNoScale);
+            // GeometryRenderer.drawQuad(
+            //     xyzPoint1.set(0, 1, -1),
+            //     xyzPoint2.set(0, 1, 1),
+            //     xyzPoint3.set(0, -1, -1),
+            //     xyzPoint4.set(0, -1, 1),
+            //     selectedAxis === Axis.ZY ? Color.yellow : zyControllerColor,
+            //     xyzMatrix
+            // );    
+
+            // GeometryRenderer.drawQuad(
+            //     xyzPoint1.set(-1, 0, 1),
+            //     xyzPoint2.set(1, 0, 1),
+            //     xyzPoint3.set(-1, 0, -1),
+            //     xyzPoint4.set(1, 0, -1),
+            //     selectedAxis === Axis.XZ ? Color.yellow : xzControllerColor,
+            //     xyzMatrix
+            // );
 
         } else if (controlMode === ControlMode.Rotate) {
             const _scale = Vector3.fromPool().copy(Vector3.one).multiply(axisLength);
