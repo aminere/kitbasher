@@ -640,12 +640,12 @@ export class EntityController {
                 scale.copy(Vector3.one).multiply(axisLength * xyzLengthFactor)
             );                      
 
-            const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.white;
-            const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.white;
-            const yPosColor = selectedAxis === Axis.YPos ? Color.yellow : Color.white;
-            const yNegColor = selectedAxis === Axis.YNeg ? Color.yellow : Color.white;
-            const zPosColor = selectedAxis === Axis.ZPos ? Color.yellow : Color.white;
-            const zNegColor = selectedAxis === Axis.ZNeg ? Color.yellow : Color.white;
+            const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.red;
+            const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.red;
+            const yPosColor = selectedAxis === Axis.YPos ? Color.yellow : Color.green;
+            const yNegColor = selectedAxis === Axis.YNeg ? Color.yellow : Color.green;
+            const zPosColor = selectedAxis === Axis.ZPos ? Color.yellow : Color.blue;
+            const zNegColor = selectedAxis === Axis.ZNeg ? Color.yellow : Color.blue;
             const extent = Vector3.fromPool().copy(Vector3.one).multiply(Private.boxExtentFactor);
             const xPos = Vector3.fromPool().copy(Vector3.right).multiply(axisLength);
             const xPos2 = Vector3.fromPool().copy(xPos).flip();
@@ -654,17 +654,52 @@ export class EntityController {
             const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
             const zPos2 = Vector3.fromPool().copy(zPos).flip();
             const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
-            GeometryRenderer.drawSphere(xPos, extent, xPosColor, matrixNoScale);
-            GeometryRenderer.drawSphere(xPos2, extent, xNegColor, matrixNoScale);
-            GeometryRenderer.drawLine(xPos, xPos2, Color.white, matrixNoScale);
+            
+            const t = Vector3.fromPool();
+            GeometryRenderer.drawLine(xPos, xPos2, Color.red, matrixNoScale);
+            t.set(extent.x * .4, extent.y, extent.z)
+            GeometryRenderer.drawBox(xPos, t, xPosColor, matrixNoScale);
+            GeometryRenderer.drawBox(xPos2, t, xNegColor, matrixNoScale);
+            
+            GeometryRenderer.drawLine(yPos, yPos2, Color.green, matrixNoScale);
+            t.set(extent.x, extent.y * .4, extent.z)
+            GeometryRenderer.drawBox(yPos, t, yPosColor, matrixNoScale);
+            GeometryRenderer.drawBox(yPos2, t, yNegColor, matrixNoScale);
+            
+            GeometryRenderer.drawLine(zPos, zPos2, Color.blue, matrixNoScale);
+            t.set(extent.x, extent.y, extent.z * .4)
+            GeometryRenderer.drawBox(zPos, t, zPosColor, matrixNoScale);
+            GeometryRenderer.drawBox(zPos2, t, zNegColor, matrixNoScale);
 
-            GeometryRenderer.drawSphere(yPos, extent, yPosColor, matrixNoScale);
-            GeometryRenderer.drawSphere(yPos2, extent, yNegColor, matrixNoScale);
-            GeometryRenderer.drawLine(yPos, yPos2, Color.white, matrixNoScale);
-
-            GeometryRenderer.drawSphere(zPos, extent, zPosColor, matrixNoScale);
-            GeometryRenderer.drawSphere(zPos2, extent, zNegColor, matrixNoScale);
-            GeometryRenderer.drawLine(zPos, zPos2, Color.white, matrixNoScale);
+            /*const coneRadius = distFromCamera * coneRadiusFactor;
+            const coneLength = distFromCamera * coneLengthFactor;
+            GeometryRenderer.drawCone(
+                coneRadius,
+                coneLength,
+                axisLength,
+                transform.worldRight,
+                transform.worldUp,
+                xPosColor,
+                position
+            );
+            GeometryRenderer.drawCone(
+                coneRadius,
+                coneLength,
+                axisLength,
+                transform.worldUp,
+                transform.worldRight,
+                yPosColor,
+                position
+            );
+            GeometryRenderer.drawCone(
+                coneRadius,
+                coneLength,
+                axisLength,
+                transform.worldForward,
+                transform.worldUp,
+                zPosColor,
+                position
+            );*/
 
             Private.xPlaneDir = Math.sign(localCameraPos.x) ?? 1;
             Private.yPlaneDir = Math.sign(localCameraPos.y) ?? 1;
