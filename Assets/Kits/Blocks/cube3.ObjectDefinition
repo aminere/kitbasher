@@ -1,0 +1,83 @@
+{
+  "typeName": "ObjectDefinition",
+  "version": 1,
+  "properties": {
+    "id": "a20b7117-acc1-4ccd-97dc-613ac318454f",
+    "name": "cube3",
+    "_pins": {
+      "typeName": "BasePin",
+      "data": [
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "AssetPin",
+            "version": 2,
+            "properties": {
+              "id": "db38a336-4bbd-4b7e-b733-5746b7e8c9b7",
+              "name": "thumbnail",
+              "type": 2,
+              "_assetType": "Texture2D",
+              "value": {
+                "typeName": "AssetReference",
+                "data": {
+                  "typeName": "Texture2D",
+                  "id": "Assets/Kits/Blocks/cube.Texture2D"
+                }
+              }
+            }
+          }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "AssetPin",
+            "version": 2,
+            "properties": {
+              "id": "f93d8d05-8eab-40e9-ad08-2f1bdaa058f8",
+              "name": "model",
+              "type": 2,
+              "_assetType": "Model",
+              "value": {
+                "typeName": "AssetReference",
+                "data": {
+                  "typeName": "Model",
+                  "id": "Assets/Kits/Models/Cube3.Model"
+                }
+              }
+            }
+          }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "StringPin",
+            "version": 2,
+            "properties": {
+              "id": "8fe5d9c9-702b-49fc-9f70-87db2f9e5169",
+              "name": "plane",
+              "type": 2,
+              "value": "y"
+            }
+          }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "StringPin",
+            "version": 2,
+            "properties": {
+              "id": "122681ca-8bd4-4b47-b33b-6771362f674b",
+              "name": "type",
+              "type": 2,
+              "value": "block"
+            }
+          }
+        }
+      ]
+    },
+    "_declaration": {
+      "typeName": "ObjectDeclaration",
+      "id": "Assets/Kit.ObjectDeclaration"
+    }
+  }
+}

@@ -214,7 +214,7 @@ export class EntityController {
                         const pickingRay = camera.getWorldRay(clickStart.x, clickStart.y);
                         if (pickingRay) {
                             initialIntersection.copy(pickingRay.castOnPlane(controlPlane).intersection as Vector3);
-                            initialIntersection.substract(Private.centeredPos).normalize();
+                            initialIntersection.substract(transform.worldPosition).normalize();
                             initialRotation.copy(transform.rotation);
                             localRight.copy(transform.right);
                             localUp.copy(transform.up);
@@ -266,56 +266,75 @@ export class EntityController {
                         const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldRight));
                         translation.copy(transform.right).multiply(length * dir);
-                        const t = Math.abs(bbox.max.x) / size.x;
-                        const amount = scaleSnap("x", translation, transform.worldRight, t / Math.abs(bbox.max.x));
-                        transform.position.copy(transform.right).multiply(amount * (1 - t)).add(initialPosition);
+                        const scaleAmount = scaleSnap("x", translation, transform.worldRight, 1 / size.x);
+                        const farEdge = Math.max(Math.abs(bbox.min.x), Math.abs(bbox.max.x)) / size.x;
+                        const posAmount = bbox.max.x > 0 ? (1 - farEdge) : farEdge;
+                        transform.position.copy(transform.right).multiply(scaleAmount * posAmount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.XNeg) {
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
                         const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldRight));
                         translation.copy(transform.right).multiply(length * dir);
-                        const minX = Math.abs(bbox.min.x);
-                        const t = minX / size.x;
-                        const amount = scaleSnap("x", translation.flip(), transform.worldRight, t / minX);
-                        transform.position.copy(transform.right).multiply(-amount * (1 - t)).add(initialPosition);
+                        const scaleAmount = scaleSnap("x", translation.flip(), transform.worldRight, 1 / size.x);
+                        let edge = bbox.min.x > 0 ? bbox.max.x : bbox.min.x;
+                        edge = Math.abs(edge) / size.x;
+                        const posAmount = bbox.min.x > 0 ? edge : (1 - edge);
+                        transform.position
+                            .copy(transform.right)
+                            .multiply(-scaleAmount * posAmount)
+                            .add(initialPosition);
 
                     } else if (selectedAxis === Axis.YPos) {
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
                         const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldUp));
                         translation.copy(transform.up).multiply(length * dir);
-                        const t = Math.abs(bbox.max.y) / size.y;
-                        const amount = scaleSnap("y", translation, transform.worldUp, t / Math.abs(bbox.max.y));
-                        transform.position.copy(transform.up).multiply(amount * (1 - t)).add(initialPosition);
+                        const scaleAmount = scaleSnap("y", translation, transform.worldUp, 1 / size.y);
+                        const farEdge = Math.max(Math.abs(bbox.min.y), Math.abs(bbox.max.y)) / size.y;
+                        const posAmount = bbox.max.y > 0 ? (1 - farEdge) : farEdge;
+                        transform.position.copy(transform.up).multiply(scaleAmount * posAmount).add(initialPosition);
 
                     } else if (selectedAxis === Axis.YNeg) {
                         translation.projectOnVector(transform.worldUp).multiply(1 / parentScale.y);
-                        const length = translation.length;
+                        const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldUp));
                         translation.copy(transform.up).multiply(length * dir);
-                        const t = Math.abs(bbox.min.y) / size.y;
-                        const amount = scaleSnap("y", translation.flip(), transform.worldUp, t / Math.abs(bbox.min.y));
-                        transform.position.copy(transform.up).multiply(-amount * (1 - t)).add(initialPosition);
+                        const scaleAmount = scaleSnap("y", translation.flip(), transform.worldUp, 1 / size.y);
+                        let edge = bbox.min.y > 0 ? bbox.max.y : bbox.min.y;
+                        edge = Math.abs(edge) / size.y;
+                        const posAmount = bbox.min.y > 0 ? edge : (1 - edge);
+                        transform.position
+                            .copy(transform.up)
+                            .multiply(-scaleAmount * posAmount)
+                            .add(initialPosition);
 
                     } else if (selectedAxis === Axis.ZPos) {
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
-                        const length = translation.length;
+                        const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldForward));
                         translation.copy(transform.forward).multiply(length * dir);
-                        const t = Math.abs(bbox.max.z) / size.z;
-                        const amount = scaleSnap("z", translation, transform.worldForward, t / Math.abs(bbox.max.z));
-                        transform.position.copy(transform.forward).multiply(amount * (1 - t)).add(initialPosition);
+                        const scaleAmount = scaleSnap("z", translation, transform.worldForward, 1 / size.z);
+                        const farEdge = Math.max(Math.abs(bbox.min.z), Math.abs(bbox.max.z)) / size.z;
+                        const posAmount = bbox.max.z > 0 ? (1 - farEdge) : farEdge;
+                        transform.position
+                            .copy(transform.forward)
+                            .multiply(scaleAmount * posAmount)
+                            .add(initialPosition);
 
                     } else if (selectedAxis === Axis.ZNeg) {
                         translation.projectOnVector(transform.worldForward).multiply(1 / parentScale.z);
-                        const length = translation.length;
+                        const { length } = translation;
                         const dir = Math.sign(translation.dot(transform.worldForward));
                         translation.copy(transform.forward).multiply(length * dir);
-                        const minZ =  Math.abs(bbox.min.z);
-                        const t = minZ / size.z;
-                        const amount = scaleSnap("z", translation.flip(), transform.worldForward, t / minZ);
-                        transform.position.copy(transform.forward).multiply(-amount * (1 - t)).add(initialPosition);
+                        const scaleAmount = scaleSnap("z", translation.flip(), transform.worldForward, 1 / size.z);
+                        let edge = bbox.min.z > 0 ? bbox.max.z : bbox.min.z;
+                        edge = Math.abs(edge) / size.z;
+                        const posAmount = bbox.min.z > 0 ? edge : (1 - edge);
+                        transform.position
+                            .copy(transform.forward)
+                            .multiply(-scaleAmount * posAmount)
+                            .add(initialPosition); 
 
                     } else if (selectedAxis === Axis.XY) {
 
@@ -368,7 +387,7 @@ export class EntityController {
                     // Rotation
                 } else if (controlMode === ControlMode.Rotate) {
 
-                    currentIntersection.substract(Private.centeredPos).normalize();
+                    currentIntersection.substract(transform.worldPosition).normalize();
                     const angle = Math.acos(initialIntersection.dot(currentIntersection));
                     if (Math.abs(angle) > 0.001) {
                         const snapped = Snapping.snap(angle, State.instance.angleStep * MathEx.degreesToRadians);
