@@ -589,7 +589,7 @@ export class EntityController {
         const selectedEntities = State.instance.selection;
         // TODO handle multi selection
         const selectedEntity = selectedEntities.length > 0 ? selectedEntities[0] : null;
-        if (!selectedEntity) {            
+        if (!selectedEntity) {
             return;
         }
 
@@ -657,17 +657,17 @@ export class EntityController {
             
             const t = Vector3.fromPool();
             GeometryRenderer.drawLine(xPos, xPos2, Color.red, matrixNoScale);
-            t.set(extent.x * .4, extent.y, extent.z)
+            t.set(extent.x * .4, extent.y, extent.z);
             GeometryRenderer.drawBox(xPos, t, xPosColor, matrixNoScale);
             GeometryRenderer.drawBox(xPos2, t, xNegColor, matrixNoScale);
             
             GeometryRenderer.drawLine(yPos, yPos2, Color.green, matrixNoScale);
-            t.set(extent.x, extent.y * .4, extent.z)
+            t.set(extent.x, extent.y * .4, extent.z);
             GeometryRenderer.drawBox(yPos, t, yPosColor, matrixNoScale);
             GeometryRenderer.drawBox(yPos2, t, yNegColor, matrixNoScale);
             
             GeometryRenderer.drawLine(zPos, zPos2, Color.blue, matrixNoScale);
-            t.set(extent.x, extent.y, extent.z * .4)
+            t.set(extent.x, extent.y, extent.z * .4);
             GeometryRenderer.drawBox(zPos, t, zPosColor, matrixNoScale);
             GeometryRenderer.drawBox(zPos2, t, zNegColor, matrixNoScale);
 
