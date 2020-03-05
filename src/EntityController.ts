@@ -44,6 +44,7 @@ namespace Private {
     export const translation = new Vector3();
     export const translation2 = new Vector3();
     export const controlPlane = new Plane();
+    export const centeredPos = new Vector3();
 
     // translation
     export const xPosAxisAABB = new AABB();
@@ -83,12 +84,12 @@ namespace Private {
 
     export let selectedAxis = Axis.None;
 
-    export function makeCenteredPos(entity: Entity, position: Vector3) {
+    export function makeCenteredPos(entity: Entity) {
         const bbox = BoundingBoxes.get(entity);
         if (bbox) {            
-            position.x = (bbox.min.x + bbox.max.x) / 2;
-            position.y = (bbox.min.y + bbox.max.y) / 2;
-            position.z = (bbox.min.z + bbox.max.z) / 2;
+            centeredPos.x = (bbox.min.x + bbox.max.x) / 2;
+            centeredPos.y = (bbox.min.y + bbox.max.y) / 2;
+            centeredPos.z = (bbox.min.z + bbox.max.z) / 2;
         }
     }
 }
@@ -139,39 +140,39 @@ export class EntityController {
                 const transform = selectedEntity.transform;
                 if (transform) {
                     const toCamera = Vector3.fromPool().copy(camera.entity.transform.worldPosition)
-                        .substract(transform.worldPosition).normalize();
+                        .substract(Private.centeredPos).normalize();
                     const toObject = Vector3.fromPool().copy(toCamera).flip();
                     if (controlMode === ControlMode.Hybrid) {                        
                         if (selectedAxis === Axis.XY) {
-                            controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
+                            controlPlane.setFromPoint(transform.worldForward, Private.centeredPos);
                         } else if (selectedAxis === Axis.XZ) {
-                            controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
+                            controlPlane.setFromPoint(transform.worldUp, Private.centeredPos);
                         } else if (selectedAxis === Axis.ZY) {
-                            controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                            controlPlane.setFromPoint(transform.worldRight, Private.centeredPos);
                         } else if (selectedAxis === Axis.XPos || selectedAxis === Axis.XNeg) {
                             const dotZ = Math.abs(toObject.dot(transform.worldForward));
                             const dotY = Math.abs(toObject.dot(transform.worldUp));
                             if (dotZ > dotY) {
-                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldForward, Private.centeredPos);
                             } else {
-                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldUp, Private.centeredPos);
                             }
 
                         } else if (selectedAxis === Axis.YPos || selectedAxis === Axis.YNeg) {
                             const dotX = Math.abs(toObject.dot(transform.worldRight));
                             const dotZ = Math.abs(toObject.dot(transform.worldForward));
                             if (dotX > dotZ) {
-                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldRight, Private.centeredPos);
                             } else {
-                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldForward, Private.centeredPos);
                             }
                         } else if (selectedAxis === Axis.ZPos || selectedAxis === Axis.ZNeg) {
                             const dotX = Math.abs(toObject.dot(transform.worldRight));
                             const dotY = Math.abs(toObject.dot(transform.worldUp));
                             if (dotX > dotY) {
-                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldRight, Private.centeredPos);
                             } else {
-                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldUp, Private.centeredPos);
                             }
                         }
 
@@ -187,25 +188,25 @@ export class EntityController {
                         const planeOffset = Vector3.fromPool()
                             .copy(toCamera)
                             .multiply(Private.axisLength)
-                            .add(transform.worldPosition);
+                            .add(Private.centeredPos);
                         if (selectedAxis === Axis.X) {
                             const dotX = Math.abs(toObject.dot(transform.worldRight));
                             if (dotX > axisInclinationFactor) {
-                                controlPlane.setFromPoint(transform.worldRight, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldRight, Private.centeredPos);
                             } else {
                                 controlPlane.setFromPoint(toCamera, planeOffset);
                             }
                         } else if (selectedAxis === Axis.Y) {
                             const dotY = Math.abs(toObject.dot(transform.worldUp));
                             if (dotY > axisInclinationFactor) {
-                                controlPlane.setFromPoint(transform.worldUp, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldUp, Private.centeredPos);
                             } else {
                                 controlPlane.setFromPoint(toCamera, planeOffset);
                             }
                         } else if (selectedAxis === Axis.Z) {
                             const dotZ = Math.abs(toObject.dot(transform.worldForward));
                             if (dotZ > axisInclinationFactor) {
-                                controlPlane.setFromPoint(transform.worldForward, transform.worldPosition);
+                                controlPlane.setFromPoint(transform.worldForward, Private.centeredPos);
                             } else {
                                 controlPlane.setFromPoint(toCamera, planeOffset);
                             }
@@ -213,7 +214,7 @@ export class EntityController {
                         const pickingRay = camera.getWorldRay(clickStart.x, clickStart.y);
                         if (pickingRay) {
                             initialIntersection.copy(pickingRay.castOnPlane(controlPlane).intersection as Vector3);
-                            initialIntersection.substract(transform.worldPosition).normalize();
+                            initialIntersection.substract(Private.centeredPos).normalize();
                             initialRotation.copy(transform.rotation);
                             localRight.copy(transform.right);
                             localUp.copy(transform.up);
@@ -367,7 +368,7 @@ export class EntityController {
                     // Rotation
                 } else if (controlMode === ControlMode.Rotate) {
 
-                    currentIntersection.substract(transform.worldPosition).normalize();
+                    currentIntersection.substract(Private.centeredPos).normalize();
                     const angle = Math.acos(initialIntersection.dot(currentIntersection));
                     if (Math.abs(angle) > 0.001) {
                         const snapped = Snapping.snap(angle, State.instance.angleStep * MathEx.degreesToRadians);
@@ -407,12 +408,10 @@ export class EntityController {
             // Take world transform into account, but ignore scale because axis size is independent of scale
             const worldNoScale = Matrix44.fromPool();
             const invWorldNoScale = Matrix44.fromPool();
-            const position = Vector3.fromPool();
             const rotation = Quaternion.fromPool();
             const scale = Vector3.fromPool();
-            transform.worldMatrix.decompose(position, rotation, scale);
-            Private.makeCenteredPos(selectedEntity, position);
-            worldNoScale.compose(position, rotation, Vector3.one);
+            transform.worldMatrix.decompose(Vector3.fromPool(), rotation, scale);
+            worldNoScale.compose(Private.centeredPos, rotation, Vector3.one);
             invWorldNoScale.getInverse(worldNoScale);
             localPickingRay.copy(pickingRay).transform(invWorldNoScale);
 
@@ -434,20 +433,15 @@ export class EntityController {
                 Private.zNegAxisAABB.min.set(-t, -t, -Private.axisLength - t);
                 Private.zNegAxisAABB.max.set(t, t, -Private.axisLength + t);                
                 t = axisLength * Private.xyzLengthFactor;
-                const localCameraPos = transform.worldToLocal(
-                    camera.entity.transform.worldPosition,
-                    Vector3.fromPool()
-                );
-                const dirX = Math.sign(localCameraPos.x) || 1;
-                const dirY = Math.sign(localCameraPos.y) || 1;
-                const dirZ = Math.sign(localCameraPos.z) || 1;
+                
                 // convert from [-1, 1] to [[-t, 0], [0, t]]
-                const minX = t * (((dirX + 1) / 2) - 1);
-                const maxX = t * (dirX + 1) / 2;
-                const minY = t * (((dirY + 1) / 2) - 1);
-                const maxY = t * (dirY + 1) / 2;
-                const minZ = t * (((dirZ + 1) / 2) - 1);
-                const maxZ = t * (dirZ + 1) / 2;
+                const { xPlaneDir, yPlaneDir, zPlaneDir } = Private;
+                const minX = t * (((xPlaneDir + 1) / 2) - 1);
+                const maxX = t * (xPlaneDir + 1) / 2;
+                const minY = t * (((yPlaneDir + 1) / 2) - 1);
+                const maxY = t * (yPlaneDir + 1) / 2;
+                const minZ = t * (((zPlaneDir + 1) / 2) - 1);
+                const maxZ = t * (zPlaneDir + 1) / 2;
                 Private.xyAABB.min.set(minX, minY, 0);
                 Private.xyAABB.max.set(maxX, maxY, 0);
                 Private.xzAABB.min.set(minX, 0, minZ);
@@ -486,9 +480,11 @@ export class EntityController {
                 Private.zRotationAABB.max.set(axisLength, axisLength, t);
                 Private.selectedAxis = Axis.None;
                 let minDist = Number.MAX_VALUE;
-                const toCamera = Vector3.fromPool().copy(camera.entity.transform.worldPosition)
-                    .substract(transform.worldPosition).normalize();
-                const midPlane = Plane.fromPool().setFromPoint(toCamera, transform.worldPosition);
+                const toCamera = Vector3.fromPool()
+                    .copy(camera.entity.transform.worldPosition)
+                    .substract(Private.centeredPos)
+                    .normalize();
+                const midPlane = Plane.fromPool().setFromPoint(toCamera, Private.centeredPos);
                 const toObject = Vector3.fromPool().copy(toCamera).normalize();
                 let collision = localPickingRay.castOnAABB(Private.xRotationAABB);
                 if (collision) {
@@ -617,28 +613,27 @@ export class EntityController {
             ringColor
         } = Private;
 
-        const position = Vector3.fromPool();
         const rotation = Quaternion.fromPool();
         const scale = Vector3.fromPool();
         const { controlMode } = State.instance;
-        transform.worldMatrix.decompose(position, rotation, scale);
-        Private.makeCenteredPos(selectedEntity, position);
-        const distFromCamera = position.distFrom(camera.entity.transform.worldPosition);
+        transform.worldMatrix.decompose(Private.centeredPos, rotation, scale);
+        Private.makeCenteredPos(selectedEntity);
+        const distFromCamera = Private.centeredPos.distFrom(camera.entity.transform.worldPosition);
         const axisLength = distFromCamera * axisLengthFactor;
         Private.axisLength = axisLength;
         Private.boxExtentFactor = distFromCamera * .01;
-        const worldMatrix = Matrix44.fromPool()
-            .compose(position, rotation, scale.copy(Vector3.one)
-                .multiply(axisLength));
-        const localCameraPos = transform.worldToLocal(camera.entity.transform.worldPosition, Vector3.fromPool());
         if (controlMode === ControlMode.Hybrid) {
 
             const xyzMatrix = Matrix44.fromPool();
             xyzMatrix.compose(
-                position,
+                Private.centeredPos,
                 rotation,
                 scale.copy(Vector3.one).multiply(axisLength * xyzLengthFactor)
-            );                      
+            );
+            
+            const localCameraPos = Vector3.fromPool()
+                .copy(camera.entity.transform.worldPosition)
+                .transform(Matrix44.fromPool().getInverse(xyzMatrix));            
 
             const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.red;
             const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.red;
@@ -653,7 +648,7 @@ export class EntityController {
             const yPos2 = Vector3.fromPool().copy(yPos).flip();
             const zPos = Vector3.fromPool().copy(Vector3.forward).multiply(axisLength);
             const zPos2 = Vector3.fromPool().copy(zPos).flip();
-            const matrixNoScale = Matrix44.fromPool().compose(position, rotation, Vector3.one);
+            const matrixNoScale = Matrix44.fromPool().compose(Private.centeredPos, rotation, Vector3.one);
             
             const t = Vector3.fromPool();
             GeometryRenderer.drawLine(xPos, xPos2, Color.red, matrixNoScale);
@@ -754,13 +749,13 @@ export class EntityController {
             const lookAt = Matrix44.fromPool();
             const toCamera = Vector3.fromPool()
                 .copy(camera.entity.transform.worldPosition)
-                .substract(position);
+                .substract(Private.centeredPos);
             if (toCamera.lengthSq > 0) {
                 toCamera.normalize();
                 lookAt.makeLookAt(toCamera, camera.entity.transform.worldUp)
                     .transpose()
                     .scale(_scale)
-                    .setPosition(position);
+                    .setPosition(Private.centeredPos);
                 GeometryRenderer.drawCircle(ringColor, lookAt);
 
                 // mask     
@@ -768,7 +763,7 @@ export class EntityController {
                 gl.depthMask(true);
                 gl.clear(gl.DEPTH_BUFFER_BIT);
                 gl.colorMask(false, false, false, false);
-                const maskPos = Vector3.fromPool().copy(position);
+                const maskPos = Vector3.fromPool().copy(Private.centeredPos);
                 const maskOffset = Vector3.fromPool().copy(toCamera).flip().multiply(0.01);
                 GeometryRenderer.drawBillboard(
                     maskPos.add(maskOffset),
@@ -783,19 +778,19 @@ export class EntityController {
                 lookAt.makeLookAt(transform.worldForward, transform.worldUp)
                     .transpose()
                     .scale(_scale)
-                    .setPosition(position);
+                    .setPosition(Private.centeredPos);
                 GeometryRenderer.drawCircle(selectedAxis === Axis.Z ? Color.yellow : Color.blue, lookAt);
 
                 lookAt.makeLookAt(transform.worldRight, transform.worldUp)
                     .transpose()
                     .scale(_scale)
-                    .setPosition(position);
+                    .setPosition(Private.centeredPos);
                 GeometryRenderer.drawCircle(selectedAxis === Axis.X ? Color.yellow : Color.red, lookAt);
 
                 lookAt.makeLookAt(transform.worldUp, transform.worldForward)
                     .transpose()
                     .scale(_scale)
-                    .setPosition(position);
+                    .setPosition(Private.centeredPos);
                 GeometryRenderer.drawCircle(selectedAxis === Axis.Y ? Color.yellow : Color.green, lookAt);
             }
 
