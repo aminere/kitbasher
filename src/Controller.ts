@@ -104,7 +104,7 @@ namespace Private {
             });
     }
 
-    export function determinePotentialKitTransform(instance: Entity, localX: number, localY: number): [
+    export function determineKitPosition(instance: Entity, localX: number, localY: number): [
         Vector3,
         Quaternion | null,
         Entity | null
@@ -125,7 +125,22 @@ namespace Private {
         if (rayCast) {
             switch (selectedKit?.type) {
                 case "block": {
-                    const selectors: {
+
+                    const localBBox = BoundingBoxes.getLocal(rayCast.closest);
+                    const { transform } = rayCast.closest;
+
+                    const verticalOffset = Vector3.fromPool().copy(transform.up)
+                        .multiply(localBBox?.max.y as number)
+                        .multiply(transform.scale.y);
+
+                    return [
+                        Vector3.fromPool().copy(verticalOffset)
+                            .add(transform.position),
+                        transform.rotation,
+                        rayCast.closest
+                    ];
+
+                    /*const selectors: {
                         [key: string]: [(v?: Vector3) => number | undefined, Vector3]
                     } = {
                         x: [(v?: Vector3) => v?.x, Vector3.right],
@@ -135,7 +150,8 @@ namespace Private {
                     const [selector, direction] = selectors[selectedKit.plane];
                     const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
                     const { position } = rayCast.closest.transform;
-                    const pos = snapped(/*intersect?.intersection ??*/ position);
+                    // const pos = snapped(intersect?.intersection);
+                    const pos = snapped( position);
                     return [
                         Vector3.fromPool().set(
                             pos.x * (1 - direction.x) + offset * direction.x,
@@ -144,7 +160,7 @@ namespace Private {
                         ),
                         rayCast.closest.transform.rotation,
                         rayCast.closest
-                    ];
+                    ];*/
                 }
 
                 case "prop": {
@@ -408,7 +424,7 @@ export class Controller {
         const { selectedKitInstance } = Private;
         if (!Private.touchPressed) {
             if (selectedKitInstance) {
-                const potentialPos = Private.determinePotentialKitTransform(selectedKitInstance, localX, localY);
+                const potentialPos = Private.determineKitPosition(selectedKitInstance, localX, localY);
                 if (potentialPos) {
                     const [position, rotation, pickedEntity] = potentialPos;
                     if (!Private.lastInstantiatedKit) {
