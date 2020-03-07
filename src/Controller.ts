@@ -129,13 +129,28 @@ namespace Private {
                     const localBBox = BoundingBoxes.getLocal(rayCast.closest);
                     const { transform } = rayCast.closest;
 
-                    const verticalOffset = Vector3.fromPool().copy(transform.up)
+                    const yOffset = Vector3.fromPool().copy(transform.up)
                         .multiply(localBBox?.max.y as number)
                         .multiply(transform.scale.y);
 
+                    const xOffset = Vector3.fromPool().copy(transform.right)
+                        .multiply(localBBox?.min.x as number)
+                        .multiply(transform.scale.x);
+
+                    const zOffset = Vector3.fromPool().copy(transform.forward)
+                        .multiply(localBBox?.min.z as number)
+                        .multiply(transform.scale.z);
+
+                    const corner = Vector3.fromPool().copy(transform.position).add(xOffset).add(yOffset).add(zOffset);
+                    const localPos = Vector3.fromPool().copy(rayCast.intersection).substract(corner);
+                    const xProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.right);
+                    const zProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.forward);
+                    xOffset.copy(transform.right).multiply(Snapping.snap(xProj.length, gridStep));
+                    zOffset.copy(transform.forward).multiply(Snapping.snap(zProj.length, gridStep));
+                    const pos = Vector3.fromPool().copy(corner).add(xOffset).add(zOffset);
+
                     return [
-                        Vector3.fromPool().copy(verticalOffset)
-                            .add(transform.position),
+                        pos,
                         transform.rotation,
                         rayCast.closest
                     ];
