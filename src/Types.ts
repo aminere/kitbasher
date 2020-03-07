@@ -8,7 +8,7 @@ export enum Plane {
     Z
 }
 
-type PlaneType = "x" | "y" | "z";
+export type PlaneType = "x" | "y" | "z";
 type KitType = "block" | "prop";
 
 export type ContentItemType = IKitAsset | Texture2D | Material;

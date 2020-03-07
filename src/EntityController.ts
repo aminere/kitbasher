@@ -7,7 +7,7 @@ import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { Vector2 } from "../../spider-engine/src/math/Vector2";
 import { State } from "./State";
-import { Axis, ControlMode } from "./Types";
+import { Axis, ControlMode, PlaneType } from "./Types";
 import { Events } from "./Events";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Transform } from "../../spider-engine/src/core/Transform";
@@ -254,7 +254,7 @@ export class EntityController {
                         transform.position.z = a.z + Snapping.snap(b.z, step);
                     };
 
-                    const scaleSnap = (prop: "x" | "y" | "z", offset: Vector3, axis: Vector3, t: number) => {
+                    const scaleSnap = (prop: PlaneType, offset: Vector3, axis: Vector3, t: number) => {
                         const dir = Math.sign(offset.dot(axis));
                         const amount = Snapping.snap(offset.length * dir, step);
                         transform.scale[prop] = initialScale[prop] + amount * t;

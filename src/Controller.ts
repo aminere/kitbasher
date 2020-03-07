@@ -16,7 +16,7 @@ import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManage
 import { EditorCamera } from "./EditorCamera";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { DOMUtils } from "../../spider-engine/src/common/DOMUtils";
-import { IKitAsset } from "./Types";
+import { IKitAsset, PlaneType } from "./Types";
 import { State } from "./State";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Debug } from "../../spider-engine/src/io/Debug";
@@ -121,7 +121,7 @@ namespace Private {
                 Snapping.snap(pos.y, gridStep),
                 Snapping.snap(pos.z, gridStep)
             );
-        };
+        };        
 
         if (rayCast) {
             switch (selectedKit?.type) {
@@ -131,70 +131,59 @@ namespace Private {
                     const targetBox = BoundingBoxes.getLocal(rayCast.closest) as AABB;
                     const { transform } = rayCast.closest;
 
-                    const yOffset = Vector3.fromPool().copy(transform.up)
-                        .multiply(targetBox.max.y)
-                        .multiply(transform.scale.y);
+                    const selectors: {
+                        [key: string]: [(v: Vector3) => number, Vector3]
+                    } = {
+                        x: [(v: Vector3) => v.x, transform.right],
+                        y: [(v: Vector3) => v.y, transform.up],
+                        z: [(v: Vector3) => v.z, transform.forward]
+                    };
 
-                    const xOffset = Vector3.fromPool().copy(transform.right)
-                        .multiply(targetBox.min.x)
-                        .multiply(transform.scale.x);
+                    const initOffset = (axis: PlaneType, bbox: "min" | "max") => {
+                        const [selector, direction] = selectors[axis];
+                        return Vector3.fromPool().copy(direction)
+                            .multiply(selector(targetBox[bbox]))
+                            .multiply(selector(transform.scale));
+                    };
 
-                    const zOffset = Vector3.fromPool().copy(transform.forward)
-                        .multiply(targetBox.min.z)
-                        .multiply(transform.scale.z);
-
-                    const corner = Vector3.fromPool().copy(transform.position).add(xOffset).add(yOffset).add(zOffset);
+                    const verticalOffset = initOffset("y", "max");
+                    const rightOffset = initOffset("x", "min");
+                    const forwardOffset = initOffset("z", "min");
+                    const corner = Vector3.fromPool().copy(transform.position)
+                        .add(verticalOffset)
+                        .add(rightOffset)
+                        .add(forwardOffset);
                     const localPos = Vector3.fromPool().copy(rayCast.intersection).substract(corner);
 
-                    let xProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.right).length;
-                    xProj = Math.max(xProj, -sourceBox.min.x);
-                    const sizeX = (targetBox.max.x - targetBox.min.x) * transform.scale.x;
-                    xProj = Math.min(xProj, sizeX - sourceBox.max.x);
-                    xOffset.copy(transform.right).multiply(Snapping.snap(xProj, gridStep));
+                    const setOffset = (axis: PlaneType, out: Vector3) => {
+                        const [selector, direction] = selectors[axis];
+                        let proj = Vector3.fromPool().copy(localPos).projectOnVector(direction).length;
+                        const size = (selector(targetBox.max) - selector(targetBox.min)) * selector(transform.scale);
+                        const minEdge = -selector(sourceBox.min);
+                        const maxEdge = size - selector(sourceBox.max);
+                        /*if (minEdge <= maxEdge) {
+                            proj = MathEx.clamp(proj, minEdge, maxEdge);
+                            proj = Snapping.snap(proj, gridStep);
+                        } else {                        
+                            proj = (size / 2); // pick center position on target
+                            proj += (selector(sourceBox.max) - selector(sourceBox.min)) / 2; // take source bbox into account
+                        }*/
+                        out.copy(direction).multiply(proj);
+                    };
 
-                    let zProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.forward).length;
-                    zProj = Math.max(zProj, -sourceBox.min.z);
-                    const sizeZ = (targetBox.max.z - targetBox.min.z) * transform.scale.z;
-                    zProj = Math.min(zProj, sizeZ - sourceBox.max.z);
-                    zOffset.copy(transform.forward).multiply(Snapping.snap(zProj, gridStep));
+                    setOffset("x", rightOffset);                    
+                    setOffset("z", forwardOffset);                    
 
                     return [
-                        Vector3.fromPool().copy(corner).add(xOffset).add(zOffset),
+                        Vector3.fromPool().copy(corner).add(rightOffset).add(forwardOffset),
                         transform.rotation,
                         rayCast.closest
                     ];
-
-                    // const selectors: {
-                    //     [key: string]: [(v?: Vector3) => number | undefined, Vector3]
-                    // } = {
-                    //     x: [(v?: Vector3) => v?.x, Vector3.right],
-                    //     y: [(v?: Vector3) => v?.y, Vector3.up],
-                    //     z: [(v?: Vector3) => v?.z, Vector3.forward]
-                    // };
-                    // const [selector, direction] = selectors[selectedKit.plane];
-                    // const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
-                    // const { position } = rayCast.closest.transform;
-                    // // const pos = snapped(intersect?.intersection);
-                    // const pos = snapped( position);
-                    // return [
-                    //     Vector3.fromPool().set(
-                    //         pos.x * (1 - direction.x) + offset * direction.x,
-                    //         pos.y * (1 - direction.y) + offset * direction.y,
-                    //         pos.z * (1 - direction.z) + offset * direction.z,
-                    //     ),
-                    //     rayCast.closest.transform.rotation,
-                    //     rayCast.closest
-                    // ];
                 }
 
                 case "prop": {
                     return [
                         rayCast.intersection,
-                        // Vector3.fromPool().set(
-                        //     Snapping.snap(rayCast.intersection.x, gridStep),
-                        //     Snapping.snap(rayCast.intersection.y, gridStep),
-                        //     Snapping.snap(rayCast.intersection.z, gridStep)
-                        // ),
                         (() => {
                             const { normal } = rayCast;
                             const propAxis = {
