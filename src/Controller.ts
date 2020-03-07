@@ -159,15 +159,18 @@ namespace Private {
                         const [selector, direction] = selectors[axis];
                         let proj = Vector3.fromPool().copy(localPos).projectOnVector(direction).length;
                         const size = (selector(targetBox.max) - selector(targetBox.min)) * selector(transform.scale);
-                        const minEdge = -selector(sourceBox.min);
-                        const maxEdge = size - selector(sourceBox.max);
-                        /*if (minEdge <= maxEdge) {
-                            proj = MathEx.clamp(proj, minEdge, maxEdge);
+                        let clamped = false;
+                        if (proj + selector(sourceBox.min) < 0) {
+                            proj = -selector(sourceBox.min);
+                            clamped = true;
+                        }
+                        if (proj + selector(sourceBox.max) > size) {
+                            proj = size - selector(sourceBox.max);
+                            clamped = true;
+                        }
+                        if (!clamped) {
                             proj = Snapping.snap(proj, gridStep);
-                        } else {                        
-                            proj = (size / 2); // pick center position on target
-                            proj += (selector(sourceBox.max) - selector(sourceBox.min)) / 2; // take source bbox into account
-                        }*/
+                        }
                         out.copy(direction).multiply(proj);
                     };
 
