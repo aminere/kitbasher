@@ -542,6 +542,7 @@ export class App extends React.Component {
                         y: transform.worldUp,
                         z: transform.worldForward
                     }[selectedKit.plane]);
+                    State.instance.autoRotation = false;
                 }
             }
         }

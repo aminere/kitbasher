@@ -32,6 +32,7 @@ export class State {
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Hybrid;
     private _altPressed = false;
+    private _autoRotation = false;
 
     private _data: IPersistentState = {
         grid: Plane.Y,
@@ -92,6 +93,9 @@ export class State {
 
     public get altPressed() { return this._altPressed; }
     public set altPressed(pressed: boolean) { this._altPressed = pressed; }
+
+    public get autoRotation() { return this._autoRotation; }
+    public set autoRotation(auto: boolean) { this._autoRotation = auto; }
 
     public get grid() { return this._data.grid; }
     public set grid(grid: Plane) {

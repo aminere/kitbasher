@@ -60,6 +60,7 @@ namespace Private {
     export const xPlane = new Plane(new Vector3().copy(Vector3.right));
     export const yPlane = new Plane(new Vector3().copy(Vector3.up));
     export const zPlane = new Plane(new Vector3().copy(Vector3.forward));
+    export let previousPickedTarget: Entity | null = null;
 
     const entityData = new Map<Entity, IEntityData>();
 
@@ -127,10 +128,12 @@ namespace Private {
             switch (selectedKit?.type) {
                 case "block": {
 
-                    const sourceBox = BoundingBoxes.getLocal(instance) as AABB;
-                    const targetBox = BoundingBoxes.getLocal(rayCast.closest) as AABB;
                     const { transform } = rayCast.closest;
-
+                    const sourceBox = (BoundingBoxes.getLocal(instance) as AABB);
+                        //.transform(Matrix44.fromPool().setRotation(instance.transform.rotation));
+                    const targetBox = (BoundingBoxes.getLocal(rayCast.closest) as AABB);
+                        //.transform(Matrix44.fromPool().setRotation(transform.rotation));
+                    
                     const selectors: {
                         [key: string]: [(v: Vector3) => number, Vector3]
                     } = {
@@ -158,28 +161,31 @@ namespace Private {
                     const setOffset = (axis: PlaneType, out: Vector3) => {
                         const [selector, direction] = selectors[axis];
                         let proj = Vector3.fromPool().copy(localPos).projectOnVector(direction).length;
-                        const size = (selector(targetBox.max) - selector(targetBox.min)) * selector(transform.scale);
-                        let clamped = false;
+                        proj = Snapping.snap(proj, gridStep);
                         if (proj + selector(sourceBox.min) < 0) {
                             proj = -selector(sourceBox.min);
-                            clamped = true;
                         }
+                        const size = (selector(targetBox.max) - selector(targetBox.min)) * selector(transform.scale);
                         if (proj + selector(sourceBox.max) > size) {
                             proj = size - selector(sourceBox.max);
-                            clamped = true;
-                        }
-                        if (!clamped) {
-                            proj = Snapping.snap(proj, gridStep);
-                        }
+                        }                        
                         out.copy(direction).multiply(proj);
                     };
 
-                    setOffset("x", rightOffset);                    
+                    setOffset("x", rightOffset);
                     setOffset("z", forwardOffset);                    
+
+                    let autoRotation = State.instance.autoRotation;
+                    if (autoRotation) {
+                        if (Private.previousPickedTarget === rayCast.closest) {
+                            autoRotation = false;
+                        }
+                        Private.previousPickedTarget = rayCast.closest;
+                    }
 
                     return [
                         Vector3.fromPool().copy(corner).add(rightOffset).add(forwardOffset),
-                        transform.rotation,
+                        autoRotation ? transform.rotation : null,
                         rayCast.closest
                     ];
                 }
@@ -440,9 +446,13 @@ export class Controller {
         const { selectedKitInstance } = Private;
         if (!Private.touchPressed) {
             if (selectedKitInstance) {
+                if (selectedKitInstance.active === false) {
+                    Private.previousPickedTarget = null;
+                    State.instance.autoRotation = true;
+                }
                 const potentialPos = Private.determineKitPosition(selectedKitInstance, localX, localY);
                 if (potentialPos) {
-                    const [position, rotation, pickedEntity] = potentialPos;
+                    const [position, rotation, pickedEntity] = potentialPos;                    
                     if (!Private.lastInstantiatedKit) {
                         selectedKitInstance.active = true;
                     } else {
