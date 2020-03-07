@@ -40,6 +40,7 @@ import { Textures } from "./Textures";
 import { FileInterface } from "./FileInterface";
 import { Models } from "./Models";
 import { ModelMesh } from "../../spider-engine/src/assets/model/ModelMesh";
+import { AABB } from "../../spider-engine/src/math/AABB";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -126,56 +127,64 @@ namespace Private {
             switch (selectedKit?.type) {
                 case "block": {
 
-                    const localBBox = BoundingBoxes.getLocal(rayCast.closest);
+                    const sourceBox = BoundingBoxes.getLocal(instance) as AABB;
+                    const targetBox = BoundingBoxes.getLocal(rayCast.closest) as AABB;
                     const { transform } = rayCast.closest;
 
                     const yOffset = Vector3.fromPool().copy(transform.up)
-                        .multiply(localBBox?.max.y as number)
+                        .multiply(targetBox.max.y)
                         .multiply(transform.scale.y);
 
                     const xOffset = Vector3.fromPool().copy(transform.right)
-                        .multiply(localBBox?.min.x as number)
+                        .multiply(targetBox.min.x)
                         .multiply(transform.scale.x);
 
                     const zOffset = Vector3.fromPool().copy(transform.forward)
-                        .multiply(localBBox?.min.z as number)
+                        .multiply(targetBox.min.z)
                         .multiply(transform.scale.z);
 
                     const corner = Vector3.fromPool().copy(transform.position).add(xOffset).add(yOffset).add(zOffset);
                     const localPos = Vector3.fromPool().copy(rayCast.intersection).substract(corner);
-                    const xProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.right);
-                    const zProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.forward);
-                    xOffset.copy(transform.right).multiply(Snapping.snap(xProj.length, gridStep));
-                    zOffset.copy(transform.forward).multiply(Snapping.snap(zProj.length, gridStep));
-                    const pos = Vector3.fromPool().copy(corner).add(xOffset).add(zOffset);
+
+                    let xProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.right).length;
+                    xProj = Math.max(xProj, -sourceBox.min.x);
+                    const sizeX = (targetBox.max.x - targetBox.min.x) * transform.scale.x;
+                    xProj = Math.min(xProj, sizeX - sourceBox.max.x);
+                    xOffset.copy(transform.right).multiply(Snapping.snap(xProj, gridStep));
+
+                    let zProj = Vector3.fromPool().copy(localPos).projectOnVector(transform.forward).length;
+                    zProj = Math.max(zProj, -sourceBox.min.z);
+                    const sizeZ = (targetBox.max.z - targetBox.min.z) * transform.scale.z;
+                    zProj = Math.min(zProj, sizeZ - sourceBox.max.z);
+                    zOffset.copy(transform.forward).multiply(Snapping.snap(zProj, gridStep));
 
                     return [
-                        pos,
+                        Vector3.fromPool().copy(corner).add(xOffset).add(zOffset),
                         transform.rotation,
                         rayCast.closest
                     ];
 
-                    /*const selectors: {
-                        [key: string]: [(v?: Vector3) => number | undefined, Vector3]
-                    } = {
-                        x: [(v?: Vector3) => v?.x, Vector3.right],
-                        y: [(v?: Vector3) => v?.y, Vector3.up],
-                        z: [(v?: Vector3) => v?.z, Vector3.forward]
-                    };
-                    const [selector, direction] = selectors[selectedKit.plane];
-                    const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
-                    const { position } = rayCast.closest.transform;
-                    // const pos = snapped(intersect?.intersection);
-                    const pos = snapped( position);
-                    return [
-                        Vector3.fromPool().set(
-                            pos.x * (1 - direction.x) + offset * direction.x,
-                            pos.y * (1 - direction.y) + offset * direction.y,
-                            pos.z * (1 - direction.z) + offset * direction.z,
-                        ),
-                        rayCast.closest.transform.rotation,
-                        rayCast.closest
-                    ];*/
+                    // const selectors: {
+                    //     [key: string]: [(v?: Vector3) => number | undefined, Vector3]
+                    // } = {
+                    //     x: [(v?: Vector3) => v?.x, Vector3.right],
+                    //     y: [(v?: Vector3) => v?.y, Vector3.up],
+                    //     z: [(v?: Vector3) => v?.z, Vector3.forward]
+                    // };
+                    // const [selector, direction] = selectors[selectedKit.plane];
+                    // const offset = selector(BoundingBoxes.get(rayCast.closest)?.max) ?? 0;
+                    // const { position } = rayCast.closest.transform;
+                    // // const pos = snapped(intersect?.intersection);
+                    // const pos = snapped( position);
+                    // return [
+                    //     Vector3.fromPool().set(
+                    //         pos.x * (1 - direction.x) + offset * direction.x,
+                    //         pos.y * (1 - direction.y) + offset * direction.y,
+                    //         pos.z * (1 - direction.z) + offset * direction.z,
+                    //     ),
+                    //     rayCast.closest.transform.rotation,
+                    //     rayCast.closest
+                    // ];
                 }
 
                 case "prop": {
