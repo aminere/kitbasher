@@ -4,21 +4,36 @@ import { NumberEditor } from "./NumberEditor";
 import { Vector3 } from "../../../../spider-engine/src/math/Vector3";
 import { QuaternionEditor } from "./QuaternionEditor";
 import { Quaternion } from "../../../../spider-engine/src/math/Quaternion";
-import { Button } from "@blueprintjs/core";
-import { Material } from "../../../../spider-engine/src/graphics/Material";
-import { Commands } from "../../Commands";
-import { ItemPicker } from "../ItemPicker";
+import { EnumLiterals } from "../../../../spider-engine/src/core/EnumLiterals";
+import { EnumEditor } from "./EnumEditor";
 
 interface IPropertyEditorProps {
-    // tslint:disable-next-line
-    initialValue: any;
+    target: object;
+    property: string;
+    enumLiterals?: { [name: string]: string };
     // tslint:disable-next-line
     onChanged: (newValue: any) => void;
 }
 
+namespace Private {
+    export function tryGetValueWithGetter(obj: object, property: string) {
+        if (property.startsWith("_")) {
+            // if getter exists, use it!
+            const propertyKey = property.slice(1);
+            const propertyValue = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), propertyKey);
+            if (propertyValue && propertyValue.get) {
+                return propertyValue.get.call(obj);
+            }
+        }
+        return obj[property];
+    }
+}
+
 export class PropertyEditor extends React.Component<IPropertyEditorProps> {
     public render() {
-        const { initialValue, onChanged } = this.props;
+        const { target, property, onChanged } = this.props;
+
+        const initialValue = Private.tryGetValueWithGetter(target, property);
         const typeName = initialValue.constructor.name;
 
         if (typeName === "Vector3") {
@@ -53,38 +68,25 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
         }
 
         if (typeof (initialValue) === "number") {
-            return (
-                <NumberEditor 
-                    initialValue={initialValue}
-                    onChanged={newValue => this.props.onChanged(newValue)}
-                />
-            );
-        }
+            
+            if (this.props.enumLiterals) {
+                return (
+                    <EnumEditor
+                        initialValue={`${initialValue}`}
+                        literals={this.props.enumLiterals}
+                        onChanged={newValue => this.props.onChanged(parseInt(newValue, 10))}
+                    />
+                );
+            } else {
+                return (
+                    <NumberEditor
+                        initialValue={initialValue}
+                        onChanged={newValue => this.props.onChanged(newValue)}
+                    />
+                );
+            }
 
-        if (typeName === "Material") {
-            return (
-                <div>
-                    <Button
-                        onClick={(e: React.MouseEvent<HTMLElement>) => {
-                            Commands.showPopover.post({
-                                clientX: e.clientX,
-                                clientY: e.clientY,
-                                content: (
-                                    <div />
-                                    // <ItemPicker />
-                                )
-                            });
-                        }}
-                    >
-                        {(initialValue as Material).name}
-                    </Button>
-                </div>
-            );
-        }
-
-        if (typeName === "Texture2D") {
-            return <div>Texture Picker</div>;
-        }
+        }        
 
         return null;
     }

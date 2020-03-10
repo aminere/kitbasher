@@ -1,19 +1,17 @@
 import * as React from "react";
 import { Icon } from "@blueprintjs/core";
 
-interface IPanelProps {
+interface IMultiPanelProps {
     title: string;
-    content: JSX.Element;
-    controls?: JSX.Element;
 }
 
-interface IPanelState {
+interface IMultiPanelState {
     collapsed: boolean;
 }
 
-export class Panel extends React.Component<IPanelProps, IPanelState> {
+export class MultiPanel extends React.Component<IMultiPanelProps, IMultiPanelState> {
 
-    constructor(props: IPanelProps) {
+    constructor(props: IMultiPanelProps) {
         super(props);
         this.state = {
             collapsed: false
@@ -50,15 +48,6 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                     <div style={{ padding: "4px" }}>
                         <Icon icon={this.state.collapsed ? "chevron-right" : "chevron-down"} />
                         <span>{this.props.title}</span>
-                    </div>                    
-                    <div
-                        style={{
-                            position: "absolute",
-                            right: "0px",
-                            top: "0px"
-                        }}
-                    >
-                        {this.props.controls}
                     </div>
                 </div>
                 <div
@@ -66,7 +55,7 @@ export class Panel extends React.Component<IPanelProps, IPanelState> {
                         display: this.state.collapsed ? "none" : "block",
                     }}
                 >
-                    {this.props.content}
+                    {this.props.children}
                 </div>
             </div>
         );

@@ -1,11 +1,12 @@
 
-import { IKitAsset, ControlMode, Plane, ContentItemType } from "./Types";
+import { IKitAsset, ControlMode, Plane, ContentItemType, ScalingMode } from "./Types";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
 import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Utils } from "./Utils";
 import { Material } from "../../spider-engine/src/graphics/Material";
 import { Interfaces } from "../../spider-engine/src/spider-engine";
+import * as Attributes from "../../spider-engine/src/core/Attributes";
 
 interface IPersistentState {
     grid: Plane;
@@ -31,6 +32,10 @@ export class State {
 
     private _selection: Entity[] = [];
     private _controlMode = ControlMode.Hybrid;
+
+    @Attributes.enumLiterals(ScalingMode)
+    private _scalingMode = ScalingMode.Stretch;
+
     private _altPressed = false;
     private _autoRotation = false;
 
@@ -91,6 +96,9 @@ export class State {
     public get controlMode() { return this._controlMode; }
     public set controlMode(mode: ControlMode) { this._controlMode = mode; }
 
+    public get scalingMode() { return this._scalingMode; }
+    public set scalingMode(mode: ScalingMode) { this._scalingMode = mode; }
+
     public get altPressed() { return this._altPressed; }
     public set altPressed(pressed: boolean) { this._altPressed = pressed; }
 
@@ -108,7 +116,7 @@ export class State {
     public set gridStep(step: number) {
         this._data.gridStep = step;
         this.save();
-        Events.gridChanged.post();        
+        Events.gridChanged.post();
     }
 
     public get angleStep() { return this._data.angleStep; }

@@ -26,6 +26,11 @@ export enum ControlMode {
     Rotate    
 }
 
+export enum ScalingMode {
+    Stretch,
+    Tile
+}
+
 export enum Axis {
     None,
     X,

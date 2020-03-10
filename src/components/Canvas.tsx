@@ -11,12 +11,14 @@ import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine
 import { Commands } from "../Commands";
 import { Panel } from "./Panel";
 import { PlaneSelector } from "./PlaneSelector";
-import { ControlMode, IKitAsset } from "../Types";
+import { ControlMode, IKitAsset, ScalingMode } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
 import { Visual, Interfaces } from "../../../spider-engine/src/spider-engine";
 import { Palette } from "../palette/Palette";
+import { MultiPanel } from "./MultiPanel";
+import { Utils } from "../Utils";
 
 // tslint:disable:max-line-length
 
@@ -200,39 +202,67 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                             });
 
                             return (
-                                <Panel
-                                    title="Snapping"
-                                    content={(
-                                        <PropertyGrid
-                                            enabled={State.instance.snapping}
-                                            target={{
-                                                ...Object.entries(props).reduce((prev, cur) => {
-                                                    return { ...prev, ...{ [cur[0]]: cur[1].get() } };
-                                                }, {})
-                                            }}
-                                            metadata={{
-                                                grid: { customEditor: true }
-                                            }}
-                                            onPropertyChanged={(name, value) => {
-                                                Object.entries(props)
-                                                    .filter(p => p[0] === name)
-                                                    .forEach(p => p[1].set(value));
-                                            }}
-                                        />
-                                    )}
-                                    controls={(
-                                        <div style={{ marginTop: "14px" }}>
-                                            <Checkbox
-                                                checked={State.instance.snapping}
-                                                onChange={e => {
-                                                    State.instance.snapping = !State.instance.snapping;
-                                                    this.forceUpdate();
+                                <MultiPanel
+                                    title="Settings"
+                                >
+                                    <Panel
+                                        title="Snapping"
+                                        content={(
+                                            <PropertyGrid
+                                                enabled={State.instance.snapping}
+                                                target={{
+                                                    ...Object.entries(props).reduce((prev, cur) => {
+                                                        return { ...prev, ...{ [cur[0]]: cur[1].get() } };
+                                                    }, {})
+                                                }}
+                                                metadata={{
+                                                    grid: { customEditor: true }
+                                                }}
+                                                onPropertyChanged={(name, value) => {
+                                                    Object.entries(props)
+                                                        .filter(p => p[0] === name)
+                                                        .forEach(p => p[1].set(value));
                                                 }}
                                             />
-                                        </div>
-                                    )}
-                                />
-                            );
+                                        )}
+                                        controls={(
+                                            <div style={{ marginTop: "14px" }}>
+                                                <Checkbox
+                                                    checked={State.instance.snapping}
+                                                    onChange={e => {
+                                                        State.instance.snapping = !State.instance.snapping;
+                                                        this.forceUpdate();
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    />
+                                    {
+                                        (hasSelection && State.instance.controlMode === ControlMode.Hybrid)
+                                        &&
+                                        (
+                                            <Panel
+                                                title="Scaling"
+                                                content={(
+                                                    <PropertyGrid
+                                                        target={{
+                                                            mode: State.instance.scalingMode
+                                                        }}
+                                                        metadata={{
+                                                            mode: {
+                                                                enumLiterals: Utils.makeEnumLiterals(ScalingMode)
+                                                            }
+                                                        }}
+                                                        onPropertyChanged={(name, value) => {
+                                                            State.instance.scalingMode = value;
+                                                        }}
+                                                    />
+                                                )}
+                                            />
+                                        )
+                                    }                                
+                                </MultiPanel>
+                            );                           
                         })()
                     }
                 </div>
@@ -248,6 +278,23 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                         if (hasSelection) {
                             return (
                                 <div>
+                                    <Panel
+                                        title="Materials"
+                                        content={(
+                                            <MaterialEditor                                                
+                                                materials={this._mockState.selection[0].children.map(c => {
+                                                    const v = c.getComponent(Visual) as Visual;
+                                                    return v.material as Material;
+                                                })}
+                                                onChanged={(material, slot) => {
+                                                    const target = this._mockState.selection[0].children[material];
+                                                    const v = target.getComponent(Visual) as Visual;
+                                                    v.material = Palette.materials[slot];
+                                                    Commands.saveScene.post();
+                                                }}
+                                            />
+                                        )}
+                                    />
                                     <Panel
                                         title="Transform"
                                         content={(
@@ -299,23 +346,6 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                     </span>
                                                 </Tooltip>
                                             </div>
-                                        )}
-                                    />
-                                    <Panel
-                                        title="Materials"
-                                        content={(
-                                            <MaterialEditor                                                
-                                                materials={this._mockState.selection[0].children.map(c => {
-                                                    const v = c.getComponent(Visual) as Visual;
-                                                    return v.material as Material;
-                                                })}
-                                                onChanged={(material, slot) => {
-                                                    const target = this._mockState.selection[0].children[material];
-                                                    const v = target.getComponent(Visual) as Visual;
-                                                    v.material = Palette.materials[slot];
-                                                    Commands.saveScene.post();
-                                                }}
-                                            />
                                         )}
                                     />
                                 </div>

@@ -10,6 +10,7 @@ interface IPropertyGridProps {
             action?: JSX.Element;
             customEditor?: boolean;
             showName?: boolean;
+            enumLiterals?: { [name: string]: string };
         }
     };
     enabled?: boolean;
@@ -44,18 +45,6 @@ namespace Private {
         const displayName = Reflect.getMetadata("displayName", target, property);
         return displayName || capitalize(property);
     }
-
-    export function tryGetValueWithGetter(obj: object, property: string) {
-        if (property.startsWith("_")) {
-            // if getter exists, use it!
-            const propertyKey = property.slice(1);
-            const propertyValue = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), propertyKey);
-            if (propertyValue && propertyValue.get) {
-                return propertyValue.get.call(obj);
-            }
-        }
-        return obj[property];
-    }
 }
 
 export class PropertyGrid extends React.Component<IPropertyGridProps> {
@@ -76,15 +65,16 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                             return true;
                         })
                         .map(([name, value]) => {
-                            const v = Private.tryGetValueWithGetter(target, name);
                             const {
                                 action,
                                 customEditor,
-                                showName
+                                showName,
+                                enumLiterals
                             } = (metadata && name in metadata) ? metadata[name] : {
                                 action: undefined,
                                 customEditor: undefined,
-                                showName: undefined
+                                showName: undefined,
+                                enumLiterals: undefined
                             };
                             return (
                                 <div
@@ -109,10 +99,12 @@ export class PropertyGrid extends React.Component<IPropertyGridProps> {
                                     }
                                     <Property
                                         name={Private.getDislayName(target, name)}
-                                        initialValue={v}
+                                        target={target}
+                                        property={name}
                                         onChanged={newValue => this.props.onPropertyChanged(name, newValue)}
                                         customEditor={(customEditor === true) ? target[name] : undefined}
                                         showName={showName}
+                                        enumLiterals={enumLiterals}
                                     />
                                 </div>
                             );

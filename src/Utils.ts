@@ -23,4 +23,16 @@ export class Utils {
     public static isModel(item: ContentItemType) {
         return item.constructor.name === "ObjectDefinition";
     }
+
+    public static makeEnumLiterals(enumObject: object) {
+        const literals: { [property: string]: string } = {};
+        const entries = Object.entries(enumObject);
+        // tslint:disable-next-line
+        console.assert(entries.length % 2 === 0);
+        for (let i = entries.length / 2; i < entries.length; ++i) {
+            const [literal, value] = entries[i];
+            Object.assign(literals, { [value]: literal });
+        }
+        return literals;
+    }
 }

@@ -130,9 +130,9 @@ namespace Private {
 
                     const { transform } = rayCast.closest;
                     const sourceBox = (BoundingBoxes.getLocal(instance) as AABB);
-                        //.transform(Matrix44.fromPool().setRotation(instance.transform.rotation));
+                        // .transform(Matrix44.fromPool().setRotation(instance.transform.rotation));
                     const targetBox = (BoundingBoxes.getLocal(rayCast.closest) as AABB);
-                        //.transform(Matrix44.fromPool().setRotation(transform.rotation));
+                        // .transform(Matrix44.fromPool().setRotation(transform.rotation));
                     
                     const selectors: {
                         [key: string]: [(v: Vector3) => number, Vector3]

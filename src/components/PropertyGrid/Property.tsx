@@ -6,8 +6,9 @@ interface IPropertyProps {
     name: string;
     customEditor?: JSX.Element;
     showName?: boolean;
-    // tslint:disable-next-line
-    initialValue: any;
+    target: object;
+    property: string;
+    enumLiterals?: { [name: string]: string };
     // tslint:disable-next-line
     onChanged: (newValue: any) => void;
 }
@@ -20,7 +21,9 @@ export class Property extends React.Component<IPropertyProps> {
                 {(() => {
                     const editor = customEditor || (
                         <PropertyEditor
-                            initialValue={this.props.initialValue}
+                            target={this.props.target}
+                            property={this.props.property}
+                            enumLiterals={this.props.enumLiterals}
                             onChanged={newValue => this.props.onChanged(newValue)}
                         />
                     );
