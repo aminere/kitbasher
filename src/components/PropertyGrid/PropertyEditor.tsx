@@ -4,8 +4,8 @@ import { NumberEditor } from "./NumberEditor";
 import { Vector3 } from "../../../../spider-engine/src/math/Vector3";
 import { QuaternionEditor } from "./QuaternionEditor";
 import { Quaternion } from "../../../../spider-engine/src/math/Quaternion";
-import { EnumLiterals } from "../../../../spider-engine/src/core/EnumLiterals";
 import { EnumEditor } from "./EnumEditor";
+import { BoolEditor } from "./BoolEditor";
 
 interface IPropertyEditorProps {
     target: object;
@@ -85,8 +85,16 @@ export class PropertyEditor extends React.Component<IPropertyEditorProps> {
                     />
                 );
             }
+        }
 
-        }        
+        if (typeof (initialValue) === "boolean") {
+            return (
+                <BoolEditor
+                    initialValue={initialValue}
+                    onChanged={newValue => this.props.onChanged(newValue)}
+                />
+            );
+        }
 
         return null;
     }
