@@ -18,6 +18,9 @@ import { Settings } from "./Settings";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
+import { Tiling } from "./Tiling";
+import { Visual, StaticMesh } from "../../spider-engine/src/spider-engine";
+import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
 
 namespace Private {
     export let visible = false;
@@ -247,6 +250,7 @@ export class EntityController {
                     const step = State.instance.gridStep;
                     const bbox = BoundingBoxes.getLocal(transform.entity) as AABB;
                     const size = Vector3.fromPool().copy(bbox.max).substract(bbox.min);
+                    let scaleChanged = false;
 
                     const snap = (a: Vector3, b: Vector3) => {
                         transform.position.x = a.x + Snapping.snap(b.x, step);
@@ -258,6 +262,7 @@ export class EntityController {
                         const dir = Math.sign(offset.dot(axis));
                         const amount = Snapping.snap(offset.length * dir, step);
                         transform.scale[prop] = initialScale[prop] + amount * t;
+                        scaleChanged = true;
                         return amount;
                     };
 
@@ -382,6 +387,13 @@ export class EntityController {
                         dir = Math.sign(translation2.dot(transform.worldUp));
                         translation2.copy(transform.up).multiply(length2 * dir);
                         snap(transform.position, translation2);
+                    }
+
+                    if (scaleChanged) {
+                        // TODO multiple selection
+                        if (Tiling.hasTiling(selectedEntity)) {
+                            Tiling.applyTiling(selectedEntity);
+                        }
                     }
 
                     // Rotation

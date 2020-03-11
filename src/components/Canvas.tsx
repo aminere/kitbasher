@@ -19,6 +19,7 @@ import { Visual, Interfaces, StaticMesh, Assets } from "../../../spider-engine/s
 import { Palette } from "../palette/Palette";
 import { StaticMeshAsset } from "../../../spider-engine/src/assets/StaticMeshAsset";
 import { Utils } from "../Utils";
+import { Tiling } from "../Tiling";
 
 // tslint:disable:max-line-length
 
@@ -287,7 +288,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                 />
                                                 <PropertyGrid
                                                     target={{
-                                                        tiling: Utils.hasTiling(this._mockState.selection[0])
+                                                        tiling: Tiling.hasTiling(this._mockState.selection[0])
                                                     }}
                                                     onPropertyChanged={(name, newValue) => {
                                                         if (newValue) {
@@ -305,6 +306,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                             )
                                                                 .then(() => {
                                                                     (v.geometry as StaticMesh).mesh = unique;
+                                                                    Tiling.applyTiling(this._mockState.selection[0]);
                                                                     Commands.saveScene.post();
                                                                 });
                                                         } else {
@@ -313,12 +315,10 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                             const v = child.getComponent(Visual) as Visual;
                                                             const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
                                                             const path = mesh.templatePath as string;
-                                                            const i = path.indexOf("_Tiled_");
-                                                            const original = `${path.slice(0, i)}.StaticMeshAsset`;
-                                                            Assets.load(original)
-                                                                .then(m => {
-                                                                    Interfaces.objectManager.deleteObject(mesh);                                                                    
-                                                                    (v.geometry as StaticMesh).mesh = m as StaticMeshAsset;
+                                                            Tiling.getOriginalMesh(mesh)
+                                                                .then(original => {
+                                                                    Interfaces.objectManager.deleteObject(mesh);
+                                                                    (v.geometry as StaticMesh).mesh = original;
                                                                 })
                                                                 .then(() => Interfaces.file.delete(path))
                                                                 .then(() => {

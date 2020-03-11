@@ -28,13 +28,6 @@ export class Utils {
         return item.constructor.name === "ObjectDefinition";
     }
 
-    public static hasTiling(entity: Entity) {
-        const child = entity.children[0];
-        const v = child.getComponent(Visual) as Visual;
-        const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-        return mesh.templatePath?.includes("_Tiled_");
-    }
-
     public static makeEnumLiterals(enumObject: object) {
         const literals: { [property: string]: string } = {};
         const entries = Object.entries(enumObject);
