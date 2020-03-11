@@ -277,11 +277,17 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                     target={this._mockState.selection[0].getComponent(Transform) as Transform}
                                                     onPropertyChanged={(name, newValue) => {
                                                         SerializerUtilsInternal.tryUsePropertySetter = true;
+                                                        const entity = this._mockState.selection[0];
                                                         SerializerUtils.setProperty(
-                                                            this._mockState.selection[0].getComponent(Transform) as Transform,
+                                                            entity.getComponent(Transform) as Transform,
                                                             name,
                                                             newValue
                                                         );
+                                                        if (name.includes("scale")) {
+                                                            if (Tiling.hasTiling(entity)) {
+                                                                Tiling.applyTiling(entity);
+                                                            }
+                                                        }
                                                         SerializerUtilsInternal.tryUsePropertySetter = false;
                                                         Commands.saveScene.post();
                                                     }}
@@ -319,8 +325,8 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                                 .then(original => {
                                                                     Interfaces.objectManager.deleteObject(mesh);
                                                                     (v.geometry as StaticMesh).mesh = original;
+                                                                    return Interfaces.file.delete(path);
                                                                 })
-                                                                .then(() => Interfaces.file.delete(path))
                                                                 .then(() => {
                                                                     Commands.saveScene.post();
                                                                 });

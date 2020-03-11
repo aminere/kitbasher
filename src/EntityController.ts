@@ -250,6 +250,7 @@ export class EntityController {
                     const step = State.instance.gridStep;
                     const bbox = BoundingBoxes.getLocal(transform.entity) as AABB;
                     const size = Vector3.fromPool().copy(bbox.max).substract(bbox.min);
+                    const hasTiling = Tiling.hasTiling(selectedEntity);
                     let scaleChanged = false;
 
                     const snap = (a: Vector3, b: Vector3) => {
@@ -261,7 +262,16 @@ export class EntityController {
                     const scaleSnap = (prop: PlaneType, offset: Vector3, axis: Vector3, t: number) => {
                         const dir = Math.sign(offset.dot(axis));
                         const amount = Snapping.snap(offset.length * dir, step);
-                        transform.scale[prop] = initialScale[prop] + amount * t;
+                        const oldScale = initialScale[prop];
+                        const newScale = oldScale + amount * t;
+                        if (hasTiling) {
+                            const oldTileCount = Math.max(1, Math.floor(Math.abs(oldScale)));
+                            const newTileCount = Math.max(1, Math.floor(Math.abs(newScale)));
+                            if (oldTileCount === newTileCount) {
+                                return 0;
+                            }
+                        }
+                        transform.scale[prop] = newScale;
                         scaleChanged = true;
                         return amount;
                     };
@@ -391,7 +401,7 @@ export class EntityController {
 
                     if (scaleChanged) {
                         // TODO multiple selection
-                        if (Tiling.hasTiling(selectedEntity)) {
+                        if (hasTiling) {
                             Tiling.applyTiling(selectedEntity);
                         }
                     }

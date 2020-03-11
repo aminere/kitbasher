@@ -25,7 +25,6 @@ export class Tiling {
         return Assets.load(originalPath).then(o => o as StaticMeshAsset);
     }
 
-    // public static async applyTiling(mesh: StaticMeshAsset, transform: Transform) {
     public static async applyTiling(entity: Entity) {
         const meshEntity = entity.children[0];
         const mesh = meshEntity.getComponent(Visual)?.geometry as StaticMesh;
@@ -34,7 +33,7 @@ export class Tiling {
         const { vertexBuffer } = original;        
         const { worldScale } = entity.transform;
         const boundingBox = BoundingBoxes.getLocal(entity) as AABB;
-        const [x, y, z] = worldScale.asArray().map(c => Math.max(Math.floor(c), 1));
+        const [x, y, z] = worldScale.asArray().map(c => Math.max(1, Math.floor(Math.abs(c))));
         const size = Vector3.fromPool().substractVectors(boundingBox.max, boundingBox.min);
         const tiledVB = vertexBuffer.copy();
         const position = vertexBuffer.attributes.position as number[];
