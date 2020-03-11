@@ -15,7 +15,7 @@ import { ControlMode, IKitAsset } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
-import { Visual, Interfaces, StaticMesh } from "../../../spider-engine/src/spider-engine";
+import { Visual, Interfaces, StaticMesh, Assets } from "../../../spider-engine/src/spider-engine";
 import { Palette } from "../palette/Palette";
 import { StaticMeshAsset } from "../../../spider-engine/src/assets/StaticMeshAsset";
 
@@ -252,7 +252,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                     <Panel
                                         title="Materials"
                                         content={(
-                                            <MaterialEditor                                                
+                                            <MaterialEditor
                                                 materials={this._mockState.selection[0].children.map(c => {
                                                     const v = c.getComponent(Visual) as Visual;
                                                     return v.material as Material;
@@ -267,7 +267,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         )}
                                     />
                                     <Panel
-                                        title="Transform"
+                                        title="Object"
                                         content={(
                                             <div>
                                                 <PropertyGrid
@@ -284,25 +284,52 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                         Commands.saveScene.post();
                                                     }}
                                                 />
-                                                {
-                                                    State.instance.controlMode === ControlMode.Hybrid
-                                                    &&
-                                                    (
-                                                        <PropertyGrid
-                                                            target={{
-                                                                tiling: (() => {
-                                                                    const child = this._mockState.selection[0].children[0];
-                                                                    const v = child.getComponent(Visual) as Visual;
-                                                                    const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-                                                                    return mesh.name.endsWith("_Tiled");
-                                                                })()
-                                                            }}
-                                                            onPropertyChanged={(name, newValue) => {
-                                                                // console.log(name, newValue);
-                                                            }}
-                                                        />
-                                                    )
-                                                }
+                                                <PropertyGrid
+                                                    target={{
+                                                        tiling: (() => {
+                                                            const child = this._mockState.selection[0].children[0];
+                                                            const v = child.getComponent(Visual) as Visual;
+                                                            const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+                                                            return mesh.templatePath?.includes("_Tiled_");
+                                                        })()
+                                                    }}
+                                                    onPropertyChanged={(name, newValue) => {
+                                                        if (newValue) {
+                                                            // create new unique mesh
+                                                            const child = this._mockState.selection[0].children[0];
+                                                            const v = child.getComponent(Visual) as Visual;
+                                                            const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+                                                            const unique = mesh.copy() as StaticMeshAsset;
+                                                            unique.isPersistent = true;
+                                                            const n = `${mesh.name}_Tiled_${child.id}`;
+                                                            unique.templatePath = unique.templatePath?.replace(mesh.name, n);
+                                                            Interfaces.file.write(
+                                                                unique.templatePath as string,
+                                                                JSON.stringify(unique.serialize())
+                                                            )
+                                                                .then(() => {
+                                                                    (v.geometry as StaticMesh).mesh = unique;
+                                                                    Commands.saveScene.post();
+                                                                });
+                                                        } else {
+                                                            // discard unique mesh and assign shared one
+                                                            const child = this._mockState.selection[0].children[0];
+                                                            const v = child.getComponent(Visual) as Visual;
+                                                            const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+                                                            const path = mesh.templatePath as string;
+                                                            const i = path.indexOf("_Tiled_");
+                                                            const original = `${path.slice(0, i)}.StaticMeshAsset`;
+                                                            Assets.load(original)
+                                                                .then(m => {
+                                                                    (v.geometry as StaticMesh).mesh = m as StaticMeshAsset;
+                                                                })
+                                                                .then(() => Interfaces.file.delete(path))
+                                                                .then(() => {
+                                                                    Commands.saveScene.post();
+                                                                });
+                                                        }
+                                                    }}
+                                                />
                                             </div>
                                         )}
                                         controls={(

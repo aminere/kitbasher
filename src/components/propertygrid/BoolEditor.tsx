@@ -20,6 +20,12 @@ export class BoolEditor extends React.Component<IBoolEditorProps, IBoolEditorSta
         };
     }
 
+    UNSAFE_componentWillReceiveProps(nextProps: IBoolEditorProps) {
+        if (nextProps.initialValue !== this.state.value) {
+            this.setState({ value: nextProps.initialValue });
+        }
+    }
+
     public render() {        
         return (
             <div
