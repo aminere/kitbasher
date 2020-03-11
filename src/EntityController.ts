@@ -265,8 +265,8 @@ export class EntityController {
                         const oldScale = initialScale[prop];
                         const newScale = oldScale + amount * t;
                         if (hasTiling) {
-                            const oldTileCount = Math.max(1, Math.floor(Math.abs(oldScale)));
-                            const newTileCount = Math.max(1, Math.floor(Math.abs(newScale)));
+                            const oldTileCount = Tiling.tiledCoord(oldScale);
+                            const newTileCount = Tiling.tiledCoord(newScale);
                             if (oldTileCount === newTileCount) {
                                 return 0;
                             }
