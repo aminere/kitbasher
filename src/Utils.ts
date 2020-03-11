@@ -3,6 +3,10 @@ import { ScenesInternal } from "../../spider-engine/src/core/Scenes";
 import { IndexedDb } from "../../spider-engine/src/io/IndexedDb";
 import { Config } from "./Config";
 import { ContentItemType } from "./Types";
+import { Entity } from "../../spider-engine/src/core/Entity";
+import { Visual } from "../../spider-engine/src/graphics/Visual";
+import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
+import { StaticMesh } from "../../spider-engine/src/graphics/geometry/StaticMesh";
 
 export class Utils {
     public static capitalize(str: string) {
@@ -22,6 +26,13 @@ export class Utils {
 
     public static isModel(item: ContentItemType) {
         return item.constructor.name === "ObjectDefinition";
+    }
+
+    public static hasTiling(entity: Entity) {
+        const child = entity.children[0];
+        const v = child.getComponent(Visual) as Visual;
+        const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+        return mesh.templatePath?.includes("_Tiled_");
     }
 
     public static makeEnumLiterals(enumObject: object) {

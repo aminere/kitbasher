@@ -18,6 +18,7 @@ import { Material } from "../../../spider-engine/src/graphics/Material";
 import { Visual, Interfaces, StaticMesh, Assets } from "../../../spider-engine/src/spider-engine";
 import { Palette } from "../palette/Palette";
 import { StaticMeshAsset } from "../../../spider-engine/src/assets/StaticMeshAsset";
+import { Utils } from "../Utils";
 
 // tslint:disable:max-line-length
 
@@ -286,12 +287,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                 />
                                                 <PropertyGrid
                                                     target={{
-                                                        tiling: (() => {
-                                                            const child = this._mockState.selection[0].children[0];
-                                                            const v = child.getComponent(Visual) as Visual;
-                                                            const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-                                                            return mesh.templatePath?.includes("_Tiled_");
-                                                        })()
+                                                        tiling: Utils.hasTiling(this._mockState.selection[0])
                                                     }}
                                                     onPropertyChanged={(name, newValue) => {
                                                         if (newValue) {
@@ -321,6 +317,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                             const original = `${path.slice(0, i)}.StaticMeshAsset`;
                                                             Assets.load(original)
                                                                 .then(m => {
+                                                                    Interfaces.objectManager.deleteObject(mesh);                                                                    
                                                                     (v.geometry as StaticMesh).mesh = m as StaticMeshAsset;
                                                                 })
                                                                 .then(() => Interfaces.file.delete(path))
