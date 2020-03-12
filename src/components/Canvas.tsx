@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Events } from "../Events";
 import { Controller } from "../Controller";
-import { Tooltip, Position, Button, Intent, Checkbox } from "@blueprintjs/core";
+import { Tooltip, Position, Button, Intent, Checkbox, Switch } from "@blueprintjs/core";
 import { State } from "../State";
 import { PropertyGrid } from "./propertygrid/PropertyGrid";
 import { Entity } from "../../../spider-engine/src/core/Entity";
@@ -221,10 +221,11 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                         />
                                     )}
                                     controls={(
-                                        <div style={{ marginTop: "14px" }}>
-                                            <Checkbox
+                                        <div style={{ marginTop: "12px" }}>
+                                            <Switch
                                                 checked={State.instance.snapping}
-                                                onChange={e => {
+                                                large={true}
+                                                onChange={() => {
                                                     State.instance.snapping = !State.instance.snapping;
                                                     this.forceUpdate();
                                                 }}
