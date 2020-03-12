@@ -193,11 +193,11 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                 }
                             }
 
-                            Object.assign(props, {
-                                grid: {
-                                    get: () => <PlaneSelector />
-                                }
-                            });
+                            // Object.assign(props, {
+                            //     grid: {
+                            //         get: () => <PlaneSelector />
+                            //     }
+                            // });
 
                             return (
                                 <Panel

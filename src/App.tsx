@@ -532,7 +532,7 @@ export class App extends React.Component {
             const { selectedKitInstance } = Controller;
             if (selection.length > 0) {
                 // TODO multi selection
-                rotate(selection[0], [Vector3.right, Vector3.up, Vector3.forward][grid]);
+                rotate(selection[0], selection[0].transform.up); // [Vector3.right, Vector3.up, Vector3.forward][grid]);
                 Commands.saveScene.post();
             } else {
                 if (selectedKitInstance && selectedKit) {

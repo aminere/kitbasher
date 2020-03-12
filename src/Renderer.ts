@@ -38,8 +38,8 @@ namespace Private {
         if (!grid) {
             grid = new VertexBuffer();
             const gridVertices: number[] = [];
-            const gridSize = 100;
             const { grid: gridType, gridStep } = State.instance;
+            const gridSize = 100 * gridStep;
             const horizGridMask = new Vector3(1, 1, 1);
             const vertGridMask = new Vector3(1, 1, 1);
             const lineStartHoriz = (() => {
