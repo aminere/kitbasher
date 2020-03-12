@@ -15,11 +15,8 @@ import { ControlMode, IKitAsset } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
-import { Visual, Interfaces, StaticMesh, Assets, Vector3 } from "../../../spider-engine/src/spider-engine";
+import { Visual, Interfaces } from "../../../spider-engine/src/spider-engine";
 import { Palette } from "../palette/Palette";
-import { StaticMeshAsset } from "../../../spider-engine/src/assets/StaticMeshAsset";
-import { Utils } from "../Utils";
-import { Tiling } from "../Tiling";
 
 // tslint:disable:max-line-length
 
@@ -282,70 +279,11 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                             entity.getComponent(Transform) as Transform,
                                                             name,
                                                             newValue
-                                                        );
-                                                        if (name.includes("scale")) {
-                                                            if (Tiling.hasTiling(entity)) {
-                                                                Tiling.applyTiling(entity);
-                                                            }
-                                                        }
+                                                        );                                                        
                                                         SerializerUtilsInternal.tryUsePropertySetter = false;
                                                         Commands.saveScene.post();
                                                     }}
-                                                />
-                                                <PropertyGrid
-                                                    target={{
-                                                        tiling: Tiling.hasTiling(this._mockState.selection[0])
-                                                    }}
-                                                    onPropertyChanged={(name, newValue) => {
-                                                        if (newValue) {
-                                                            // TODO multiselection
-                                                            // TODO multi-meshes
-                                                            const tiles = this._mockState.selection[0].children[0];
-                                                            tiles.name = `${tiles.name}_Tiles_`;                                                            
-                                                            tiles.updateComponent(Visual, { active: false });
-                                                            Tiling.applyTiling(tiles.parent as Entity);
-                                                            Commands.saveScene.post();
-                                                            // create new unique mesh
-                                                            // const child = this._mockState.selection[0].children[0];
-                                                            // const v = child.getComponent(Visual) as Visual;
-                                                            // const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-                                                            // const unique = mesh.copy() as StaticMeshAsset;
-                                                            // unique.isPersistent = true;
-                                                            // const n = `${mesh.name}_Tiled_${child.id}`;
-                                                            // unique.templatePath = unique.templatePath?.replace(mesh.name, n);
-                                                            // Interfaces.file.write(
-                                                            //     unique.templatePath as string,
-                                                            //     JSON.stringify(unique.serialize())
-                                                            // )
-                                                            //     .then(() => {
-                                                            //         (v.geometry as StaticMesh).mesh = unique;
-                                                            //         Tiling.applyTiling(this._mockState.selection[0]);
-                                                            //         Commands.saveScene.post();
-                                                            //     });
-                                                        } else {
-                                                            const tiles = this._mockState.selection[0].children[0];
-                                                            tiles.removeAllChildren();
-                                                            (tiles.getComponent(Visual) as Visual).active = true;
-                                                            tiles.name = tiles.name.slice(0, -"_Tiles_".length);
-                                                            tiles.transform.scale.copy(Vector3.one);
-                                                            Commands.saveScene.post();
-                                                            // discard unique mesh and assign shared one
-                                                            // const child = this._mockState.selection[0].children[0];
-                                                            // const v = child.getComponent(Visual) as Visual;
-                                                            // const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-                                                            // const path = mesh.templatePath as string;
-                                                            // Tiling.getOriginalMesh(mesh)
-                                                            //     .then(original => {
-                                                            //         Interfaces.objectManager.deleteObject(mesh);
-                                                            //         (v.geometry as StaticMesh).mesh = original;
-                                                            //         return Interfaces.file.delete(path);
-                                                            //     })
-                                                            //     .then(() => {
-                                                            //         Commands.saveScene.post();
-                                                            //     });
-                                                        }
-                                                    }}
-                                                />
+                                                />                                                
                                             </div>
                                         )}
                                         controls={(

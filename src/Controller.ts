@@ -10,7 +10,7 @@ import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Plane, Assets, Vector2, MathEx, SerializableObject, StaticMesh, Interfaces } from "../../spider-engine/src/spider-engine";
+import { Plane, Vector2, MathEx, SerializableObject } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -26,7 +26,6 @@ import { CullModes } from "../../spider-engine/src/graphics/GraphicTypes";
 import { EntityController } from "./EntityController";
 import { Commands } from "./Commands";
 import { Snapping } from "./Snapping";
-import { Settings } from "./Settings";
 import { Model } from "./Model";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { Config } from "./Config";
@@ -41,8 +40,6 @@ import { FileInterface } from "./FileInterface";
 import { Models } from "./Models";
 import { ModelMesh } from "../../spider-engine/src/assets/model/ModelMesh";
 import { AABB } from "../../spider-engine/src/math/AABB";
-import { Tiling } from "./Tiling";
-import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -292,14 +289,7 @@ namespace Private {
         }
 
         return {
-            closest: (() => {
-                const parent = closest.parent as Entity;
-                if (Tiling.hasTiling(parent.parent as Entity)) {
-                    return parent.parent as Entity;
-                } else {
-                    return parent;
-                }
-            })(),
+            closest: closest.parent as Entity,
             normal,
             intersection: new Vector3()
                 .copy(pickingRay.direction)
@@ -419,15 +409,7 @@ export class Controller {
         if (State.instance.selection.length < 1) {
             return;
         }
-        State.instance.selection.forEach(entity => {      
-            // if (Tiling.hasTiling(entity)) {
-            //     const child = entity.children[0];
-            //     const v = child.getComponent(Visual) as Visual;
-            //     const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-            //     const path = mesh.templatePath as string;
-            //     Interfaces.objectManager.deleteObject(mesh);
-            //     Interfaces.file.delete(path);
-            // }      
+        State.instance.selection.forEach(entity => {           
             entity.destroy();
             Private.removeEntityData(entity);
         });

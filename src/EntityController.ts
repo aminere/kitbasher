@@ -18,9 +18,6 @@ import { Settings } from "./Settings";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
-import { Tiling } from "./Tiling";
-import { Visual, StaticMesh } from "../../spider-engine/src/spider-engine";
-import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
 
 namespace Private {
     export let visible = false;
@@ -250,8 +247,6 @@ export class EntityController {
                     const step = State.instance.gridStep;
                     const bbox = BoundingBoxes.getLocal(transform.entity) as AABB;
                     const size = Vector3.fromPool().copy(bbox.max).substract(bbox.min);
-                    const hasTiling = Tiling.hasTiling(selectedEntity);
-                    let scaleChanged = false;
 
                     const snap = (a: Vector3, b: Vector3) => {
                         transform.position.x = a.x + Snapping.snap(b.x, step);
@@ -263,16 +258,8 @@ export class EntityController {
                         const dir = Math.sign(offset.dot(axis));
                         const amount = Snapping.snap(offset.length * dir, step);
                         const oldScale = initialScale[prop];
-                        const newScale = oldScale + amount * t;
-                        if (hasTiling) {
-                            const oldTileCount = Tiling.tiledCoord(oldScale);
-                            const newTileCount = Tiling.tiledCoord(newScale);
-                            if (oldTileCount === newTileCount) {
-                                return 0;
-                            }
-                        }
+                        const newScale = oldScale + amount * t;                        
                         transform.scale[prop] = newScale;
-                        scaleChanged = true;
                         return amount;
                     };
 
@@ -397,13 +384,6 @@ export class EntityController {
                         dir = Math.sign(translation2.dot(transform.worldUp));
                         translation2.copy(transform.up).multiply(length2 * dir);
                         snap(transform.position, translation2);
-                    }
-
-                    if (scaleChanged) {
-                        // TODO multiple selection
-                        if (hasTiling) {
-                            Tiling.applyTiling(selectedEntity);
-                        }
                     }
 
                     // Rotation
