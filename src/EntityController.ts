@@ -676,10 +676,13 @@ export class EntityController {
                 .copy(camera.entity.transform.worldPosition)
                 .transform(Matrix44.fromPool().getInverse(xyzMatrix));            
 
+            const xp = Private.xPlaneDir > 0;
             const xPosColor = selectedAxis === Axis.XPos ? Color.yellow : Color.red;
             const xNegColor = selectedAxis === Axis.XNeg ? Color.yellow : Color.red;
+            const yp = Private.yPlaneDir > 0;
             const yPosColor = selectedAxis === Axis.YPos ? Color.yellow : Color.green;
             const yNegColor = selectedAxis === Axis.YNeg ? Color.yellow : Color.green;
+            const zp = Private.zPlaneDir > 0;
             const zPosColor = selectedAxis === Axis.ZPos ? Color.yellow : Color.blue;
             const zNegColor = selectedAxis === Axis.ZNeg ? Color.yellow : Color.blue;
             const extent = Vector3.fromPool().copy(Vector3.one).multiply(Private.boxExtentFactor);
@@ -696,23 +699,26 @@ export class EntityController {
             Private.yPlaneDir = Math.sign(localCameraPos.y) ?? 1;
             Private.zPlaneDir = Math.sign(localCameraPos.z) ?? 1;
             
-            const destX = Private.xPlaneDir > 0 ? xPos : xPos2;            
+            const destX = xp ? xPos : xPos2;
+            const invDestX = Vector3.fromPool().copy(destX).flip();
             GeometryRenderer.drawLine(Vector3.zero, destX, Color.red, matrixNoScale);
-            GeometryRenderer.drawLine(Vector3.zero, Vector3.fromPool().copy(destX).flip(), Color.grey, matrixNoScale);
+            // GeometryRenderer.drawLine(Vector3.zero, invDestX, Color.grey, matrixNoScale);
             t.set(extent.x * .2, extent.y, extent.z);
             GeometryRenderer.drawBox(xPos, t, xPosColor, matrixNoScale);
             GeometryRenderer.drawBox(xPos2, t, xNegColor, matrixNoScale);
             
-            const destY = Private.yPlaneDir > 0 ? yPos : yPos2;
+            const destY = yp ? yPos : yPos2;
+            const invDestY = Vector3.fromPool().copy(destY).flip();
             GeometryRenderer.drawLine(Vector3.zero, destY, Color.green, matrixNoScale);
-            GeometryRenderer.drawLine(Vector3.zero, Vector3.fromPool().copy(destY).flip(), Color.grey, matrixNoScale);
+            // GeometryRenderer.drawLine(Vector3.zero, invDestY, Color.grey, matrixNoScale);
             t.set(extent.x, extent.y * .2, extent.z);
             GeometryRenderer.drawBox(yPos, t, yPosColor, matrixNoScale);
             GeometryRenderer.drawBox(yPos2, t, yNegColor, matrixNoScale);
             
-            const destZ = Private.zPlaneDir > 0 ? zPos : zPos2;
+            const destZ = zp ? zPos : zPos2;
+            const invDestZ = Vector3.fromPool().copy(destZ).flip();
             GeometryRenderer.drawLine(Vector3.zero, destZ, Color.blue, matrixNoScale);
-            GeometryRenderer.drawLine(Vector3.zero, Vector3.fromPool().copy(destZ).flip(), Color.grey, matrixNoScale);
+            // GeometryRenderer.drawLine(Vector3.zero, invDestZ, Color.grey, matrixNoScale);
             t.set(extent.x, extent.y, extent.z * .2);
             GeometryRenderer.drawBox(zPos, t, zPosColor, matrixNoScale);
             GeometryRenderer.drawBox(zPos2, t, zNegColor, matrixNoScale);
