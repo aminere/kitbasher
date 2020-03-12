@@ -63,6 +63,7 @@ namespace Private {
     export const yPlane = new Plane(new Vector3().copy(Vector3.up));
     export const zPlane = new Plane(new Vector3().copy(Vector3.forward));
     export let previousPickedTarget: Entity | null = null;
+    export let pickedEntity: Entity | null = null;
 
     const entityData = new Map<Entity, IEntityData>();
 
@@ -291,7 +292,14 @@ namespace Private {
         }
 
         return {
-            closest: closest.parent as Entity,
+            closest: (() => {
+                const parent = closest.parent as Entity;
+                if (Tiling.hasTiling(parent.parent as Entity)) {
+                    return parent.parent as Entity;
+                } else {
+                    return parent;
+                }
+            })(),
             normal,
             intersection: new Vector3()
                 .copy(pickingRay.direction)
@@ -411,15 +419,15 @@ export class Controller {
         if (State.instance.selection.length < 1) {
             return;
         }
-        State.instance.selection.forEach(entity => {
-            if (Tiling.hasTiling(entity)) {
-                const child = entity.children[0];
-                const v = child.getComponent(Visual) as Visual;
-                const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-                const path = mesh.templatePath as string;
-                Interfaces.objectManager.deleteObject(mesh);
-                Interfaces.file.delete(path);
-            }
+        State.instance.selection.forEach(entity => {      
+            // if (Tiling.hasTiling(entity)) {
+            //     const child = entity.children[0];
+            //     const v = child.getComponent(Visual) as Visual;
+            //     const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+            //     const path = mesh.templatePath as string;
+            //     Interfaces.objectManager.deleteObject(mesh);
+            //     Interfaces.file.delete(path);
+            // }      
             entity.destroy();
             Private.removeEntityData(entity);
         });
@@ -481,6 +489,9 @@ export class Controller {
                             selectedKitInstance.transform.rotation = rotation;
                         }
                     }
+                    Private.pickedEntity = pickedEntity;
+                } else {
+                    Private.pickedEntity = null;
                 }                
             } else {
                 if (EntityController.visible) {
@@ -540,6 +551,16 @@ export class Controller {
             if (selectedKitInstance.active) {
                 Private.instantiateKit(selectedKitInstance)
                     .then(() => {
+
+                        if (State.instance.selectedKit?.type === "prop") {
+                            if (Private.pickedEntity) {
+                                Private.pickedEntity.children[0].addChild(
+                                    selectedKitInstance,
+                                    true
+                                );
+                            }
+                        }
+                        
                         State.instance.selectedKit = null;
                         State.instance.setSelection(selectedKitInstance);
                     });
