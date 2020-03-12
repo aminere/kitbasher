@@ -81,8 +81,9 @@ export class NumberEditor extends React.PureComponent<INumberEditorProps, INumbe
     }
 
     private validateInput() {
-        const parsed = Number(this.state.valueAsString).valueOf();
-        if (parsed === this.state.valueAsNumber) {
+        const { valueAsString } = this.state;
+        const parsed = valueAsString.length > 0 ? Number(valueAsString).valueOf() : Number.NaN;
+        if (parsed === this.state.valueAsNumber) {            
             return;
         }
         
