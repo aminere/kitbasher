@@ -29,7 +29,7 @@ namespace Private {
     export const axisThicknessFactor = .1;
     export const coneRadiusFactor = .01;
     export const coneLengthFactor = .02;
-    export const xyzLengthFactor = .32;
+    export const xyzLengthFactor = .27;
     export const xyzBoxThickness = .09;
     export const rotationCollisionRadius = .7;
 
@@ -692,20 +692,61 @@ export class EntityController {
             const matrixNoScale = Matrix44.fromPool().compose(Private.centeredPos, rotation, Vector3.one);
             
             const t = Vector3.fromPool();
-            GeometryRenderer.drawLine(xPos, xPos2, Color.red, matrixNoScale);
-            t.set(extent.x * .4, extent.y, extent.z);
+            Private.xPlaneDir = Math.sign(localCameraPos.x) ?? 1;
+            Private.yPlaneDir = Math.sign(localCameraPos.y) ?? 1;
+            Private.zPlaneDir = Math.sign(localCameraPos.z) ?? 1;
+            
+            const destX = Private.xPlaneDir > 0 ? xPos : xPos2;            
+            GeometryRenderer.drawLine(Vector3.zero, destX, Color.red, matrixNoScale);
+            GeometryRenderer.drawLine(Vector3.zero, Vector3.fromPool().copy(destX).flip(), Color.grey, matrixNoScale);
+            t.set(extent.x * .2, extent.y, extent.z);
             GeometryRenderer.drawBox(xPos, t, xPosColor, matrixNoScale);
             GeometryRenderer.drawBox(xPos2, t, xNegColor, matrixNoScale);
             
-            GeometryRenderer.drawLine(yPos, yPos2, Color.green, matrixNoScale);
-            t.set(extent.x, extent.y * .4, extent.z);
+            const destY = Private.yPlaneDir > 0 ? yPos : yPos2;
+            GeometryRenderer.drawLine(Vector3.zero, destY, Color.green, matrixNoScale);
+            GeometryRenderer.drawLine(Vector3.zero, Vector3.fromPool().copy(destY).flip(), Color.grey, matrixNoScale);
+            t.set(extent.x, extent.y * .2, extent.z);
             GeometryRenderer.drawBox(yPos, t, yPosColor, matrixNoScale);
             GeometryRenderer.drawBox(yPos2, t, yNegColor, matrixNoScale);
             
-            GeometryRenderer.drawLine(zPos, zPos2, Color.blue, matrixNoScale);
-            t.set(extent.x, extent.y, extent.z * .4);
+            const destZ = Private.zPlaneDir > 0 ? zPos : zPos2;
+            GeometryRenderer.drawLine(Vector3.zero, destZ, Color.blue, matrixNoScale);
+            GeometryRenderer.drawLine(Vector3.zero, Vector3.fromPool().copy(destZ).flip(), Color.grey, matrixNoScale);
+            t.set(extent.x, extent.y, extent.z * .2);
             GeometryRenderer.drawBox(zPos, t, zPosColor, matrixNoScale);
             GeometryRenderer.drawBox(zPos2, t, zNegColor, matrixNoScale);
+
+            const corner = (v1: Vector3, v2: Vector3, color: Color) => {
+                GeometryRenderer.drawLine(
+                    Vector3.fromPool().addVectors(v1, v2), 
+                    Vector3.fromPool().copy(v2).multiply(.8).add(v1),
+                    color, 
+                    matrixNoScale
+                );
+                GeometryRenderer.drawLine(
+                    Vector3.fromPool().addVectors(v1, v2), 
+                    Vector3.fromPool().copy(v1).multiply(.8).add(v2),
+                    color,
+                    matrixNoScale
+                );
+            };
+            
+            corner(
+                Vector3.fromPool().copy(xPos).multiply(Private.xPlaneDir), 
+                Vector3.fromPool().copy(zPos).multiply(Private.zPlaneDir), 
+                Color.green
+            );
+            corner(
+                Vector3.fromPool().copy(xPos).multiply(Private.xPlaneDir), 
+                Vector3.fromPool().copy(yPos).multiply(Private.yPlaneDir),
+                Color.blue
+            );
+            corner(
+                Vector3.fromPool().copy(zPos).multiply(Private.zPlaneDir), 
+                Vector3.fromPool().copy(yPos).multiply(Private.yPlaneDir),
+                Color.red
+            );
 
             /*const coneRadius = distFromCamera * coneRadiusFactor;
             const coneLength = distFromCamera * coneLengthFactor;
@@ -737,9 +778,6 @@ export class EntityController {
                 position
             );*/
 
-            Private.xPlaneDir = Math.sign(localCameraPos.x) ?? 1;
-            Private.yPlaneDir = Math.sign(localCameraPos.y) ?? 1;
-            Private.zPlaneDir = Math.sign(localCameraPos.z) ?? 1;
             GeometryRenderer.drawQuad(
                 xyzPoint1.set(0, Private.yPlaneDir, 0),
                 xyzPoint2.set(Private.xPlaneDir, Private.yPlaneDir, 0),
