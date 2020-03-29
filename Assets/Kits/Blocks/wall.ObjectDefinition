@@ -72,6 +72,19 @@
               "value": "block"
             }
           }
+        },
+        {
+          "baseTypeName": "BasePin",
+          "data": {
+            "typeName": "StringPin",
+            "version": 2,
+            "properties": {
+              "id": "1e7b682c-963a-4053-81f7-68ed07862d8e",
+              "name": "tiling",
+              "type": 2,
+              "value": "texture"
+            }
+          }
         }
       ]
     },

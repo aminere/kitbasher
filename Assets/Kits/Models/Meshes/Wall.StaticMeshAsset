@@ -2,7 +2,7 @@
   "typeName": "StaticMeshAsset",
   "version": 1,
   "properties": {
-    "id": "41184b26-ef1d-4e2e-9953-c9a71989f742",
+    "id": "64f9ad4f-f761-4b3d-80af-568d2b12119a",
     "name": "Wall",
     "_vertexBuffer": {
       "typeName": "VertexBuffer",

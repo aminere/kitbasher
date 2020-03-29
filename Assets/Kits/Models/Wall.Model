@@ -2,7 +2,7 @@
   "typeName": "Model",
   "version": 2,
   "properties": {
-    "id": "f1608c31-0096-4b1b-bb8e-dae916a202a3",
+    "id": "eacd772b-f4c8-475e-b785-462e6178e54f",
     "name": "Wall",
     "fbxScaleFactor": 0.01,
     "elements": {
@@ -14,7 +14,7 @@
             "typeName": "ModelMesh",
             "version": 2,
             "properties": {
-              "id": "3b357b20-76f4-44cf-9f33-982df1380555",
+              "id": "186e1bf8-b5ab-408f-bab5-cdae88ec8de9",
               "name": "Wall",
               "children": {
                 "typeName": "ModelElement",
@@ -45,7 +45,7 @@
               },
               "material": {
                 "typeName": "Material",
-                "id": "Assets/Materials/default.Material"
+                "id": "Assets/Kits/Models/Materials/Default.Material"
               },
               "mesh": {
                 "typeName": "StaticMeshAsset",
