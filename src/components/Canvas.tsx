@@ -11,7 +11,7 @@ import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine
 import { Commands } from "../Commands";
 import { Panel } from "./Panel";
 import { PlaneSelector } from "./PlaneSelector";
-import { ControlMode, IKitAsset } from "../Types";
+import { ControlMode, IKitAsset, TilingMode } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
@@ -272,8 +272,29 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                             <div>
                                                 <PropertyGrid
                                                     ref={e => this._transform = e as PropertyGrid}
-                                                    target={this._mockState.selection[0].getComponent(Transform) as Transform}
+                                                    target={(() => {
+                                                        const t = this._mockState.selection[0].getComponent(Transform) as Transform;
+                                                        return {
+                                                            position: t.position,
+                                                            rotation: t.rotation,
+                                                            scale: t.scale,
+                                                            tiling: TilingMode.Texture
+                                                        };
+                                                    })()}
+                                                    metadata={{
+                                                        tiling: {
+                                                            enumLiterals: {
+                                                                [TilingMode.Texture]: "Texture",
+                                                                [TilingMode.Geometry]: "Geometry",
+                                                                [TilingMode.None]: "None",
+                                                            }
+                                                        }
+                                                    }}
                                                     onPropertyChanged={(name, newValue) => {
+                                                        if (name === "tiling") {
+                                                            console.log(newValue);
+                                                            return;
+                                                        }
                                                         SerializerUtilsInternal.tryUsePropertySetter = true;
                                                         const entity = this._mockState.selection[0];
                                                         SerializerUtils.setProperty(
@@ -284,7 +305,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                         SerializerUtilsInternal.tryUsePropertySetter = false;
                                                         Commands.saveScene.post();
                                                     }}
-                                                />                                                
+                                                />
                                             </div>
                                         )}
                                         controls={(
