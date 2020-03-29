@@ -609,8 +609,7 @@ export class EntityController {
             return;
         }
 
-        const gl = WebGL.context;
-        gl.disable(gl.DEPTH_TEST);
+        WebGL.enableDepthTest(false);
         const { transform } = selectedEntity;
         if (!transform) {
             return;
@@ -823,10 +822,10 @@ export class EntityController {
                 GeometryRenderer.drawCircle(ringColor, lookAt);
 
                 // mask     
-                gl.enable(gl.DEPTH_TEST);
-                gl.depthMask(true);
-                gl.clear(gl.DEPTH_BUFFER_BIT);
-                gl.colorMask(false, false, false, false);
+                WebGL.enableDepthTest(true);
+                WebGL.enableDepthWrite(true);
+                WebGL.context.clear(WebGL.context.DEPTH_BUFFER_BIT);
+                WebGL.context.colorMask(false, false, false, false);
                 const maskPos = Vector3.fromPool().copy(Private.centeredPos);
                 const maskOffset = Vector3.fromPool().copy(toCamera).flip().multiply(0.01);
                 GeometryRenderer.drawBillboard(
@@ -836,8 +835,8 @@ export class EntityController {
                     Color.black,
                     camera
                 );
-                gl.depthMask(false);
-                gl.colorMask(true, true, true, true);
+                WebGL.enableDepthWrite(false);
+                WebGL.context.colorMask(true, true, true, true);
 
                 lookAt.makeLookAt(transform.worldForward, transform.worldUp)
                     .transpose()

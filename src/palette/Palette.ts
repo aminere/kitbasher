@@ -38,7 +38,7 @@ namespace Private {
         m.shaderParams = { ...existingParams, ...newParams } as unknown as SerializableObject;
     }
 
-    export function makeMaterial(slot: PaletteSlot, index: number, ) {
+    export function makeMaterial(slot: PaletteSlot, index: number) {
         const material = defaultMaterial.copy() as Material;
         material.isPersistent = true;
         material.templatePath = `Assets/Materials/${index}.Material`;

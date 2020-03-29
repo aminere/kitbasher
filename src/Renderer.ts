@@ -111,7 +111,7 @@ export class Renderer {
     }
 
     public static preRender(camera: Camera) {
-        WebGL.context.depthMask(true);
+        WebGL.enableDepthWrite(true);
         const { debugMaterial } = Private;
         debugMaterial.queueParameter("projectionMatrix", camera.getProjectionMatrix());
         debugMaterial.queueParameter("modelViewMatrix", camera.getViewMatrix());

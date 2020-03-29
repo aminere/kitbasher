@@ -292,7 +292,6 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                     }}
                                                     onPropertyChanged={(name, newValue) => {
                                                         if (name === "tiling") {
-                                                            console.log(newValue);
                                                             return;
                                                         }
                                                         SerializerUtilsInternal.tryUsePropertySetter = true;

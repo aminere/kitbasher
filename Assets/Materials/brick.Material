@@ -29,6 +29,12 @@
             "id": "Assets/Textures/brick.Texture2D"
           }
         },
+        "normalMap": {
+          "typeName": "AssetReference",
+          "data": {
+            "typeName": "Texture"
+          }
+        },
         "specularMap": {
           "typeName": "AssetReference",
           "data": {
@@ -63,6 +69,10 @@
           }
         },
         "shininess": {
+          "typeName": "Number",
+          "data": 0
+        },
+        "reflectivity": {
           "typeName": "Number",
           "data": 0
         }
