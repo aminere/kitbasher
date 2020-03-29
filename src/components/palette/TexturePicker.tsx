@@ -1,9 +1,9 @@
 
 import * as React from "react";
-import { Texture2D } from "../../../../spider-engine/src/graphics/Texture2D";
 import { Select } from "@blueprintjs/select";
 import { Textures } from "../../Textures";
 import { MenuItem } from "@blueprintjs/core";
+import { Texture2D } from "../../../../spider-engine/src/graphics/texture/Texture2D";
 
 interface ITexturePickerProps {
     initialTexture: Texture2D | null;

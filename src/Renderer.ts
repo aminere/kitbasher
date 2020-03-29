@@ -1,4 +1,3 @@
-import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { Assets } from "../../spider-engine/src/assets/Assets";
 import { Material } from "../../spider-engine/src/graphics/Material";
 import { Asset } from "../../spider-engine/src/assets/Asset";
@@ -12,6 +11,7 @@ import { EntityController } from "./EntityController";
 import { Events } from "./Events";
 import { State } from "./State";
 import { Plane } from "./Types";
+import { Camera } from "../../spider-engine/src/graphics/camera/Camera";
 
 namespace Private {
     export let debugMaterial: Material;
@@ -29,7 +29,7 @@ namespace Private {
     let grid: VertexBuffer | null = null;
     export function invalidateGrid() {
         if (grid) {
-            grid.unload(WebGL.context);
+            grid.unload();
         }
         grid = null;
     }
@@ -117,7 +117,7 @@ export class Renderer {
         debugMaterial.queueParameter("modelViewMatrix", camera.getViewMatrix());
         debugMaterial.queueParameter("ambient", Color.white);
         if (debugMaterial.begin() && debugMaterial.shader) {
-            GraphicUtils.drawVertexBuffer(WebGL.context, Private.getGrid(), debugMaterial.shader);
+            GraphicUtils.drawVertexBuffer(Private.getGrid(), debugMaterial.shader);
         }
     }
 

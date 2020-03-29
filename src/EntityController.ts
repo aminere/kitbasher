@@ -4,7 +4,6 @@ import { Plane, PlaneClassification } from "../../spider-engine/src/math/Plane";
 import { AABB } from "../../spider-engine/src/math/AABB";
 import { Color } from "../../spider-engine/src/graphics/Color";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
-import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { Vector2 } from "../../spider-engine/src/math/Vector2";
 import { State } from "./State";
 import { Axis, ControlMode, PlaneType } from "./Types";
@@ -14,10 +13,10 @@ import { Transform } from "../../spider-engine/src/core/Transform";
 import { WebGL } from "../../spider-engine/src/graphics/WebGL";
 import { GeometryRenderer } from "../../spider-engine/src/graphics/geometry/GeometryRenderer";
 import { Snapping } from "./Snapping";
-import { Settings } from "./Settings";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
+import { Camera } from "../../spider-engine/src/graphics/camera/Camera";
 
 namespace Private {
     export let visible = false;

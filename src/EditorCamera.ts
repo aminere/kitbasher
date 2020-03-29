@@ -3,8 +3,8 @@ import { Vector2 } from "../../spider-engine/src/math/Vector2";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
 import { Vector3 } from "../../spider-engine/src/math/Vector3";
-import { Camera } from "../../spider-engine/src/graphics/Camera";
 import { State } from "./State";
+import { Camera } from "../../spider-engine/src/graphics/camera/Camera";
 
 namespace Private {
     export let camera: Entity;

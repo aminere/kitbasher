@@ -1,6 +1,6 @@
-import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Model } from "../../spider-engine/src/assets/model/Model";
 import { Material } from "../../spider-engine/src/graphics/Material";
+import { Texture2D } from "../../spider-engine/src/graphics/texture/Texture2D";
 
 export enum Plane {
     X,
@@ -29,6 +29,12 @@ export enum ControlMode {
 export enum ScalingMode {
     Stretch,
     Tile
+}
+
+export enum TilingMode {
+    Texture,
+    Geometry,
+    None
 }
 
 export enum Axis {

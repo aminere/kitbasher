@@ -1,6 +1,6 @@
-import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Manifest } from "./Manifest";
 import { Assets } from "../../spider-engine/src/assets/Assets";
+import { Texture2D } from "../../spider-engine/src/graphics/texture/Texture2D";
 
 namespace Private {
     export let textures: Texture2D[] = [];

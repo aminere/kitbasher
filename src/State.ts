@@ -2,11 +2,11 @@
 import { IKitAsset, ControlMode, Plane, ContentItemType, ScalingMode } from "./Types";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { Events } from "./Events";
-import { Texture2D } from "../../spider-engine/src/graphics/Texture2D";
 import { Utils } from "./Utils";
 import { Material } from "../../spider-engine/src/graphics/Material";
 import { Interfaces } from "../../spider-engine/src/spider-engine";
 import * as Attributes from "../../spider-engine/src/core/Attributes";
+import { Texture2D } from "../../spider-engine/src/graphics/texture/Texture2D";
 
 interface IPersistentState {
     grid: Plane;
