@@ -1,18 +1,29 @@
 
-import { Transform, Visual, Vector3, Quaternion } from "../../spider-engine/src/spider-engine";
+import { Transform, Visual, Vector3, Quaternion, StaticMesh, Interfaces } from "../../spider-engine/src/spider-engine";
 import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { AABB } from "../../spider-engine/src/math/AABB";
+import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
+import { TilingType } from "./Types";
 
 export class Tiling {
 
-    public static hasTiling(entity: Entity) {
-        return entity.children[0].name.includes("_Tiles_");
-        // const child = entity.children[0];
-        // const v = child.getComponent(Visual) as Visual;
-        // const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
-        // return mesh.templatePath?.includes("_Tiled_");
+    public static getTiling(entity: Entity): TilingType {
+        const child = entity.children[0];
+        const v = child.getComponent(Visual) as Visual;
+        const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+        const path = mesh.templatePath as string;
+        const [m, tiling] = path.match(/_Tiling_([a-z]+)/) ?? ["none", "none"];
+        return tiling as TilingType;
     }
+
+    // public static hasTiling(entity: Entity) {
+    //     // return entity.children[0].name.includes("_Tiles_");
+    //     const child = entity.children[0];
+    //     const v = child.getComponent(Visual) as Visual;
+    //     const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+    //     return mesh.templatePath?.includes("_Tiled_");
+    // }
 
     // public static getOriginalMesh(tiled: StaticMeshAsset): Promise<StaticMeshAsset> {
     //     const path = tiled.templatePath as string;
@@ -24,6 +35,31 @@ export class Tiling {
     //     }
     //     return Assets.load(originalPath).then(o => o as StaticMeshAsset);
     // }
+
+    public static async createTiledMesh(entity: Entity, tiling: TilingType) {
+        const child = entity.children[0];
+        const v = child.getComponent(Visual) as Visual;
+        const mesh = (v.geometry as StaticMesh).mesh as StaticMeshAsset;
+        const unique = mesh.copy() as StaticMeshAsset;
+        unique.isPersistent = true;
+        const n = `${mesh.name}_Tiling_${tiling}_${child.id}`;
+        unique.templatePath = unique.templatePath?.replace(mesh.name, n);
+        await Interfaces.file.write(unique.templatePath as string, JSON.stringify(unique.serialize()));
+        (v.geometry as StaticMesh).mesh = unique;
+    }
+
+    public static async tryDeleteTiledMesh(entity: Entity) {
+        if (Tiling.getTiling(entity) === "none") {
+            return null;
+        }
+        const mesh = ((entity.children[0].getComponent(Visual)?.geometry as StaticMesh).mesh as StaticMeshAsset);
+        Interfaces.objectManager.deleteObject(mesh);
+        const path = mesh.templatePath as string;
+        await Interfaces.file.delete(path);
+        const i = path.indexOf("_Tiling_");
+        const originalPath = `${path.slice(0, i)}.StaticMeshAsset`; 
+        return originalPath;
+    }
 
     public static tiledCoord(coord: number) {
         return Math.max(1, Math.round(Math.abs(coord)));

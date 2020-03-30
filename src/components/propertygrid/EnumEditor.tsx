@@ -22,6 +22,12 @@ export class EnumEditor extends React.Component<IEnumEditorProps, IEnumEditorSta
         };
     }
 
+    public UNSAFE_componentWillReceiveProps(nextProps: IEnumEditorProps) {
+        if (nextProps.initialValue !== this.state.value) {
+            this.setState({ value: nextProps.initialValue });
+        }
+    }
+
     public render() {
         const { literals } = this.props;
         const entries = Object.entries(literals);

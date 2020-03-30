@@ -9,6 +9,7 @@ export enum Plane {
 }
 
 export type PlaneType = "x" | "y" | "z";
+export type TilingType = "texture" | "geometry" | "none";
 type KitType = "block" | "prop";
 
 export type ContentItemType = IKitAsset | Texture2D | Material;
@@ -19,6 +20,7 @@ export interface IKitAsset {
     model: Model;
     plane: PlaneType;
     type: KitType;
+    tiling: TilingType;
 }
 
 export enum ControlMode {
@@ -29,12 +31,6 @@ export enum ControlMode {
 export enum ScalingMode {
     Stretch,
     Tile
-}
-
-export enum TilingMode {
-    Texture,
-    Geometry,
-    None
 }
 
 export enum Axis {

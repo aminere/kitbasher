@@ -10,7 +10,7 @@ import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Plane, Vector2, MathEx, SerializableObject } from "../../spider-engine/src/spider-engine";
+import { Plane, Vector2, MathEx, SerializableObject, StaticMesh, Interfaces } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -40,6 +40,8 @@ import { FileInterface } from "./FileInterface";
 import { Models } from "./Models";
 import { ModelMesh } from "../../spider-engine/src/assets/model/ModelMesh";
 import { AABB } from "../../spider-engine/src/math/AABB";
+import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
+import { Tiling } from "./Tiling";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -75,20 +77,23 @@ namespace Private {
         return data;
     }   
 
-    function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
-        return Model.instantiate(kit.model)
-            .then(instance => {
-                if (position) {
-                    instance.updateComponent(Transform, { position });
-                }
-                if (rotation) {
-                    instance.updateComponent(Transform, { rotation });
-                }
-                entityData.set(instance, {
-                    kit
-                });
-                return instance;
-            });
+    async function createKit(kit: IKitAsset, position?: Vector3, rotation?: Quaternion) {
+        const instance = await Model.instantiate(kit.model);
+        if (position) {
+            instance.updateComponent(Transform, { position });
+        }
+        if (rotation) {
+            instance.updateComponent(Transform, { rotation });
+        }
+        entityData.set(instance, {
+            kit
+        });
+        Private.selectedKitInstance = instance;
+        instance.active = false;
+
+        if (kit.tiling !== "none") {
+            return Tiling.createTiledMesh(instance, kit.tiling);
+        }
     }    
 
     export let lastInstantiatedKit: Entity | null = null;
@@ -99,11 +104,7 @@ namespace Private {
                 State.instance.selectedKit as IKitAsset,
                 instance.transform.position,
                 instance.transform.rotation
-            ))
-            .then(newInstance => {
-                Private.selectedKitInstance = newInstance;
-                newInstance.active = false;
-            });
+            ));
     }
 
     export function determineKitPosition(instance: Entity, localX: number, localY: number): [
@@ -330,15 +331,13 @@ namespace Private {
 
                 Events.selectedItemChanged.attach(item => {
                     if (selectedKitInstance) {
+                        Tiling.tryDeleteTiledMesh(selectedKitInstance);
                         selectedKitInstance.destroy();
                         Private.selectedKitInstance = null;
                         Private.lastInstantiatedKit = null;
                     }
                     if (item && Utils.isModel(item)) {
-                        createKit(item as IKitAsset).then(instance => {
-                            Private.selectedKitInstance = instance;
-                            instance.active = false;
-                        });
+                        createKit(item as IKitAsset);
                     }
                 });
 
@@ -409,7 +408,8 @@ export class Controller {
         if (State.instance.selection.length < 1) {
             return;
         }
-        State.instance.selection.forEach(entity => {           
+        State.instance.selection.forEach(entity => {      
+            Tiling.tryDeleteTiledMesh(entity);
             entity.destroy();
             Private.removeEntityData(entity);
         });
