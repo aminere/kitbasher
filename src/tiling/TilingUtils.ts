@@ -1,12 +1,13 @@
 
-import { Transform, Visual, Vector3, Quaternion, StaticMesh, Interfaces } from "../../spider-engine/src/spider-engine";
-import { Entity } from "../../spider-engine/src/core/Entity";
-import { BoundingBoxes } from "./BoundingBoxes";
-import { AABB } from "../../spider-engine/src/math/AABB";
-import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
-import { TilingType } from "./Types";
+import { Transform, Visual, Vector3, Quaternion, StaticMesh, Interfaces } from "../../../spider-engine/src/spider-engine";
+import { Entity } from "../../../spider-engine/src/core/Entity";
+import { BoundingBoxes } from "../BoundingBoxes";
+import { AABB } from "../../../spider-engine/src/math/AABB";
+import { StaticMeshAsset } from "../../../spider-engine/src/assets/StaticMeshAsset";
+import { TilingType } from "../Types";
+import { Tiling } from "./Tiling";
 
-export class Tiling {
+export class TilingUtils {
 
     public static getTiling(entity: Entity): TilingType {
         const child = entity.children[0];
@@ -46,18 +47,18 @@ export class Tiling {
         unique.templatePath = unique.templatePath?.replace(mesh.name, n);
         await Interfaces.file.write(unique.templatePath as string, JSON.stringify(unique.serialize()));
         (v.geometry as StaticMesh).mesh = unique;
+        entity.getOrSetComponent(Tiling);
     }
 
     public static async tryDeleteTiledMesh(entity: Entity) {
-        if (Tiling.getTiling(entity) === "none") {
+        if (!entity.hasComponent(Tiling)) {
             return null;
         }
         const mesh = ((entity.children[0].getComponent(Visual)?.geometry as StaticMesh).mesh as StaticMeshAsset);
         Interfaces.objectManager.deleteObject(mesh);
         const path = mesh.templatePath as string;
         await Interfaces.file.delete(path);
-        const i = path.indexOf("_Tiling_");
-        const originalPath = `${path.slice(0, i)}.StaticMeshAsset`; 
+        const originalPath = `${path.slice(0, path.indexOf("_Tiling_"))}.StaticMeshAsset`; 
         return originalPath;
     }
 
@@ -69,7 +70,7 @@ export class Tiling {
         const tiles = entity.children[0];
         const { scale } = entity.transform;
         tiles.transform.scale = new Vector3(1, 1, 1).divideVector(scale);
-        const [x, y, z] = scale.asArray().map(Tiling.tiledCoord);
+        const [x, y, z] = scale.asArray().map(TilingUtils.tiledCoord);
         const bbox = BoundingBoxes.getLocal(entity) as AABB;   
         const size = Vector3.fromPool().substractVectors(bbox.max, bbox.min);
         tiles.removeAllChildren();

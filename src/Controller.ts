@@ -10,7 +10,7 @@ import { Visual } from "../../spider-engine/src/graphics/Visual";
 import { Ray } from "../../spider-engine/src/math/Ray";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Material } from "../../spider-engine/src/graphics/Material";
-import { Plane, Vector2, MathEx, SerializableObject, StaticMesh, Interfaces } from "../../spider-engine/src/spider-engine";
+import { Plane, Vector2, MathEx, SerializableObject, StaticMesh, Interfaces, Component } from "../../spider-engine/src/spider-engine";
 import { Renderer } from "./Renderer";
 import { ObjectManagerInternal } from "../../spider-engine/src/core/ObjectManager";
 import { EditorCamera } from "./EditorCamera";
@@ -41,7 +41,8 @@ import { Models } from "./Models";
 import { ModelMesh } from "../../spider-engine/src/assets/model/ModelMesh";
 import { AABB } from "../../spider-engine/src/math/AABB";
 import { StaticMeshAsset } from "../../spider-engine/src/assets/StaticMeshAsset";
-import { Tiling } from "./Tiling";
+import { TilingUtils } from "./tiling/TilingUtils";
+import { Tiling } from "./tiling/Tiling";
 
 interface IEntityData {
     kit: IKitAsset;
@@ -92,7 +93,7 @@ namespace Private {
         instance.active = false;
 
         if (kit.tiling !== "none") {
-            return Tiling.createTiledMesh(instance, kit.tiling);
+            return TilingUtils.createTiledMesh(instance, kit.tiling);
         }
     }    
 
@@ -331,7 +332,7 @@ namespace Private {
 
                 Events.selectedItemChanged.attach(item => {
                     if (selectedKitInstance) {
-                        Tiling.tryDeleteTiledMesh(selectedKitInstance);
+                        TilingUtils.tryDeleteTiledMesh(selectedKitInstance);
                         selectedKitInstance.destroy();
                         Private.selectedKitInstance = null;
                         Private.lastInstantiatedKit = null;
@@ -372,7 +373,8 @@ namespace Private {
                 customTypes: [
                     [PaletteSlot, SerializableObject],
                     [ColorSlot, PaletteSlot],
-                    [MaterialSlot, PaletteSlot]
+                    [MaterialSlot, PaletteSlot],
+                    [Tiling, Component]
                 ],
                 customFileIO: new FileInterface(),
                 preRender: Renderer.preRender,
@@ -409,7 +411,7 @@ export class Controller {
             return;
         }
         State.instance.selection.forEach(entity => {      
-            Tiling.tryDeleteTiledMesh(entity);
+            TilingUtils.tryDeleteTiledMesh(entity);
             entity.destroy();
             Private.removeEntityData(entity);
         });

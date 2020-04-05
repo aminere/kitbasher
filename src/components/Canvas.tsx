@@ -15,10 +15,11 @@ import { ControlMode, IKitAsset, TilingType } from "../Types";
 import { ModelMesh } from "../../../spider-engine/src/assets/model/ModelMesh";
 import { MaterialEditor } from "./MaterialEditor";
 import { Material } from "../../../spider-engine/src/graphics/Material";
-import { Visual, Interfaces, Assets, StaticMesh } from "../../../spider-engine/src/spider-engine";
+import { Visual, Interfaces, Assets, StaticMesh, Vector3 } from "../../../spider-engine/src/spider-engine";
 import { Palette } from "../palette/Palette";
-import { Tiling } from "../Tiling";
+import { TilingUtils } from "../tiling/TilingUtils";
 import { StaticMeshAsset } from "../../../spider-engine/src/assets/StaticMeshAsset";
+import { Tiling } from "../tiling/Tiling";
 
 // tslint:disable:max-line-length
 
@@ -275,22 +276,43 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                             <div>
                                                 <PropertyGrid
                                                     ref={e => this._transform = e as PropertyGrid}
-                                                    target={this._mockState.selection[0].getComponent(Transform) as Transform}                                                    
+                                                    target={(() => {
+                                                        const tr = this._mockState.selection[0].getComponent(Transform) as Transform;
+                                                        return {
+                                                            position: tr.position,
+                                                            rotation: tr.rotation
+                                                        };
+                                                    })()}                                                    
                                                     onPropertyChanged={(name, newValue) => {
-                                                        SerializerUtilsInternal.tryUsePropertySetter = true;
-                                                        const entity = this._mockState.selection[0];
-                                                        SerializerUtils.setProperty(
-                                                            entity.getComponent(Transform) as Transform,
-                                                            name,
-                                                            newValue
-                                                        );                                                        
-                                                        SerializerUtilsInternal.tryUsePropertySetter = false;
+                                                        const tr = this._mockState.selection[0].getComponent(Transform) as Transform;
+                                                        tr[name] = newValue;
+                                                        Commands.saveScene.post();
+                                                    }}
+                                                />
+                                               <PropertyGrid
+                                                    target={(() => {
+                                                        const ti = this._mockState.selection[0].getComponent(Tiling) as Tiling;
+                                                        if (ti) {
+                                                            return { scale: ti.size };
+                                                        } else {
+                                                            const tr = this._mockState.selection[0].getComponent(Transform) as Transform;
+                                                            return { scale: tr.scale };
+                                                        }
+                                                    })()}                                                    
+                                                    onPropertyChanged={(name, newValue) => {
+                                                        const ti = this._mockState.selection[0].getComponent(Tiling) as Tiling;
+                                                        if (ti) {
+                                                            ti.size = newValue;
+                                                        } else {
+                                                            const tr = this._mockState.selection[0].getComponent(Transform) as Transform;
+                                                            tr[name] = newValue;
+                                                        }
                                                         Commands.saveScene.post();
                                                     }}
                                                 />
                                                 <PropertyGrid
                                                     target={{
-                                                        tiling: tilingLiterals.indexOf(Tiling.getTiling(this._mockState.selection[0]))
+                                                        tiling: tilingLiterals.indexOf(TilingUtils.getTiling(this._mockState.selection[0]))
                                                     }}
                                                     metadata={{
                                                         tiling: {
@@ -302,7 +324,7 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                     onPropertyChanged={(name, newValue) => {
                                                         const e = this._mockState.selection[0];
                                                         const clearMesh = async () => {
-                                                            const original = await Tiling.tryDeleteTiledMesh(e);
+                                                            const original = await TilingUtils.tryDeleteTiledMesh(e);
                                                             if (!original) {
                                                                 return;
                                                             }
@@ -312,10 +334,23 @@ export class Canvas extends React.Component<{}, ICanvasState> {
                                                         };
                                                         if (newValue === tilingLiterals.indexOf("none")) {
                                                             clearMesh()
+                                                                .then(() => {
+                                                                    // transfer tiling size to transform
+                                                                    e.getComponent(Transform)?.setProperty(
+                                                                        "scale",
+                                                                        e.getComponent(Tiling)?.size
+                                                                    );
+                                                                    e.clearComponent(Tiling);
+                                                                    this.forceUpdate();
+                                                                })
                                                                 .then(() => Commands.saveScene.post());
                                                         } else {
-                                                            clearMesh()
-                                                                .then(() => Tiling.createTiledMesh(e, tilingLiterals[newValue]))
+                                                            clearMesh()                                                                
+                                                                .then(() => TilingUtils.createTiledMesh(e, tilingLiterals[newValue]))
+                                                                .then(() => {
+                                                                    // transfer transform to tiling
+                                                                    // TODO
+                                                                })
                                                                 .then(() => Commands.saveScene.post());
                                                         }
                                                     }}

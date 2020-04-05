@@ -6,7 +6,7 @@ import { Color } from "../../spider-engine/src/graphics/Color";
 import { Quaternion } from "../../spider-engine/src/math/Quaternion";
 import { Vector2 } from "../../spider-engine/src/math/Vector2";
 import { State } from "./State";
-import { Axis, ControlMode, PlaneType } from "./Types";
+import { Axis, ControlMode, PlaneType, TilingType } from "./Types";
 import { Events } from "./Events";
 import { Matrix44 } from "../../spider-engine/src/math/Matrix44";
 import { Transform } from "../../spider-engine/src/core/Transform";
@@ -17,6 +17,7 @@ import { Entity } from "../../spider-engine/src/core/Entity";
 import { BoundingBoxes } from "./BoundingBoxes";
 import { MathEx } from "../../spider-engine/src/math/MathEx";
 import { Camera } from "../../spider-engine/src/graphics/camera/Camera";
+import { TilingUtils } from "./tiling/TilingUtils";
 
 namespace Private {
     export let visible = false;
@@ -39,6 +40,7 @@ namespace Private {
 
     export const localPickingRay = new Ray();
     export const initialIntersection = new Vector3();
+    export const initialCenteredPos = new Vector3();
     export const currentIntersection = new Vector3();
     export const translation = new Vector3();
     export const translation2 = new Vector3();
@@ -117,6 +119,7 @@ export class EntityController {
             selectedAxis,
             controlPlane,
             initialIntersection,
+            initialCenteredPos,
             initialPosition,
             initialRotation,
             initialScale,
@@ -213,7 +216,8 @@ export class EntityController {
                         const pickingRay = camera.getWorldRay(clickStart.x, clickStart.y);
                         if (pickingRay) {
                             initialIntersection.copy(pickingRay.castOnPlane(controlPlane).intersection as Vector3);
-                            initialIntersection.substract(transform.worldPosition).normalize();
+                            initialIntersection.substract(Private.centeredPos).normalize();
+                            initialCenteredPos.copy(Private.centeredPos);
                             initialRotation.copy(transform.rotation);
                             localRight.copy(transform.right);
                             localUp.copy(transform.up);
@@ -263,14 +267,22 @@ export class EntityController {
                     };
 
                     if (selectedAxis === Axis.XPos) {
-                        translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
-                        const { length } = translation;
-                        const dir = Math.sign(translation.dot(transform.worldRight));
-                        translation.copy(transform.right).multiply(length * dir);
-                        const scaleAmount = scaleSnap("x", translation, transform.worldRight, 1 / size.x);
-                        const farEdge = Math.max(Math.abs(bbox.min.x), Math.abs(bbox.max.x)) / size.x;
-                        const posAmount = bbox.max.x > 0 ? (1 - farEdge) : farEdge;
-                        transform.position.copy(transform.right).multiply(scaleAmount * posAmount).add(initialPosition);
+                        // translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
+                        // const { length } = translation;
+                        // const dir = Math.sign(translation.dot(transform.worldRight));
+                        // translation.copy(transform.right).multiply(length * dir);
+                        // const scaleAmount = scaleSnap("x", translation, transform.worldRight, 1 / size.x);
+                        // const farEdge = Math.max(Math.abs(bbox.min.x), Math.abs(bbox.max.x)) / size.x;
+                        // const posAmount = bbox.max.x > 0 ? (1 - farEdge) : farEdge;
+                        // transform.position.copy(transform.right).multiply(scaleAmount * posAmount).add(initialPosition);
+
+                        // const tiling = Tiling.getTiling(selectedEntity);
+                        // switch (tiling) {
+                        //     case "texture": {
+                        //         const 
+                        //     }
+                        //         break;
+                        // }
 
                     } else if (selectedAxis === Axis.XNeg) {
                         translation.projectOnVector(transform.worldRight).multiply(1 / parentScale.x);
@@ -388,7 +400,7 @@ export class EntityController {
                     // Rotation
                 } else if (controlMode === ControlMode.Rotate) {
 
-                    currentIntersection.substract(transform.worldPosition).normalize();
+                    currentIntersection.substract(initialCenteredPos).normalize();
                     const angle = Math.acos(initialIntersection.dot(currentIntersection));
                     if (Math.abs(angle) > 0.001) {
                         const snapped = Snapping.snap(angle, State.instance.angleStep * MathEx.degreesToRadians);
