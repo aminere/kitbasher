@@ -4,7 +4,7 @@ import { Events } from "../Events";
 import { Controller } from "../Controller";
 import { Tooltip, Position, Button, Intent, Checkbox, Switch } from "@blueprintjs/core";
 import { State } from "../State";
-import { PropertyGrid } from "./propertygrid/PropertyGrid";
+import { PropertyGrid } from "./PropertyGrid/PropertyGrid";
 import { Entity } from "../../../spider-engine/src/core/Entity";
 import { Transform } from "../../../spider-engine/src/core/Transform";
 import { SerializerUtils, SerializerUtilsInternal } from "../../../spider-engine/src/serialization/SerializerUtils";
