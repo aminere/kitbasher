@@ -22,9 +22,9 @@ namespace Private {
         }
     })();
 
-    export function fallBackCheck(func: () => void) {
+    export function getFallback(func: (f: IFile) => void) {
         if (fallback !== primary) {
-            return func();
+            return func(fallback);
         } else {
             return Promise.reject();
         }
@@ -47,22 +47,22 @@ export class FileInterface implements IFile {
     // tslint:disable-next-line
     public write(path: string, data: any) {
         return Private.primary.write(path, data)
-            .catch(() => Private.fallBackCheck(() => Private.fallback.write(path, data)));
+            .catch(() => Private.getFallback(f => f.write(path, data)));
     }
     public delete(path: string) {
         return Private.primary.delete(path)
-            .catch(() => Private.fallBackCheck(() => Private.fallback.delete(path)));
+            .catch(() => Private.getFallback(f => f.delete(path)));
     }
     public renameFile(oldPath: string, newPath: string) {
         return Private.primary.renameFile(oldPath, newPath)
-            .catch(() => Private.fallBackCheck(() => Private.fallback.renameFile(oldPath, newPath)));
+            .catch(() => Private.getFallback(f => f.renameFile(oldPath, newPath)));
     }
     public renameFolder(oldPath: string, newPath: string) {
         return Private.primary.renameFolder(oldPath, newPath)
-            .catch(() => Private.fallBackCheck(() => Private.fallback.renameFolder(oldPath, newPath)));
+            .catch(() => Private.getFallback(f => f.renameFolder(oldPath, newPath)));
     }
     public clearAllFiles() {
         return Private.primary.clearAllFiles()
-            .catch(() => Private.fallBackCheck(() => Private.fallback.clearAllFiles()));
+            .catch(() => Private.getFallback(f => f.clearAllFiles()));
     }
 }
